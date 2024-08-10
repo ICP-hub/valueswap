@@ -53,8 +53,8 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
 
     console.log("hii", isAuthenticated)
 
-    //   console.log(Principal)
-    //   console.log(principal)
+     console.log("principal, ", principal.toText())
+   
     return (
         <div className='relative '>
             <div className='flex gap-x-4'>

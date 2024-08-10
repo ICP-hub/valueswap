@@ -10,6 +10,7 @@ const initialState = {
     TotalAmount: 0,
     Tokens: [
         {
+            id: "",
             Name: 'Token1',
             ShortForm: 'Token 1',
             Amount: 0,
@@ -22,6 +23,7 @@ const initialState = {
             CanisterId: null
         },
         {
+            id: "",
             Name: "Token2",
             ShortForm: 'Token 2',
             Amount: 0,
@@ -52,6 +54,7 @@ const Pool = createSlice({
             let PercentShare = parseFloat(state.TotalPercentage / coinCount).toFixed(2)
             state.Tokens.push(
                 {
+                    id: "id",
                     Name: 'new Token',
                     ShortForm: `Token ${state.CoinCount}`,
                     Amount: 0,
@@ -117,10 +120,12 @@ const Pool = createSlice({
         SetToken: (state, action) => {
 
             const index = action.payload.index
+            state.Tokens[index].id = action.payload.TokenData.id;
             state.Tokens[index].Name = action.payload.TokenData.Name;
             state.Tokens[index].ShortForm = action.payload.TokenData.ShortForm;
             state.Tokens[index].ImagePath = action.payload.TokenData.ImagePath;
             state.Tokens[index].CanisterId = action.payload.TokenData.CanisterId;
+            state.Tokens[index].currencyAmount = action.payload.TokenData.currencyAmount;
             state.Tokens[index].Selected = true;
             state.TotalAmount = SumUpValue(state.Tokens)
         },

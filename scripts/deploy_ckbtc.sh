@@ -3,8 +3,8 @@ dfx deploy swap
 set -e
 
 # Create and use the DevJourney identity
-dfx identity new DevJourney || true
-dfx identity use DevJourney
+dfx identity new default || true
+dfx identity use default
 
 # dfx canister create swap
 # dfx  build --all
@@ -20,7 +20,7 @@ echo "Token Name: $TOKEN_NAME"
 echo "Token Symbol: $TOKEN_SYMBOL"
 
 # Set initial parameters
-export PRE_MINTED_TOKENS=10_000_000_000.50
+export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID

@@ -5,10 +5,12 @@ import BorderGradientButton from '../../buttons/BorderGradientButton'
 import { useNavigate } from 'react-router-dom'
 import ParticlesBackground from '../particles/Particles'
 import { useSelector } from 'react-redux'
+import { useAuth } from '../utils/useAuthClient'
 const Hero = ({ setClickConnectWallet }) => {
 
     const navigate = useNavigate();
-    const {isConnected} = useSelector(state => state.wallet)
+    // const {isConnected} = useSelector(state => state.wallet)
+    const {isAuthenticated}   = useAuth()
 
     return (
 
@@ -40,7 +42,7 @@ const Hero = ({ setClickConnectWallet }) => {
                         setClickConnectWallet(true)
                     }}>
                         <BorderGradientButton customCss={`bg-[#000711] z-10`}>
-                            {isConnected ? (
+                            {isAuthenticated ? (
                                 <div>
                                     {LandingPageData.HeroSection.DisconnectButton}
                                 </div>
