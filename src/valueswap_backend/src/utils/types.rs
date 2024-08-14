@@ -1,6 +1,15 @@
 use serde::{Deserialize, Serialize};
 use candid::CandidType;
 use candid::{Nat, Principal};
+use ic_cdk::{
+    api::{
+        call::{call_with_payment128, CallResult},
+        canister_version,
+        management_canister::main::{CanisterInstallMode, WasmModule},
+    },
+    call, api,
+};
+use std::collections::{BTreeMap , HashMap};
 
 /// Represents the pool's share with token balances and weights.
 #[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
@@ -27,10 +36,24 @@ impl PoolShare {
 #[derive(CandidType, Deserialize, Serialize, Clone)]
 pub struct CreatePoolParams {
     pub token_names: Vec<String>,   // Names of the tokens
-    pub balances: Vec<f64>,         // Token balances
+    pub balances: Vec<u64>,         // Token balances
     pub weights: Vec<f64>,          // Token weights
-    pub values: Vec<f64>,
+    pub values: Vec<u64>,
+    pub swap_fees: f64,
 }
+// #[derive(CandidType, Deserialize, Serialize, Clone)]
+// pub struct CreatePoolParam{
+//     pub token_n : String,
+//     pub balance : u64,
+//     pub weight : f64,
+//     pub values : u64,
+//     pub swap_fees: f64
+// }
+
+// #[derive(CandidType, Deserialize, Serialize, Clone)]
+// pub struct Pool_Data{
+//     pub pool_data : Vec<CreatePoolParam>
+// }
 
 /// Represents the user's share with their token balances.
 #[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
@@ -55,23 +78,51 @@ impl Default for UserShare {
 }
 
 /// Enum representing different types of tokens.
-#[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
-pub enum TokenType {
-    TokenA,
-    TokenB,
-    // Add more token types as needed
-}
+// #[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
+// pub enum TokenType {
+//     TokenA,
+//     TokenB,
+//     // Add more token types as needed
+// }
 
-impl TokenType {
-    /// Returns the name of the token type as a string.
-    pub fn name(&self) -> &str {
-        match self {
-            TokenType::TokenA => "TokenA",
-            TokenType::TokenB => "TokenB",
-            // Add more token names as needed
-        }
-    }
-}
+// impl TokenType {
+//     /// Returns the name of the token type as a string.
+//     pub fn name(&self) -> &str {
+//         match self {
+//             TokenType::TokenA => "TokenA",
+//             TokenType::TokenB => "TokenB",
+//             // Add more token names as needed
+//         }
+//     }
+// }
+
+// pub type TokenType = String;
+// pub type Amount = u64;
+
+// #[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
+// pub struct Pools{
+//     children: BTreeMap<String, HashMap<TokenType, Amount>>,
+// }
+
+// impl Pools{
+//     pub fn new() -> Self{
+//         Pools {
+//             children: BTreeMap::new(),
+//         }
+//     }
+
+//     pub fn add_child(&mut self , id: String){
+//         self.children.insert(id , HashMap::new());
+//     }
+
+//     pub fn add_token(&mut self, child_id : &str , token : TokenType , amount : Amount){
+//         if let Some(child) = self.children.get_mut(child_id){
+//             child.insert(token, amount);
+//         }else{
+//             println!("Child ID {} not found!", child_id);
+//         }
+//     } 
+// }
 
 // Define the transfer_from arguments and result types
 #[derive(CandidType, Deserialize)]
@@ -108,4 +159,74 @@ pub enum TransferFromError {
     CreatedInFuture { ledger_time: u64 },
     TooOld,
     InsufficientFunds { balance: Nat },
+}
+
+
+#[derive(
+    CandidType, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Default,
+)]
+pub struct CanisterSettings {
+    pub controllers: Option<Vec<Principal>>,
+
+    pub compute_allocation: Option<Nat>,
+
+    pub memory_allocation: Option<Nat>,
+
+    pub freezing_threshold: Option<Nat>,
+
+    pub reserved_cycles_limit: Option<Nat>,
+}
+
+#[derive(
+    CandidType, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone,
+)]
+pub(crate) struct InstallCodeArgumentExtended {
+    pub mode: CanisterInstallMode,
+    pub canister_id: CanisterId,
+    pub wasm_module: WasmModule,
+    pub arg: Vec<u8>,
+    pub sender_canister_version: Option<u64>,
+}
+
+#[derive(
+    CandidType, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Default,
+)]
+pub struct CreateCanisterArgument {
+    pub settings: Option<CanisterSettings>,
+}
+
+#[derive(
+    CandidType, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone,
+)]
+pub struct InstallCodeArgument {
+    pub mode: CanisterInstallMode,
+    pub canister_id: CanisterId,
+    pub wasm_module: WasmModule,
+    pub arg: Vec<u8>,
+}
+
+pub type CanisterId = Principal;
+
+#[derive(
+    CandidType, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy,
+)]
+pub struct CanisterIdRecord {
+    pub canister_id: CanisterId,
+}
+
+#[derive(
+    CandidType, Serialize, Deserialize, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Default,
+)]
+pub(crate) struct CreateCanisterArgumentExtended {
+    pub settings: Option<CanisterSettings>,
+    pub sender_canister_version: Option<u64>,
+}
+
+
+#[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
+pub struct TokenData{
+    pub pool_key: String,
+    pub user_id : Principal,
+    pub amount : BTreeMap<String , u64>
+     
 }
