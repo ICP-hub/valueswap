@@ -15,11 +15,11 @@ const initialState = {
             ShortForm: 'Token 1',
             Amount: 0,
             Selected: false,
-            WeightedPercentage: 50,
+            weights: 50,
             ImagePath: null,
             Amount: 0.0,
             currencyAmount: 66.10,
-            WeightedPercentageLocked: false,
+            weightsLocked: false,
             CanisterId: null
         },
         {
@@ -28,11 +28,11 @@ const initialState = {
             ShortForm: 'Token 2',
             Amount: 0,
             Selected: false,
-            WeightedPercentage: 50,
+            weights: 50,
             ImagePath: null,
             Amount: 0,
             currencyAmount: 64.89,
-            WeightedPercentageLocked: false,
+            weightsLocked: false,
             CanisterId: null
         }
     ],
@@ -47,7 +47,7 @@ const Pool = createSlice({
             state.CoinCount += 1;
             let coinCount = state.CoinCount;
             state.Tokens.forEach((token) => {
-                if (token.WeightedPercentageLocked) {
+                if (token.weightsLocked) {
                     coinCount -= 1;
                 }
             });
@@ -59,15 +59,15 @@ const Pool = createSlice({
                     ShortForm: `Token ${state.CoinCount}`,
                     Amount: 0,
                     Selected: false,
-                    WeightedPercentage: PercentShare,
+                    weights: PercentShare,
                     ImagePath: null,
                     currencyAmount: 0,
-                    WeightedPercentageLocked: false,
+                    weightsLocked: false,
                 }
             )
             state.Tokens.forEach((token) => {
-                if (!token.WeightedPercentageLocked) {
-                    token.WeightedPercentage = PercentShare;
+                if (!token.weightsLocked) {
+                    token.weights = PercentShare;
                 }
             });
 
@@ -78,7 +78,7 @@ const Pool = createSlice({
             state.CoinCount -= 1;
             let coinCount = state.CoinCount;
             state.Tokens.forEach((token) => {
-                if (token.WeightedPercentageLocked) {
+                if (token.weightsLocked) {
                     coinCount -= 1;
                 }
             });
@@ -90,22 +90,22 @@ const Pool = createSlice({
             state.Tokens = TempToken
             const newPercentShare = parseFloat(state.TotalPercentage / coinCount).toFixed(2);
             state.Tokens.forEach((token) => {
-                if (!token.WeightedPercentageLocked) {
-                    token.WeightedPercentage = newPercentShare;
+                if (!token.weightsLocked) {
+                    token.weights = newPercentShare;
                 }
             });
             // const lastCoinIndex = state.Tokens.length - 1;
-            // state.Tokens[lastCoinIndex].WeightedPercentage = (state.TotalPercentage - newPercentShare * (state.CoinCount - 1)).toFixed(2);
+            // state.Tokens[lastCoinIndex].weights = (state.TotalPercentage - newPercentShare * (state.CoinCount - 1)).toFixed(2);
             state.TotalAmount = SumUpValue(state.Tokens)
 
         },
         setWeightedPercent: (state, action) => {
             const index = action.payload.index;
-            state.Tokens[index].WeightedPercentage = action.payload.percent;
+            state.Tokens[index].weights = action.payload.percent;
         },
         ToggleLocked: (state, action) => {
             const index = action.payload.index;
-            state.Tokens[index].WeightedPercentageLocked = action.payload.toggle
+            state.Tokens[index].weightsLocked = action.payload.toggle
 
             if (action.payload.toggle === true) {
                 console.log("percent gya", action.payload.percent)

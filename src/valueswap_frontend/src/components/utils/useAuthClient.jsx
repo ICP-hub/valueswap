@@ -1,8 +1,8 @@
 import { AuthClient } from "@dfinity/auth-client";
 import React, { createContext, useContext, useEffect, useState } from "react";
-// import {
-//     createActor as createActorBackend
-// } from '../../../../declarations/valueswap_backend/index';
+import {
+    createActor as createActorBackend, 
+} from '../../../../declarations/valueswap_backend/index';
 import { Actor, HttpAgent } from "@dfinity/agent";
 import { createActor as ledgerActor, idlFactory as TokenIdl} from "../../../../declarations/ckbtc_ledger/index"
 
@@ -54,18 +54,20 @@ export const useAuthClient = (options = defaultOptions) => {
     const [identity, setIdentity] = useState(null);
     const [principal, setPrincipal] = useState(null);
     const [balance, setBalance] = useState(null);
-
+   const [backendActor, setBackendActor] = useState(null)
     useEffect(() => {
         // Initialize AuthClient
         AuthClient.create(options.createOptions).then((client) => {
             setAuthClient(client);
         });
     }, []);
-
+ const backendCanisterId = process.env.CANISTER_ID_VALUESWAP_BACKEND;
     const login = (val) => {
         return new Promise(async (resolve, reject) => {
             try {
                 if (authClient.isAuthenticated() && ((await authClient.getIdentity().getPrincipal().isAnonymous()) === false)) {
+                    const backendActor = createActorBackend(backendCanisterId, { agentOptions: { identity: identity } });
+                    setBackendActor(backendActor);
                     updateClient(authClient);
                     resolve(AuthClient);
                 } else {
@@ -160,7 +162,8 @@ const getBalance = async (principal, canisterId) =>{
         createTokenActor,
         identity,
         getBalance,
-        balance
+        balance,
+        backendActor
     };
 };
 

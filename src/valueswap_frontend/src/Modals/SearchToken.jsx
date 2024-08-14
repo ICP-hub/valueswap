@@ -111,14 +111,13 @@ fetchListOfCoin()
                         const tokenMetadata = metadata.find(meta => meta?.Name === token?.name);
                         // const TokenName = tokenMetadata?.metadata[1]?.[1]?.Text;
                         // const tokendata = listOfData.find((tk)=> tk.id === token.id)
-                        console.log("tokenMetadata",metadata,tokenMetadata)
                         const TokenId = token.id;
-                        const TokenName = token.name;
+                        const TokenName = token.name ? token.name : tokenMetadata?.metadata[1]?.[1]?.Text;
                         const CanisterId = tokenMetadata?.CanisterId;
                         const ShortForm = tokenMetadata?.metadata[2]?.[1]?.Text;
                         const ImagePath = token.image;
                         const currencyAmount = token.current_price
-                        console.log("tokenMetadata",currencyAmount)
+                     
 
                         return (
                             <div className={`flex gap-6 items-center w-10/12  p-2 bg-[#303030] hover:opacity-80 cursor-pointer  opacity-100 rounded-xl

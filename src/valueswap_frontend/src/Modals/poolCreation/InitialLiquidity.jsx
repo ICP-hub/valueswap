@@ -230,7 +230,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
                 {InitialToken.ShortForm}
               </span>
               <span className='bg-[#3E434B] py-1 rounded-lg px-2 sm:px-3'>
-                {InitialToken.WeightedPercentage} %
+                {InitialToken.weights} %
               </span>
             </div>
             <span className='text-center font-normal leading-5 text-sm sm:text-base'>
@@ -270,7 +270,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
                         {token.ShortForm}
                       </span>
                       <span className='bg-[#3E434B] py-1 rounded-lg px-2 sm:px-3'>
-                        {token.WeightedPercentage} %
+                        {token.weights} %
                       </span>
                     </div>
                     <span className='text-center font-normal leading-5 text-sm sm:text-base'>
