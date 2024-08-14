@@ -210,3 +210,10 @@ pub(crate) struct CreateCanisterArgumentExtended {
 }
 
 
+#[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
+pub struct TokenData{
+    pub pool_key: String,
+    pub user_id : Principal,
+    pub amount : BTreeMap<String , u64>
+     
+}

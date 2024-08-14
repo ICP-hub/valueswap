@@ -58,7 +58,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { PlugLogin, StoicLogin, NFIDLogin, IdentityLogin, Types, CreateActor } from 'ic-auth';
 // import { idlFactory,createActor} from "../../declarations/loginme_backend/index";
-import { createActor, idlFactory } from "../../../../declarations/ckbtc_ledger/index"
+import { createActor, idlFactory } from "/Users/admin/Documents/valueswap/src/declarations/ckbtc_ledger/index.js"
 import { Principal } from "@dfinity/principal";
 import { AuthClient } from "@dfinity/auth-client";
 import { Actor } from "@dfinity/agent";

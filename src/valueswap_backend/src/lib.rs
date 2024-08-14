@@ -1,14 +1,32 @@
 use ic_cdk::export_candid;
 use std::collections::HashMap;
 use candid::{Principal, Nat};
+use std::cell::RefCell;
+use ic_cdk::api::call::CallResult;
 
 mod utils;
-mod vault;
+pub mod vault;
 mod logic;
 mod api;
 mod constants;
+mod memory;
+mod types;
 
-pub use utils::types::{PoolShare, UserShare,CreatePoolParams};
+pub use vault::pool_factory::*;
+
+pub use utils::types::*;
+// pub use utils::types::{PoolShare, UserShare,CreatePoolParams,TokenData};
+pub use types::state_handlers::*;
+
+thread_local! {
+    // The memory manager is used for simulating multiple memories. Given a `MemoryId` it can
+    // return a memory that can be used by stable structures.
+    static STATE : RefCell<State> = RefCell::new(State::new());
+}
+
+pub fn with_state<R>(f: impl FnOnce(&mut State) -> R) -> R {
+    STATE.with(|cell| f(&mut cell.borrow_mut()))
+}
 
 // Export Candid interface
 export_candid!();
