@@ -1263,17 +1263,23 @@ export const LiquidityOverviewData = [
 export const DummyDataTokens = {
     Tokens: [
         {   // Main Net
+            id: "chain-key-bitcoin",
+            name: "Chain-key Bitcoin",
+            symbol:"ckbtc",
             CanisterId: process.env.CANISTER_ID_CKBTC_LEDGER,
+            image: "https://coin-images.coingecko.com/coins/images/33818/large/01_ckBTC_Token_HEX__4x.png",
             // local net
             // CanisterId: 'bkyz2-fmaaa-aaaaa-qaaaq-cai',
-            Image: RandomCoin,
         },
         {
-            // Main Net
-            CanisterId: process.env.CANISTER_ID_CKETH_LEDGER,
-            // local Net
+            // Main Net   
             // CanisterId: 'mxzaz-hqaaa-aaaar-qaada-cai',
-            Image: RandomCoin,
+            // local Net
+            id: "chain-key-ethereum",
+            name: "Chain-key Ethereum",
+            symbol: "cketh",
+            CanisterId: process.env.CANISTER_ID_CKETH_LEDGER,
+            image: "https://coin-images.coingecko.com/coins/images/33819/large/01_ckETH_Token_HEX__4x.png",
         }
 
     ]

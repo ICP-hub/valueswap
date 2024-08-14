@@ -4,8 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import BlueGradientButton from '../../buttons/BlueGradientButton';
 import { toggleConfirm } from '../../reducer/PoolCreation';
 import GradientButton from '../../buttons/GradientButton';
-
-
+import { valueswap_backend } from '../../../../declarations/valueswap_backend';
 
 
 const FinalizePool = ({handleCreatePoolClick}) => {

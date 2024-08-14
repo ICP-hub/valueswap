@@ -3,8 +3,8 @@ dfx deploy swap
 set -e
 
 # Create and use the DevJourney identity
-dfx identity new DevJourney || true
-dfx identity use DevJourney
+dfx identity new default || true
+dfx identity use default
 
 # dfx canister create swap
 # dfx  build --all
