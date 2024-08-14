@@ -1,6 +1,7 @@
-use ic_cdk_macros::{update, query};
+use ic_cdk_macros::*;
 use std::collections::{BTreeMap, HashMap};
 use std::cell::RefCell;
+use crate::with_state;
 use candid::{CandidType, Nat, Principal};
 // use serde::{Deserialize, Serialize};
 use ic_cdk::{
@@ -9,14 +10,17 @@ use ic_cdk::{
         canister_version,
         management_canister::main::{CanisterInstallMode, WasmModule},
     },
-    call, api,
+    call, api
 };
  
 use crate::utils::types::*;
 use crate::api::deposit::deposit_ckbtc;
+use crate::types::state_handlers;
+
+use ic_stable_structures::{writer::Writer, Memory as _, StableBTreeMap};
 
 thread_local! {
-    pub static TOKEN_POOLS: RefCell<HashMap<String, Principal>> = RefCell::new(HashMap::new());
+    // pub static TOKEN_POOLS: RefCell<HashMap<String, Principal>> = RefCell::new(HashMap::new());
     pub static POOL: RefCell<BTreeMap<String, HashMap<String, u64>>> = RefCell::new(BTreeMap::new());
 }
 
@@ -28,6 +32,25 @@ fn prevent_anonymous() -> Result<(), String> {
     }
 }
 
+#[update]
+async fn store_data_in_pool(canister_id : Principal , params: CreatePoolParams) -> Result<(),String>{
+    for (token_name, amount) in params.token_names.iter().zip(params.balances.iter()) {
+        let metadata = "Some metadata".to_string(); // Example metadata, replace with actual metadata
+        let result: Result<(), String> = call(canister_id, "store_token_data", (token_name.clone(), *amount))
+            .await
+            .map_err(|e| format!("Failed to store token data: {:?}", e));
+        if let Err(e) = result {
+            return Err(e);
+        }
+
+        // call(canister_id, "store_metadata", (token_name.clone() , metadata))
+        //     .await
+        //     .map_err(|e| format!("Failed to store metadata: {:?}", e))?;
+    }
+
+    Ok(())
+}
+
 #[update(guard = prevent_anonymous)]
 async fn create_pools(params: CreatePoolParams) -> Result<(), String> {
     let principal_id = api::caller();
@@ -36,36 +59,40 @@ async fn create_pools(params: CreatePoolParams) -> Result<(), String> {
     }
 
     let pool_name = params.token_names.join("");
-    let pool_key = format!("{}{}", params.swap_fees, pool_name);
+    let pool_key = format!("{}{}", pool_name , params.swap_fees);
 
-    let pool_canister_id = TOKEN_POOLS.with(|pool| {
-        let mut pool_borrowed = pool.borrow_mut();
+    let pool_canister_id = with_state(|pool| {
+        let mut pool_borrowed = &mut pool.TOKEN_POOLS;
         if let Some(canister_id) = pool_borrowed.get(&pool_key) {
-            return Some(*canister_id);
+            return Some(canister_id);
         } else {
             None
         }
     });
 
     if let Some(canister_id) = pool_canister_id {
-        add_liquidity();
+        // add_liquidity(canister_id.principal , params);
+        // store_data_in_pool(canister_id.principal, params).await?;
         //TODO Map canister id with pool_key for adding liquidity
         Ok(())
     } else {
         match create_canister(CreateCanisterArgument { settings: None }).await {
             Ok((canister_id_record,)) => {
                 let canister_id = canister_id_record.canister_id;
-                TOKEN_POOLS.with(|pool| {
-                    pool.borrow_mut().insert(pool_key.clone(), canister_id);
+                with_state(|pool| {
+                    // pool.    borrow_mut().insert(pool_key.clone(), canister_id);
+                    &mut pool.TOKEN_POOLS.insert(pool_name.clone() , crate::user_principal{principal : canister_id});
                 });
+                 
+                // POOL.with(|pool| {
+                //     let mut pool_borrowed = pool.borrow_mut();
+                //     let token_map = pool_borrowed.entry(pool_key).or_insert_with(HashMap::new);
+                //     for (token, value) in params.token_names.iter().zip(params.balances.iter()) {
+                //         token_map.insert(token.clone(), *value);
+                //     }
+                // });
+                store_data_in_pool(canister_id_record.canister_id, params.clone()).await?;
 
-                POOL.with(|pool| {
-                    let mut pool_borrowed = pool.borrow_mut();
-                    let token_map = pool_borrowed.entry(pool_key).or_insert_with(HashMap::new);
-                    for (token, value) in params.token_names.iter().zip(params.balances.iter()) {
-                        token_map.insert(token.clone(), *value);
-                    }
-                });
 
                 for amount in params.balances.iter() {
                     deposit_ckbtc(amount.clone()).await?;
@@ -77,6 +104,7 @@ async fn create_pools(params: CreatePoolParams) -> Result<(), String> {
     }
 }
 
+#[update]
 // Create canister
 async fn create_canister(
     arg: CreateCanisterArgument,
@@ -87,6 +115,7 @@ async fn create_canister(
     };
     let cycles: u128 = 100_000_000_000;
 
+    
     call_with_payment128(
         Principal::management_canister(),
         "create_canister",
@@ -108,7 +137,7 @@ async fn deposit_cycles(arg: CanisterIdRecord, cycles: u128) -> CallResult<()> {
 
 async fn install_code(arg: InstallCodeArgument) -> CallResult<()> {
     let wasm_module_sample: Vec<u8> =
-        include_bytes!("../../../../.dfx/local/canisters/swap/swap.wasm").to_vec();
+        include_bytes!("/Users/admin/Documents/valueswap/.dfx/local/canisters/swap/swap.wasm").to_vec();
 
     let extended_arg = InstallCodeArgumentExtended {
         mode: arg.mode,
@@ -130,12 +159,15 @@ async fn install_code(arg: InstallCodeArgument) -> CallResult<()> {
 #[update]
 pub async fn create() -> Result<String, String> {
     let arg = CreateCanisterArgument { settings: None };
+
     let (canister_id_record,) = match create_canister(arg).await {
         Ok(id) => id,
         Err((_, err_string)) => {
             ic_cdk::println!("Error in creating canister: {}", err_string);
             return Err(format!("Error: {}", err_string));
         }
+
+
     };
 
     let canister_id = canister_id_record.canister_id;
@@ -167,8 +199,36 @@ pub async fn create() -> Result<String, String> {
     Ok(format!("Canister ID: {}", canister_id.to_string()))
 }
 
+// updata to store all pool data here
 #[update]
-fn add_liquidity(){
-
+fn store_pool_data(params: CreatePoolParams, canister_id: Principal, token: TokenData) {
+    let pool_name = params.token_names.join("");
+    let key = format!("{},{}", pool_name, params.swap_fees);
+    let mut token_data = token;
+    token_data.pool_key = key;
+    token_data.user_id = canister_id;
+    for (token_name, value) in params.token_names.iter().zip(params.balances.iter()) {
+        token_data.amount.insert(token_name.clone(), *value);
+    }
 }
+
+// Store all pool data in specific pool canister
+
+
+// #[query]
+// fn get_pool_data(pool_id: Principal) -> Result<Option<TokenData>, String> {
+//     let data = POOL.with(|pool| {
+//         pool.borrow().values().find(|&data| data.user_id == pool_id).cloned()
+//     });
+//     Ok(data)
+// }
+
+
+
+// #[update]
+// fn add_liquidity(canister_id: Principal , params : CreatePoolParams) {
+//     // store_data_in_pool
+
+
+// }
 

@@ -2,4 +2,4 @@ cargo build --release --target wasm32-unknown-unknown --package valueswap_backen
 
 candid-extractor target/wasm32-unknown-unknown/release/valueswap_backend.wasm > src/valueswap_backend/valueswap_backend.did
 
-dfx deploy
+# dfx deploy
