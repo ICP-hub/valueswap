@@ -1,7 +1,7 @@
 use ic_cdk_macros::*;
 use std::collections::{BTreeMap, HashMap};
 use std::cell::RefCell;
-use crate::with_state;
+use crate::{user_principal, with_state};
 use candid::{CandidType, Nat, Principal};
 // use serde::{Deserialize, Serialize};
 use ic_cdk::{
@@ -21,7 +21,8 @@ use ic_stable_structures::{writer::Writer, Memory as _, StableBTreeMap};
 
 thread_local! {
     // pub static TOKEN_POOLS: RefCell<HashMap<String, Principal>> = RefCell::new(HashMap::new());
-    pub static POOL: RefCell<BTreeMap<String, HashMap<String, u64>>> = RefCell::new(BTreeMap::new());
+    // pub static POOL_ID : RefCell<BTreeMap<String , String>> = RefCell::new(BTreeMap::new());
+    pub static POOL_DATA: RefCell<BTreeMap<String, Pool_Data>> = RefCell::new(BTreeMap::new());
 }
 
 fn prevent_anonymous() -> Result<(), String> {
@@ -32,38 +33,26 @@ fn prevent_anonymous() -> Result<(), String> {
     }
 }
 
-#[update]
-async fn store_data_in_pool(canister_id : Principal , params: CreatePoolParams) -> Result<(),String>{
-    for (token_name, amount) in params.token_names.iter().zip(params.balances.iter()) {
-        let metadata = "Some metadata".to_string(); // Example metadata, replace with actual metadata
-        let result: Result<(), String> = call(canister_id, "store_token_data", (token_name.clone(), *amount))
-            .await
-            .map_err(|e| format!("Failed to store token data: {:?}", e));
-        if let Err(e) = result {
-            return Err(e);
-        }
-
-        // call(canister_id, "store_metadata", (token_name.clone() , metadata))
-        //     .await
-        //     .map_err(|e| format!("Failed to store metadata: {:?}", e))?;
-    }
-
-    Ok(())
-}
 
 #[update(guard = prevent_anonymous)]
-async fn create_pools(params: CreatePoolParams) -> Result<(), String> {
+// #[update]
+async fn create_pools(params: Pool_Data) -> Result<(), String> {
     let principal_id = api::caller();
     if principal_id == Principal::anonymous() {
         return Err("Anonymous principal not allowed to make calls".to_string());
     }
 
-    let pool_name = params.token_names.join("");
-    let pool_key = format!("{}{}", pool_name , params.swap_fees);
+    let pool_name = params.pool_data
+        .iter()
+        .map(|pool| pool.token_name.clone())
+        .collect::<Vec<String>>()
+        .join("");
+
+    let pool_key = format!("{}{}", pool_name , params.swap_fee);
 
     let pool_canister_id = with_state(|pool| {
         let mut pool_borrowed = &mut pool.TOKEN_POOLS;
-        if let Some(canister_id) = pool_borrowed.get(&pool_key) {
+        if let Some(canister_id) = pool_borrowed.get(&pool_name) {
             return Some(canister_id);
         } else {
             None
@@ -71,8 +60,7 @@ async fn create_pools(params: CreatePoolParams) -> Result<(), String> {
     });
 
     if let Some(canister_id) = pool_canister_id {
-        // add_liquidity(canister_id.principal , params);
-        // store_data_in_pool(canister_id.principal, params).await?;
+        // add_liquidity();
         //TODO Map canister id with pool_key for adding liquidity
         Ok(())
     } else {
@@ -91,12 +79,19 @@ async fn create_pools(params: CreatePoolParams) -> Result<(), String> {
                 //         token_map.insert(token.clone(), *value);
                 //     }
                 // });
-                store_data_in_pool(canister_id_record.canister_id, params.clone()).await?;
+                // store_pool_data(params , canister_id.principal);
+                store_pool_data(params.clone() , canister_id_record.canister_id).await;
 
 
-                for amount in params.balances.iter() {
-                    deposit_ckbtc(amount.clone()).await?;
+                for amount in params.pool_data.iter() {
+                    deposit_ckbtc(amount.balance.clone()).await?;
                 }
+
+                // params.pool_data
+                // .iter()
+                // .map(|pool|pool.balance.clone())
+                // .deposit_ckbtc().await?;
+
                 Ok(())
             },
             Err((_, err_string)) => Err(format!("Error creating canister: {}", err_string)),
@@ -199,21 +194,45 @@ pub async fn create() -> Result<String, String> {
     Ok(format!("Canister ID: {}", canister_id.to_string()))
 }
 
-// updata to store all pool data here
+// update to store all pool data here
 #[update]
-fn store_pool_data(params: CreatePoolParams, canister_id: Principal, token: TokenData) {
-    let pool_name = params.token_names.join("");
-    let key = format!("{},{}", pool_name, params.swap_fees);
-    let mut token_data = token;
-    token_data.pool_key = key;
-    token_data.user_id = canister_id;
-    for (token_name, value) in params.token_names.iter().zip(params.balances.iter()) {
-        token_data.amount.insert(token_name.clone(), *value);
-    }
+async fn store_pool_data(params: Pool_Data, canister_id: Principal) {
+    let pool_name = params.pool_data
+    .iter()
+    .map(|pool|pool.token_name.clone())
+    .collect::<Vec<String>>()
+    .join("");
+
+    let key = format!("{},{}", pool_name, params.swap_fee);
+    
+    // let result: Result<(), String> = call(canister_id, "store_data_in_pool", (user_principal, Pool_Data))
+    //             .await
+    //             .map_err(|e| format!("Failed to store token data: {:?}", e));
+    //         if let Err(e) = result {
+    //             return Err(e);
+    //         }
+    
 }
 
-// Store all pool data in specific pool canister
+// Adding liquidity to the specific pool 
+// #[update]
+// async fn add_liquidity(canister_id : Principal , params: CreatePoolParams) -> Result<(),String>{
+//     for (token_name, amount) in params.token_names.iter().zip(params.balances.iter()) {
+//         let metadata = "Some metadata".to_string(); // Example metadata, replace with actual metadata
+//         let result: Result<(), String> = call(canister_id, "store_token_data", (token_name.clone(), *amount))
+//             .await
+//             .map_err(|e| format!("Failed to store token data: {:?}", e));
+//         if let Err(e) = result {
+//             return Err(e);
+//         }
 
+//         // call(canister_id, "store_metadata", (token_name.clone() , metadata))
+//         //     .await
+//         //     .map_err(|e| format!("Failed to store metadata: {:?}", e))?;
+//     }
+
+//     Ok(())
+// }
 
 // #[query]
 // fn get_pool_data(pool_id: Principal) -> Result<Option<TokenData>, String> {
