@@ -13,16 +13,20 @@ thread_local! {
 
 // To map pool with their LP tokens
 #[query]
-fn pool_lp_tokens(params: CreatePoolParams) -> HashMap<String, u64> {
+fn pool_lp_tokens(params: Pool_Data) -> HashMap<String, u64> {
     POOL_LP_SHARE.with(|lp_share| {
-        let pool_supply: u64 = params
-            .values
+        let pool_supply: u64 = params.pool_data
             .iter()
-            .zip(params.balances.iter())
-            .map(|(value, balance)| value * balance)    
+            .map(|pool| pool.value.clone())    
             .sum();
 
-        let key: String = params.token_names.join("");
+        // let key: String = params.token_names.join("");
+        let key: String = params.pool_data
+        .iter()
+        .map(|pool|pool.token_name.clone())
+        .collect::<Vec<String>>()
+        .join("");
+
         lp_share.borrow_mut().insert(key, pool_supply);
     });
 
