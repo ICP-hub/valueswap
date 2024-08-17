@@ -33,13 +33,27 @@ impl PoolShare {
 }
 
 // Define the input struct for create_pool
+// #[derive(CandidType, Deserialize, Serialize, Clone)]
+// pub struct CreatePoolParams {
+//     pub token_names: Vec<String>,   // Names of the tokens
+//     pub balances: Vec<u64>,         // Token balances
+//     pub weights: Vec<f64>,          // Token weights
+//     pub values: Vec<u64>,
+//     pub swap_fees: f64,
+// }
+
 #[derive(CandidType, Deserialize, Serialize, Clone)]
-pub struct CreatePoolParams {
-    pub token_names: Vec<String>,   // Names of the tokens
-    pub balances: Vec<u64>,         // Token balances
-    pub weights: Vec<f64>,          // Token weights
-    pub values: Vec<u64>,
-    pub swap_fees: f64,
+pub struct CreatePoolParams{
+    pub token_name : String,
+    pub balance : u64,
+    pub weight : f64,
+    pub value : u64,
+}
+
+#[derive(CandidType, Deserialize, Serialize, Clone)]
+pub struct Pool_Data{
+    pub pool_data : Vec<CreatePoolParams>,
+    pub swap_fee : f64
 }
 
 /// Represents the user's share with their token balances.
@@ -210,3 +224,10 @@ pub(crate) struct CreateCanisterArgumentExtended {
 }
 
 
+// #[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
+// pub struct TokenData{
+//     pub pool_key: String,
+//     pub user_id : Principal,
+//     pub amount : BTreeMap<String , u64>
+     
+// }

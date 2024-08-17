@@ -7,7 +7,6 @@ import { Actor, HttpAgent } from "@dfinity/agent";
 import { createActor as ledgerActor, idlFactory as TokenIdl} from "../../../../declarations/ckbtc_ledger/index"
 
 
-
 const AuthContext = createContext();
 
 const defaultOptions = {
