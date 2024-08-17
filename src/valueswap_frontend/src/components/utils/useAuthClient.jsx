@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import {
     createActor as createActorBackend, 
 } from '../../../../declarations/valueswap_backend/index';
-import { Actor, HttpAgent } from "@dfinity/agent";
+// import { Actor, HttpAgent } from "@dfinity/agent";
 import { createActor as ledgerActor, idlFactory as TokenIdl} from "../../../../declarations/ckbtc_ledger/index"
 
 
