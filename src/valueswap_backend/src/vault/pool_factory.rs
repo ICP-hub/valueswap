@@ -194,7 +194,7 @@ pub async fn create() -> Result<String, String> {
     Ok(format!("Canister ID: {}", canister_id.to_string()))
 }
 
-// update to store all pool data here
+// update to store all pool data 
 #[update]
 async fn store_pool_data(params: Pool_Data, canister_id: Principal) {
     let pool_name = params.pool_data
