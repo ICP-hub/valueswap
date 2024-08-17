@@ -8,17 +8,20 @@ type CanisterSettings = record {
 };
 type CreateCanisterArgument = record { settings : opt CanisterSettings };
 type CreatePoolParams = record {
-  values : vec nat64;
-  weights : vec float64;
-  swap_fees : float64;
-  token_names : vec text;
-  balances : vec nat64;
+  weight : float64;
+  balance : nat64;
+  value : nat64;
+  token_name : text;
 };
 type PoolShare = record {
   token_weights : vec float64;
   token_value : vec float64;
   token_balances : vec float64;
   token_names : vec text;
+};
+type Pool_Data = record {
+  pool_data : vec CreatePoolParams;
+  swap_fee : float64;
 };
 type RejectionCode = variant {
   NoError;
@@ -36,21 +39,15 @@ type Result_1 = variant {
 };
 type Result_2 = variant { Ok; Err : text };
 type Result_3 = variant { Ok : nat; Err : text };
-type TokenData = record {
-  user_id : principal;
-  amount : vec record { text; nat64 };
-  pool_key : text;
-};
 service : () -> {
   create : () -> (Result);
   create_canister : (CreateCanisterArgument) -> (Result_1);
-  create_pools : (CreatePoolParams) -> (Result_2);
+  create_pools : (Pool_Data) -> (Result_2);
   deposit_ckbtc : (nat64) -> (Result_3);
   get_constant_product_value : () -> (float64) query;
   get_lp_tokens : (text) -> (opt nat64) query;
   get_tokens : () -> (vec record { text; PoolShare }) query;
-  pool_lp_tokens : (CreatePoolParams) -> (vec record { text; nat64 }) query;
-  store_data_in_pool : (principal, CreatePoolParams) -> (Result_2);
-  store_pool_data : (CreatePoolParams, principal, TokenData) -> ();
+  pool_lp_tokens : (Pool_Data) -> (vec record { text; nat64 }) query;
+  store_pool_data : (Pool_Data, principal) -> ();
   total_lp_tokens : () -> (nat64) query;
 }
