@@ -205,10 +205,10 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) {
 
     let key = format!("{},{}", pool_name, params.swap_fee);
     
-    // let result: Result<(), String> = call(canister_id, "store_data_in_pool", (user_principal, Pool_Data))
+    // let result: Result<(), String> = call(canister_id, "store_data_inpool", (canister_id,))
     //             .await
     //             .map_err(|e| format!("Failed to store token data: {:?}", e));
-    //         if let Err(e) = result {
+    //         if let Err(e) = result { 
     //             return Err(e);
     //         }
     
