@@ -60,7 +60,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
     });
 
     if let Some(canister_id) = pool_canister_id {
-        // add_liquidity();
+        add_liquidity(canister_id.principal , params.clone());
         //TODO Map canister id with pool_key for adding liquidity
         Ok(())
     } else {
@@ -80,7 +80,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
                 //     }
                 // });
                 // store_pool_data(params , canister_id.principal);
-                store_pool_data(params.clone() , canister_id_record.canister_id).await;
+                store_pool_data(params.clone() , canister_id_record.canister_id).await?;
 
 
                 for amount in params.pool_data.iter() {
@@ -194,9 +194,9 @@ pub async fn create() -> Result<String, String> {
     Ok(format!("Canister ID: {}", canister_id.to_string()))
 }
 
-// update to store all pool data here
+// update to store all pool data 
 #[update]
-async fn store_pool_data(params: Pool_Data, canister_id: Principal) {
+async fn store_pool_data(params: Pool_Data, canister_id: Principal)-> Result<(),String> {
     let pool_name = params.pool_data
     .iter()
     .map(|pool|pool.token_name.clone())
@@ -205,34 +205,31 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) {
 
     let key = format!("{},{}", pool_name, params.swap_fee);
     
-    // let result: Result<(), String> = call(canister_id, "store_data_inpool", (canister_id,))
-    //             .await
-    //             .map_err(|e| format!("Failed to store token data: {:?}", e));
-    //         if let Err(e) = result { 
-    //             return Err(e);
-    //         }
+    let result: Result<(), String> = call(canister_id, "store_data_inpool", (canister_id, params))
+                .await
+                .map_err(|e| format!("Failed to store token data: {:?}", e));
+            if let Err(e) = result { 
+            return Err(e);
+            }
+            Ok(())
     
 }
 
 // Adding liquidity to the specific pool 
-// #[update]
-// async fn add_liquidity(canister_id : Principal , params: CreatePoolParams) -> Result<(),String>{
-//     for (token_name, amount) in params.token_names.iter().zip(params.balances.iter()) {
-//         let metadata = "Some metadata".to_string(); // Example metadata, replace with actual metadata
-//         let result: Result<(), String> = call(canister_id, "store_token_data", (token_name.clone(), *amount))
-//             .await
-//             .map_err(|e| format!("Failed to store token data: {:?}", e));
-//         if let Err(e) = result {
-//             return Err(e);
-//         }
+#[update]
+async fn add_liquidity(canister_id: Principal, params: Pool_Data) -> Result<(), String> {
+    // Call the canister's add_liquidity function with the provided data
+    let result: Result<(), String> = call(canister_id, "add_liquidity_to_pool", (api::caller(), params))
+        .await
+        .map_err(|e| format!("Failed to add liquidity: {:?}", e));
+    
+    if let Err(e) = result {
+        return Err(e);
+    }
 
-//         // call(canister_id, "store_metadata", (token_name.clone() , metadata))
-//         //     .await
-//         //     .map_err(|e| format!("Failed to store metadata: {:?}", e))?;
-//     }
+    Ok(())
+}
 
-//     Ok(())
-// }
 
 // #[query]
 // fn get_pool_data(pool_id: Principal) -> Result<Option<TokenData>, String> {
