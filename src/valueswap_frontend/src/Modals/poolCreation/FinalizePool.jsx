@@ -4,26 +4,46 @@ import { useSelector, useDispatch } from 'react-redux';
 import BlueGradientButton from '../../buttons/BlueGradientButton';
 import { toggleConfirm } from '../../reducer/PoolCreation';
 import GradientButton from '../../buttons/GradientButton';
-import { valueswap_backend } from '../../../../declarations/valueswap_backend';
+import { useAuth } from '../../components/utils/useAuthClient';
 
 
-const FinalizePool = ({handleCreatePoolClick}) => {
+const FinalizePool = ({ handleCreatePoolClick }) => {
     const { Tokens, Confirmation, TotalAmount, FeeShare } = useSelector((state) => state.pool)
     const dispatch = useDispatch()
     const [confirmPool, setConfirmPool] = useState(false)
     const [poolCreated, setPoolCreated] = useState(false)
     const [final, setFinal] = useState(false)
-
+    const [selectedTokenDetails, setSelectedTokenDetails] = useState()
     useEffect(() => {
         if (confirmPool && poolCreated) {
             setFinal(true)
         }
     }, [confirmPool, poolCreated])
     let InitialToken = Tokens[0]
+
     let RestTokens = Tokens.slice(1)
 
+    const { backendActor } = useAuth()
+    // valueswap_backend.create_pools({
 
-
+    // })\
+    const createPoolHandler = async () => {
+        console.log("you click to create pool")
+        const pool_data = Tokens?.map((token) => ({
+            weigth: token.weights,
+            balance: token.Amount,
+            value: token.currencyAmount,
+            token_name: token.Name
+        }))
+        setSelectedTokenDetails(pool_data)
+        const swap_fee = FeeShare
+        try {
+            await backendActor.create_pools(pool_data, swap_fee)
+            console.log("Pool creates successfully")
+        } catch (error) {
+            console.error("error while creating pool", error)
+        }
+    }
 
 
     return (
@@ -60,7 +80,7 @@ const FinalizePool = ({handleCreatePoolClick}) => {
                                     </div>
 
                                     <span className='bg-[#3E434B] p-1 rounded-lg px-3'>
-                                        {token.WeightedPercentage}   %
+                                        {token.weights}   %
                                     </span>
                                 </div>
 
@@ -110,11 +130,11 @@ const FinalizePool = ({handleCreatePoolClick}) => {
 
                         <span className='inline mx-1 '>: :</span>
 
-                        <span className='inline'>{InitialToken.WeightedPercentage}</span>
+                        <span className='inline'>{InitialToken.weights}</span>
 
                         {
                             RestTokens.map((token, index) => (
-                                <span key={index}> / {token.WeightedPercentage}</span>
+                                <span key={index}> / {token.weights}</span>
                             ))
                         }
                     </div>
@@ -135,11 +155,11 @@ const FinalizePool = ({handleCreatePoolClick}) => {
 
                         <span className='inline mx-1 '>: :</span>
 
-                        <span className='inline'>{InitialToken.WeightedPercentage}</span>
+                        <span className='inline'>{InitialToken.weights}</span>
 
                         {
                             RestTokens.map((token, index) => (
-                                <span key={index}> / {token.WeightedPercentage}</span>
+                                <span key={index}> / {token.weights}</span>
                             ))
                         }
                     </div>
@@ -159,9 +179,10 @@ const FinalizePool = ({handleCreatePoolClick}) => {
 
                 <div className={`mx-10 mb-4`}>
                     <div className={`${confirmPool ? 'hidden' : 'block'}`}
-                        onClick={() => {
+                        onClick={async () => {
                             setConfirmPool(true)
                             handleCreatePoolClick("ctiya-peaaa-aaaaa-qaaja-cai")
+                            createPoolHandler()
                         }}>
                         <GradientButton CustomCss={` w-full md:w-full`} >
                             Confirm and Create Pool

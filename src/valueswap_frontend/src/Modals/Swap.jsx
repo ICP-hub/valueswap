@@ -20,8 +20,8 @@ const Swap = () => {
     const [PayCoin, setPayCoin] = useState(null);
     const [RecieveCoin, setRecieveCoin] = useState(null);
     const [changePayCoin, setChangePayCoin] = useState("M5 13.5L9 9.5M5 13.5L1 9.5M5 13.5V1");
-    const [CoinAmount, setCoinAmount] = useState(0.02);
-    const [AmountToPay, setAmountToPay] = useState(66.12);
+    const [CoinAmount, setCoinAmount] = useState();
+    const [AmountToPay, setAmountToPay] = useState(0.0);
     const [settings, setSettings] = useState(false);
     const [changeRecieveCoin, setChangeRecieveCoin] = useState("M13 1L9 5M13 1L17 5M13 1L13 13.5");
     const [bothCoins, setBothCoins] = useState(false);
@@ -78,6 +78,7 @@ const Swap = () => {
     const handleSettings = () => {
         setSettings((prev) => !prev);
     };
+    
 
     return (
         <div className='px-4 md:px-0'>
@@ -102,7 +103,8 @@ const Swap = () => {
                                 <span className='text-3xl md:text-4xl'>
                                     <input
                                         type="number"
-                                        className='bg-transparent w-24 hide-arrows'
+                                        className='bg-transparent w-64 outline-none hide-arrows'
+                                        placeholder='0.0'
                                         value={CoinAmount}
                                         onChange={handleChangeAmount}
                                     />
@@ -174,7 +176,7 @@ const Swap = () => {
                                         {searchToken1 && <SearchToken setSearchToken={setSearchToken1} setPayToken={setPayCoin} setRecToken={setRecieveCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${PayCoin.currencyAmount}
+                                        ${PayCoin.marketPrice * CoinAmount}
                                     </span>
                                 </div>
                             )}
@@ -197,7 +199,7 @@ const Swap = () => {
                         {RecieveCoin ? (
                             <div className='flex flex-col font-cabin font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.RecieveSection.Heading}</span>
-                                <span className='text-3xl md:text-4xl'>0</span>
+                                <span className='text-3xl md:text-4xl'>{((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice).toFixed(4)}</span>
                                 <span className='text-sm sm:text-base font-normal'>
                                     {SwapModalData.RecieveSection.Balance}: {recieveCoinBalance !== null ? parseFloat(recieveCoinBalance) : 'Loading...'}
                                 </span>
@@ -255,7 +257,7 @@ const Swap = () => {
                                         {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${RecieveCoin.currencyAmount}
+                                        ${((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice).toFixed(4) * RecieveCoin.marketPrice}
                                     </span>
                                 </div>
                             )}

@@ -484,7 +484,7 @@ export const portfolioSampleData = {
                 {
                     Name: "BitCoin",
                     ShortForm: "BTC",
-                    WeightedPercentage: 50,
+                    weights: 50,
                     ImagePath: Bitcoin,
                     Balance: 189050,
                     Value: 189050
@@ -492,7 +492,7 @@ export const portfolioSampleData = {
                 {
                     Name: "LiteCoin",
                     ShortForm: "LTC",
-                    WeightedPercentage: 25,
+                    weights: 25,
                     ImagePath: LiteCoin,
                     Balance: 189050,
                     Value: 189050
@@ -500,7 +500,7 @@ export const portfolioSampleData = {
                 {
                     Name: "Ethereum",
                     ShortForm: "ETH",
-                    WeightedPercentage: 25,
+                    weights: 25,
                     ImagePath: Etherum,
                     Balance: 189050,
                     Value: 189050
@@ -523,7 +523,7 @@ export const portfolioSampleData = {
                 {
                     Name: "BitCoin",
                     ShortForm: "BTC",
-                    WeightedPercentage: 50,
+                    weights: 50,
                     ImagePath: Bitcoin,
                     Balance: 189050,
                     Value: 189050
@@ -531,7 +531,7 @@ export const portfolioSampleData = {
                 {
                     Name: "LiteCoin",
                     ShortForm: "LTC",
-                    WeightedPercentage: 50,
+                    weights: 50,
                     ImagePath: LiteCoin,
                     Balance: 189050,
                     Value: 189050

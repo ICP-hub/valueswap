@@ -40,21 +40,21 @@ const SearchTokenShowData = ({ token, index, HandleSelectCheck }) => {
                     <input
                         type="number"
                         className='bg-transparent w-10 text-base hide-arrows'
-                        value={token.WeightedPercentage}
+                        value={token.weights}
                         onChange={handleChangePercent}
-                        disabled={token.WeightedPercentageLocked}
+                        disabled={token.weightsLocked}
                     />
                     <span className='md:text-lg text-xs'>%</span>
                 </span>
                 <span>
                     {
-                        token.WeightedPercentageLocked ? (
+                        token.weightsLocked ? (
                             <span className='cursor-pointer'
                                 onClick={() => {
                                     dispatch(ToggleLocked({
                                         index: index,
                                         toggle: false,
-                                        percent: token.WeightedPercentage,
+                                        percent: token.weights,
                                     }))
                                 }}>
                                 <LockKeyhole size={18} />
@@ -65,7 +65,7 @@ const SearchTokenShowData = ({ token, index, HandleSelectCheck }) => {
                                     dispatch(ToggleLocked({
                                         index: index,
                                         toggle: true,
-                                        percent: token.WeightedPercentage,
+                                        percent: token.weights,
                                     }))
                                 }}>
                                 <LockKeyholeOpen size={18} />

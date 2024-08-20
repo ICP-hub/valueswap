@@ -17,8 +17,8 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
     // const ImagePath = DummyDataTokens.Tokens[0].Image
     const [searchQuery, setSearchQuery] = useState('');
     const [metadata, setMetadata] = useState([]);
-//    const [listOfData, setListOfData] = useSate()
     const [filteredTokens, setFilteredTokens] = useState()
+    // const [Amount, setAmount] = useState()
     const HandleClickToken = (index) => {
         SetTokenOption(TokenOption === index ? null : index);
     }
@@ -36,13 +36,13 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
         }
     }, [searchQuery, metadata]);
 
-useMemo(()=>{
-const fetchListOfCoin =  async ()=>{
-  const fetchedListOfData = await fetchCoinGeckoData()
-  setFilteredTokens(fetchedListOfData)
-}
-fetchListOfCoin()
-},[])
+    useMemo(() => {
+        const fetchListOfCoin = async () => {
+            const fetchedListOfData = await fetchCoinGeckoData()
+            setFilteredTokens(fetchedListOfData)
+        }
+        fetchListOfCoin()
+    }, [])
 
 
     useEffect(() => {
@@ -50,8 +50,10 @@ fetchListOfCoin()
             const fetchedMetadata = await Promise.all(
                 DummyDataTokens.Tokens.map(async (token) => {
                     const ledgerActor = await createTokenActor(token.CanisterId);
-                    console.log("ledgerActor=>", ledgerActor)
                     const result = await ledgerActor.icrc1_metadata();
+                    
+                  
+                    // setAmount(findAmount?.Amount)
                     return {
                         CanisterId: token.CanisterId,
                         id: token.id,
@@ -67,8 +69,12 @@ fetchListOfCoin()
 
         fetchMetadata();
 
-    }, [DummyDataTokens]);
+    }, [DummyDataTokens, Tokens]);
 
+
+    useEffect(() => {
+
+    })
 
     return (
         <div className='flex z-50 justify-center fixed inset-0  bg-opacity-50 backdrop-blur-sm'>
@@ -104,65 +110,69 @@ fetchListOfCoin()
                 </div>
 
                 <div className='flex flex-col items-center gap-4 mb-10 overflow-y-scroll h-72'>
-                    {filteredTokens?.length > 0 ? 
-                    filteredTokens.slice(0, 10).map((token, index) => {
+                    {filteredTokens?.length > 0 ?
+                        filteredTokens.slice(0, 10).map((token, index) => {
 
 
-                        const tokenMetadata = metadata.find(meta => meta?.Name === token?.name);
-                        // const TokenName = tokenMetadata?.metadata[1]?.[1]?.Text;
-                        // const tokendata = listOfData.find((tk)=> tk.id === token.id)
-                        console.log("tokenMetadata",metadata,tokenMetadata)
-                        const TokenId = token.id;
-                        const TokenName = token.name;
-                        const CanisterId = tokenMetadata?.CanisterId;
-                        const ShortForm = tokenMetadata?.metadata[2]?.[1]?.Text;
-                        const ImagePath = token.image;
-                        const currencyAmount = token.current_price
-                        console.log("tokenMetadata",currencyAmount)
+                            const tokenMetadata = metadata.find(meta => meta?.Name === token?.name);
+                            // const TokenName = tokenMetadata?.metadata[1]?.[1]?.Text;
+                            const TokenId = token.id;
+                            const TokenName = token.name ? token.name : tokenMetadata?.metadata[1]?.[1]?.Text;
+                            const CanisterId = tokenMetadata?.CanisterId;
+                            const ShortForm = tokenMetadata?.metadata[2]?.[1]?.Text;
+                            const ImagePath = token.image;
+                            const findAmount = Tokens?.find(tokens => tokens?.CanisterId === CanisterId);
+                            const TokenAmount =  findAmount?.Amount;
+                            const marketPrice = token.current_price;
+                            // const 
 
-                        return (
-                            <div className={`flex gap-6 items-center w-10/12  p-2 bg-[#303030] hover:opacity-80 cursor-pointer  opacity-100 rounded-xl
+                            
+                            return (
+                                <div className={`flex gap-6 items-center w-10/12  p-2 bg-[#303030] hover:opacity-80 cursor-pointer  opacity-100 rounded-xl
                             ${TokenOption === index ? ' font-bold opacity-100 border bg-gradient-to-r from-[#000711] via-[#525E91] to-[#000711]' : ''}`} key={index}
-                                onClick={() => {
-                                    if (id === 1) setPayToken({
-                                        id: TokenId,
-                                        Name: TokenName,
-                                        ImagePath: ImagePath,
-                                        ShortForm: ShortForm,
-                                        CanisterId: CanisterId,
-                                        currencyAmount: currencyAmount
-
-                                    })
-                                    if (id === 2) setRecToken({
-                                        id: TokenId,
-                                        Name: TokenName,
-                                        ImagePath: ImagePath,
-                                        ShortForm: ShortForm,
-                                        CanisterId: CanisterId,
-                                        currencyAmount: currencyAmount,
-                                    })
-                                    if (id === 3) {
-                                        setTokenData({
+                                    onClick={() => {
+                                        if (id === 1) setPayToken({
                                             id: TokenId,
                                             Name: TokenName,
                                             ImagePath: ImagePath,
                                             ShortForm: ShortForm,
                                             CanisterId: CanisterId,
-                                            currencyAmount: currencyAmount
+                                            marketPrice: marketPrice,
+                                            currencyAmount: marketPrice * TokenAmount
+
                                         })
-                                    }
-                                    HandleClickToken(index);
-                                    setSearchToken(false)
-                                }}>
-                                <div className='rounded-lg bg-[#3D3F47] p-2'>
-                                    <img src={ImagePath} alt="" className='h-6 w-6 transform scale-150' />
+                                        if (id === 2) setRecToken({
+                                            id: TokenId,
+                                            Name: TokenName,
+                                            ImagePath: ImagePath,
+                                            ShortForm: ShortForm,
+                                            CanisterId: CanisterId,
+                                            marketPrice: marketPrice,
+                                            currencyAmount: marketPrice * TokenAmount
+                                        })
+                                        if (id === 3) {
+                                            setTokenData({
+                                                id: TokenId,
+                                                Name: TokenName,
+                                                ImagePath: ImagePath,
+                                                ShortForm: ShortForm,
+                                                CanisterId: CanisterId,
+                                                marketPrice: marketPrice,
+                                                currencyAmount: marketPrice * TokenAmount
+                                            })
+                                        }
+                                        HandleClickToken(index);
+                                        setSearchToken(false)
+                                    }}>
+                                    <div className='rounded-lg bg-[#3D3F47] p-2'>
+                                        <img src={ImagePath} alt="" className='h-6 w-6 transform scale-150' />
+                                    </div>
+                                    <div className='font-normal text-xl font-cabin text-start'>
+                                        {TokenName}
+                                    </div>
                                 </div>
-                                <div className='font-normal text-xl font-cabin text-start'>
-                                    {TokenName}
-                                </div>
-                            </div>
-                        );
-                    } ) : <div> Loading.... </div>}
+                            );
+                        }) : <div> Loading.... </div>}
                 </div>
                 <div className='border border-transparent font-bold custom-height-3 bg-gradient-to-r from-transparent via-[#00308E] to-transparent w-full mx-auto'></div>
 

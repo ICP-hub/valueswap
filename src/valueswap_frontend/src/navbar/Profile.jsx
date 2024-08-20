@@ -57,11 +57,11 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
    
     return (
         <div className='relative '>
-            <div className='flex gap-x-4'>
-                <div>
-                    <p className='font-medium'>{Principal}</p>
+            <div className='flex gap-x-4 justify-center'>
+                    <p className='font-medium self-center'>{Principal}</p>
+                {/* <div>
                     <p className='bg-gradient-to-r from-[#F7931A] via-[#767DFF] to-[#00308E] bg-clip-text text-transparent'>2.2501 ETH</p>
-                </div>
+                </div> */}
                 <img src="/image/Ellipse.png" alt="" className='' onClick={() => setShowProfile((prev) => !prev)} />
             </div>
             {showProfile ? <div className='absolute bg-[#010427] top-16 w-[27vw] lg:w-[20vw] right-[-2rem] rounded-md py-2 px-2 lg:px-4 flex flex-col gap-y-4'>
@@ -93,10 +93,10 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
                                 }
                             </div>
                         }
-                        <div>
+                        {/* <div>
                             <img src="" alt="" />
                             <p className='text-xs  font-light'>Meta Mask</p>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
                 <hr />
@@ -113,18 +113,18 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
                     <p className='text-[#FFFFFFBF] font-normal'>Theme</p>
                     <DarkModeToggle onToggle={setIsDarkMode} />
                 </div>
-                <div className='text-[#FFFFFFBF] font-normal flex justify-between'>
+                {/* <div className='text-[#FFFFFFBF] font-normal flex justify-between'>
                     <p>Language</p>
                     <select name="" id="English" className='focus:outline-none focus:shadow-outline bg-transparent'>
                         <option value="English">English</option>
                     </select>
-                </div>
-                <div className='text-[#FFFFFFBF] font-normal flex justify-between'>
+                </div> */}
+                {/* <div className='text-[#FFFFFFBF] font-normal flex justify-between'>
                     <p>Network</p>
                     <select name="" className='focus:outline-none focus:shadow-outline bg-transparent'>
                         <option value="Ethereum">Ethereum</option>
                     </select>
-                </div>
+                </div> */}
                 <hr />
                 <div className='flex justify-center gap-x-4'>
                     <img src="./image/disconnect.png" alt="disconnect logo" />

@@ -21,6 +21,7 @@ const InitialLiquidity = () => {
   const [ButtonActive, SetButtonActive] = useState(false);
   const [AmountSelectCheck, setAmountSelectCheck] = useState(false);
   const [tokenApiDetails, setTokenApiDetails] = useState()
+ 
   const { Tokens, Confirmation } = useSelector((state) => state.pool);
 
   const initialTokenRef = useRef(null);
@@ -132,7 +133,7 @@ console.log("tokenApiDetails", tokenApiDetails)
 
 
 
-
+// token Approval function
 const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
   try {
     const metaData = await tokenActor.icrc1_metadata();
@@ -186,6 +187,9 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
     }
   };
 
+
+
+
   return (
     <div className=''>
       <div className='w-full'>
@@ -230,7 +234,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
                 {InitialToken.ShortForm}
               </span>
               <span className='bg-[#3E434B] py-1 rounded-lg px-2 sm:px-3'>
-                {InitialToken.WeightedPercentage} %
+                {InitialToken.weights} %
               </span>
             </div>
             <span className='text-center font-normal leading-5 text-sm sm:text-base'>
@@ -270,7 +274,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
                         {token.ShortForm}
                       </span>
                       <span className='bg-[#3E434B] py-1 rounded-lg px-2 sm:px-3'>
-                        {token.WeightedPercentage} %
+                        {token.weights} %
                       </span>
                     </div>
                     <span className='text-center font-normal leading-5 text-sm sm:text-base'>
