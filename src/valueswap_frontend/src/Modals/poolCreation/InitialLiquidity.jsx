@@ -21,6 +21,7 @@ const InitialLiquidity = () => {
   const [ButtonActive, SetButtonActive] = useState(false);
   const [AmountSelectCheck, setAmountSelectCheck] = useState(false);
   const [tokenApiDetails, setTokenApiDetails] = useState()
+ 
   const { Tokens, Confirmation } = useSelector((state) => state.pool);
 
   const initialTokenRef = useRef(null);
@@ -132,7 +133,7 @@ console.log("tokenApiDetails", tokenApiDetails)
 
 
 
-
+// token Approval function
 const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
   try {
     const metaData = await tokenActor.icrc1_metadata();
@@ -185,6 +186,9 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
       console.error("Error creating pool:", error);
     }
   };
+
+
+
 
   return (
     <div className=''>

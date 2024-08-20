@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 type CanisterIdRecord = record { canister_id : principal };
 type CanisterSettings = record {
   freezing_threshold : opt nat;
@@ -53,4 +51,3 @@ service : () -> {
   store_pool_data : (Pool_Data, principal) -> ();
   total_lp_tokens : () -> (nat64) query;
 }
->>>>>>> f258d51d7126024aee4cc0dfb863a65655031fe0

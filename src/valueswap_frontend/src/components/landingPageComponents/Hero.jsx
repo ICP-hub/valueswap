@@ -34,7 +34,7 @@ const Hero = ({ setClickConnectWallet }) => {
                     <div onClick={() => {
                         navigate('/dex-swap/pool')
                     }}>
-                        <GradientButton CustomCss={`w-[120px]`}>
+                        <GradientButton CustomCss={`w-[120px] z-10`}>
                             {LandingPageData.HeroSection.ExploreButton}
                         </GradientButton>
                     </div>

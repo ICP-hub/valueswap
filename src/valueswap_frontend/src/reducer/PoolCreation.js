@@ -18,7 +18,8 @@ const initialState = {
             weights: 50,
             ImagePath: null,
             Amount: 0.0,
-            currencyAmount: 66.10,
+            marketPrice: 0,
+            currencyAmount:0,
             weightsLocked: false,
             CanisterId: null
         },
@@ -31,7 +32,8 @@ const initialState = {
             weights: 50,
             ImagePath: null,
             Amount: 0,
-            currencyAmount: 64.89,
+            marketPrice: 0,
+            currencyAmount: 0,
             weightsLocked: false,
             CanisterId: null
         }
@@ -61,6 +63,7 @@ const Pool = createSlice({
                     Selected: false,
                     weights: PercentShare,
                     ImagePath: null,
+                    marketPrice: 0,
                     currencyAmount: 0,
                     weightsLocked: false,
                 }
@@ -125,6 +128,7 @@ const Pool = createSlice({
             state.Tokens[index].ShortForm = action.payload.TokenData.ShortForm;
             state.Tokens[index].ImagePath = action.payload.TokenData.ImagePath;
             state.Tokens[index].CanisterId = action.payload.TokenData.CanisterId;
+            state.Tokens[index]. marketPrice = action.payload.TokenData.marketPrice;
             state.Tokens[index].currencyAmount = action.payload.TokenData.currencyAmount;
             state.Tokens[index].Selected = true;
             state.TotalAmount = SumUpValue(state.Tokens)
@@ -137,6 +141,7 @@ const Pool = createSlice({
             console.log("amount update reducer called", action)
             const index = action.payload.index;
             state.Tokens[index].Amount = action.payload.Amount
+            state.Tokens[index].currencyAmount = parseFloat((state.Tokens[index].Amount * state.Tokens[index].marketPrice).toFixed(3)),
             state.TotalAmount = state.Tokens.reduce((total, token) => total + token.Amount, 0);
             state.TotalAmount = SumUpValue(state.Tokens)
         },

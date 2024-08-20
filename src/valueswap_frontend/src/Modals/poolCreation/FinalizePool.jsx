@@ -13,28 +13,38 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
     const [confirmPool, setConfirmPool] = useState(false)
     const [poolCreated, setPoolCreated] = useState(false)
     const [final, setFinal] = useState(false)
-
+    const [selectedTokenDetails, setSelectedTokenDetails] = useState()
     useEffect(() => {
         if (confirmPool && poolCreated) {
             setFinal(true)
         }
     }, [confirmPool, poolCreated])
     let InitialToken = Tokens[0]
+
     let RestTokens = Tokens.slice(1)
 
     const { backendActor } = useAuth()
     // valueswap_backend.create_pools({
 
     // })\
-
-    const createPoolHandler = () => {
+    const createPoolHandler = async () => {
+        console.log("you click to create pool")
+        const pool_data = Tokens?.map((token) => ({
+            weigth: token.weights,
+            balance: token.Amount,
+            value: token.currencyAmount,
+            token_name: token.Name
+        }))
+        setSelectedTokenDetails(pool_data)
+        const swap_fee = FeeShare
         try {
-            backendActor.create_pools(Tokens)
-
+            await backendActor.create_pools(pool_data, swap_fee)
+            console.log("Pool creates successfully")
         } catch (error) {
-            console.log("can't create pool", error)
+            console.error("error while creating pool", error)
         }
     }
+
 
     return (
         <div className='flex z-50 justify-center fixed inset-0  bg-opacity-50 backdrop-blur-sm py-10 overflow-y-scroll'>
@@ -169,11 +179,12 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
 
                 <div className={`mx-10 mb-4`}>
                     <div className={`${confirmPool ? 'hidden' : 'block'}`}
-                        onClick={() => {
+                        onClick={async () => {
                             setConfirmPool(true)
                             handleCreatePoolClick("ctiya-peaaa-aaaaa-qaaja-cai")
+                            createPoolHandler()
                         }}>
-                        <GradientButton CustomCss={` w-full md:w-full`} onClick={createPoolHandler} >
+                        <GradientButton CustomCss={` w-full md:w-full`} >
                             Confirm and Create Pool
                         </GradientButton>
                     </div>
