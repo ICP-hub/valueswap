@@ -1,7 +1,7 @@
-use ic_cdk_macros::*;
-use std::collections::BTreeMap;
 use candid::{CandidType, Deserialize, Principal};
+use ic_cdk_macros::*;
 use std::cell::RefCell;
+use std::collections::BTreeMap;
 
 #[derive(CandidType, Deserialize, Clone)]
 pub struct CreatePoolParams {
@@ -17,33 +17,20 @@ pub struct Pool_Data {
     pub swap_fee: f64,
 }
 
-#[derive(CandidType, Deserialize, Clone)]
-pub struct PoolLiquidity {
-    pub user_principal: Principal,
-    pub data: Pool_Data,
-}
-
 thread_local! {
-    pub static POOL_DATA: RefCell<BTreeMap<String, Vec<PoolLiquidity>>> = RefCell::new(BTreeMap::new());
+    pub static POOL_DATA: RefCell<BTreeMap<Principal, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
 }
 
-// check if user exists and if it exists update pool data else add user entry with pool data
+// store user_id with pool data
 #[update]
-async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> Result<(), String> {
-    let pool_name = params.pool_data
-        .iter()
-        .map(|pool| pool.token_name.clone())
-        .collect::<Vec<String>>()
-        .join("");
+async fn store_pool_data(user_principal: Principal, params: Pool_Data) -> Result<(), String> {
 
-    let key = format!("{},{}", pool_name, params.swap_fee);
+    // let key = format!("{},{}", pool_name, params.swap_fee);
+    let key = user_principal;
 
     POOL_DATA.with(|pool_data| {
         let mut pool_data_borrowed = pool_data.borrow_mut();
-        let liquidity = PoolLiquidity {
-            user_principal,
-            data: params,
-        };
+        let liquidity = params.clone();
 
         pool_data_borrowed.entry(key).or_default().push(liquidity);
     });
@@ -51,26 +38,34 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
     Ok(())
 }
 
-// store user_id with pool data
+// check if user exists and if it exists update pool data else add user entry with pool data
 #[update]
-async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<(), String> {
-    let pool_name = params.pool_data
+async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> Result<(), String> {
+    let _pool_name = params
+        .pool_data
         .iter()
         .map(|pool| pool.token_name.clone())
         .collect::<Vec<String>>()
         .join("");
 
-    let key = format!("{},{}", pool_name, params.swap_fee);
+    // let key = format!("{},{}", pool_name, params.swap_fee);
 
     POOL_DATA.with(|pool_data| {
         let mut pool_data_borrowed = pool_data.borrow_mut();
-        let liquidity = PoolLiquidity {
-            user_principal: canister_id,
-            data: params,
-        };
+        let liquidity = params.clone();
 
-        pool_data_borrowed.insert(key, vec![liquidity]);
+        // check if user exists
+        if let Some(existing_pool_data) = pool_data_borrowed.get_mut(&user_principal) {
+            existing_pool_data.push(liquidity)
+        } else {
+            pool_data_borrowed
+                .entry(user_principal)
+                .or_default()
+                .push(liquidity);
+        }
     });
 
     Ok(())
 }
+
+export_candid!();
