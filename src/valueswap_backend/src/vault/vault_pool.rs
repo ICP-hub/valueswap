@@ -69,9 +69,12 @@ fn get_constant_product_value() -> f64 {
     })
 }
 
+// use quick sort to sort the pool name in place
 #[update]
-pub fn arrange_key(params: Pool_Data) -> String {
-    
+pub fn arrange_key(pool_name : String) -> String {
+    let mut chars: Vec<char> = pool_name.chars().collect();
+    chars.sort_unstable();
+    chars.into_iter().collect()
 }
 
 // #[ushbpdate]
