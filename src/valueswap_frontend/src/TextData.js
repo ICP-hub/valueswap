@@ -484,7 +484,7 @@ export const portfolioSampleData = {
                 {
                     Name: "BitCoin",
                     ShortForm: "BTC",
-                    WeightedPercentage: 50,
+                    weights: 50,
                     ImagePath: Bitcoin,
                     Balance: 189050,
                     Value: 189050
@@ -492,7 +492,7 @@ export const portfolioSampleData = {
                 {
                     Name: "LiteCoin",
                     ShortForm: "LTC",
-                    WeightedPercentage: 25,
+                    weights: 25,
                     ImagePath: LiteCoin,
                     Balance: 189050,
                     Value: 189050
@@ -500,7 +500,7 @@ export const portfolioSampleData = {
                 {
                     Name: "Ethereum",
                     ShortForm: "ETH",
-                    WeightedPercentage: 25,
+                    weights: 25,
                     ImagePath: Etherum,
                     Balance: 189050,
                     Value: 189050
@@ -523,7 +523,7 @@ export const portfolioSampleData = {
                 {
                     Name: "BitCoin",
                     ShortForm: "BTC",
-                    WeightedPercentage: 50,
+                    weights: 50,
                     ImagePath: Bitcoin,
                     Balance: 189050,
                     Value: 189050
@@ -531,7 +531,7 @@ export const portfolioSampleData = {
                 {
                     Name: "LiteCoin",
                     ShortForm: "LTC",
-                    WeightedPercentage: 50,
+                    weights: 50,
                     ImagePath: LiteCoin,
                     Balance: 189050,
                     Value: 189050
@@ -1263,17 +1263,23 @@ export const LiquidityOverviewData = [
 export const DummyDataTokens = {
     Tokens: [
         {   // Main Net
+            id: "chain-key-bitcoin",
+            name: "Chain-key Bitcoin",
+            symbol:"ckbtc",
             CanisterId: process.env.CANISTER_ID_CKBTC_LEDGER,
+            image: "https://coin-images.coingecko.com/coins/images/33818/large/01_ckBTC_Token_HEX__4x.png",
             // local net
             // CanisterId: 'bkyz2-fmaaa-aaaaa-qaaaq-cai',
-            Image: RandomCoin,
         },
         {
-            // Main Net
-            CanisterId: process.env.CANISTER_ID_CKETH_LEDGER,
-            // local Net
+            // Main Net   
             // CanisterId: 'mxzaz-hqaaa-aaaar-qaada-cai',
-            Image: RandomCoin,
+            // local Net
+            id: "chain-key-ethereum",
+            name: "Chain-key Ethereum",
+            symbol: "cketh",
+            CanisterId: process.env.CANISTER_ID_CKETH_LEDGER,
+            image: "https://coin-images.coingecko.com/coins/images/33819/large/01_ckETH_Token_HEX__4x.png",
         }
 
     ]

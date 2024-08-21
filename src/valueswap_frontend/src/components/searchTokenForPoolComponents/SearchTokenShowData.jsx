@@ -40,21 +40,21 @@ const SearchTokenShowData = ({ token, index, HandleSelectCheck }) => {
                     <input
                         type="number"
                         className='bg-transparent w-10 text-base hide-arrows'
-                        value={token.WeightedPercentage}
+                        value={token.weights}
                         onChange={handleChangePercent}
-                        disabled={token.WeightedPercentageLocked}
+                        disabled={token.weightsLocked}
                     />
                     <span className='md:text-lg text-xs'>%</span>
                 </span>
                 <span>
                     {
-                        token.WeightedPercentageLocked ? (
+                        token.weightsLocked ? (
                             <span className='cursor-pointer'
                                 onClick={() => {
                                     dispatch(ToggleLocked({
                                         index: index,
                                         toggle: false,
-                                        percent: token.WeightedPercentage,
+                                        percent: token.weights,
                                     }))
                                 }}>
                                 <LockKeyhole size={18} />
@@ -65,7 +65,7 @@ const SearchTokenShowData = ({ token, index, HandleSelectCheck }) => {
                                     dispatch(ToggleLocked({
                                         index: index,
                                         toggle: true,
-                                        percent: token.WeightedPercentage,
+                                        percent: token.weights,
                                     }))
                                 }}>
                                 <LockKeyholeOpen size={18} />
@@ -97,8 +97,8 @@ const SearchTokenShowData = ({ token, index, HandleSelectCheck }) => {
                 {token.Selected ? (
                     <div className='flex flex-col gap-1'>
                         <div className='flex items-center place-self-end gap-1 custom-400:gap-2'>
-                            <BlueGradientButton customCss={'disabled px-2 py-2 md:px-4 md:py-3 normal-cursor'}>
-                                <img src={token.ImagePath} alt="" className='h-4 w-4 md:h-8 md:w-8 transform scale-150' />
+                            <BlueGradientButton customCss={'disabled px-2 py-2  normal-cursor'}>
+                                <img src={token.ImagePath} alt="" className='h-4 w-4 md:h-6 md:w-6 transform scale-150' />
                             </BlueGradientButton>
 
                             <div className='flex items-center gap-1'
