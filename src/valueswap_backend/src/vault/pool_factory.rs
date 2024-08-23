@@ -253,8 +253,3 @@ async fn store_pool_data( params: Pool_Data , canister_id: Principal) -> Result<
 //     Ok(data)
 // }
 
-// #[update]
-// fn add_liquidity(canister_id: Principal , params : CreatePoolParams) {
-//     // store_data_in_pool
-
-// }
