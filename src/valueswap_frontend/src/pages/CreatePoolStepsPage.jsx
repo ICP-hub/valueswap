@@ -8,7 +8,8 @@ const steps = ['Select Tokens for Pools', 'Set Pool Fees', 'Add Initial Liquidit
 const CreatePoolStepsPage = () => {
     const [activeStep, setActiveStep] = useState(0);
     const isLastStep = activeStep === steps.length - 1;
-
+   const [fixedActiveSetp, setFixedActiveSetp] = useState(0)
+   console.log("setFixedActiveSetp", fixedActiveSetp)
     const handleNext = () => {
         if (!isLastStep) {
             setActiveStep(current => current + 1);
@@ -26,9 +27,9 @@ const CreatePoolStepsPage = () => {
     const getStepContent = (step) => {
         switch (step) {
             case 0:
-                return <SelectTokensForPools handleNext={handleNext} />;
+                return <SelectTokensForPools handleNext={handleNext}  setFixedActiveSetp ={setFixedActiveSetp}/>;
             case 1:
-                return <SetPoolFees handleNext={handleNext} />;
+                return <SetPoolFees handleNext={handleNext} setFixedActiveSetp ={setFixedActiveSetp}/>;
             case 2:
                 return <InitialLiquidity />;
             default:
@@ -43,7 +44,7 @@ const CreatePoolStepsPage = () => {
             </button>
             <div className=" lg:flex-row flex-col py-2 justify-around hidden lg:flex max-w-[1200px] mx-auto">
                 {steps.map((label, index) => (
-                       <div key={index} className= {`flex gap-6 pb-6 w-full justify-center items-center m-auto`} onClick={() => setActiveStep(index)}>
+                       <div key={index} className= {`flex gap-6 pb-6 w-full justify-center items-center m-auto`} onClick={() => setActiveStep(index <= fixedActiveSetp ? index : fixedActiveSetp)}>
                        <div className={`py-2 px-4 rounded-full  ${activeStep == index  ? "bg-[#F7931A]":"bg-[#00308E]"}`}>{index+ 1}</div>
                        <p className="text-lg">{label}</p>
                        <hr className="border-2 w-1/4 pr-6" />

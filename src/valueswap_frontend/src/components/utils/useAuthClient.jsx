@@ -65,7 +65,9 @@ export const useAuthClient = (options = defaultOptions) => {
         return new Promise(async (resolve, reject) => {
             try {
                 if (authClient.isAuthenticated() && ((await authClient.getIdentity().getPrincipal().isAnonymous()) === false)) {
-                    const backendActor = createActorBackend(backendCanisterId, { agentOptions: { identity: identity } });
+                    console.log("click to login")
+                    const backendActor = await createActorBackend(backendCanisterId, { agentOptions: { identity: identity } });
+                    console.log("backendactor creat",backendActor )
                     setBackendActor(backendActor);
                     updateClient(authClient);
                     resolve(AuthClient);

@@ -57,7 +57,7 @@ const SearchTokenShowData = ({ token, index, HandleSelectCheck }) => {
                                         percent: token.weights,
                                     }))
                                 }}>
-                                <LockKeyhole size={18} />
+                                <LockKeyhole size={18} color="#C16800"/>
                             </span>
                         ) : (
                             <span className='cursor-pointer'
@@ -88,7 +88,7 @@ const SearchTokenShowData = ({ token, index, HandleSelectCheck }) => {
                         }, 3000);
                     }
                 }} className='cursor-pointer'>
-                    <Trash size={18} />
+                    <Trash size={18} color="#eb3023"/>
                 </span>
 
             </div>
