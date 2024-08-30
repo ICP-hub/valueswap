@@ -44,7 +44,7 @@ const Swap = () => {
     useEffect(() => {
         if (PayCoin) {
             getBalance(principal, PayCoin.CanisterId).then(balance => {
-                setPayCoinBalance(balance);
+                setPayCoinBalance(balance / 100000000);
             });
         }
     }, [PayCoin, principal, getBalance]);
@@ -52,7 +52,7 @@ const Swap = () => {
     useEffect(() => {
         if (RecieveCoin) {
             getBalance(principal, RecieveCoin.CanisterId).then(balance => {
-                setRecieveCoinBalance(balance);
+                setRecieveCoinBalance(balance / 100000000);
             });
         }
     }, [RecieveCoin, principal, getBalance]);
@@ -84,7 +84,7 @@ const Swap = () => {
         <div className='px-4 md:px-0'>
             <div className='flex justify-center my-auto flex-col'>
                 <div className='relative align-middle max-w-[1200px] flex flex-col justify-center mt-12 p-6 bg-gradient-to-b from-[#3E434B] to-[#02060D] border sm:mx-auto rounded-lg '>
-                    <div className='w-[64%] sm:w-[58%] place-self-end flex justify-between z-50'>
+                    <div className='w-[64%] sm:w-[58%] place-self-end flex justify-between '>
                         <span className='font-fahkwang font-light text-3xl'>{SwapModalData.Heading}</span>
                         <Bolt size={30} className='cursor-pointer' onClick={handleSettings} />
                     </div>
@@ -131,14 +131,14 @@ const Swap = () => {
                         <div>
                             {!PayCoin ? (
                                 <div>
-                                    <div className='flex sm:mr-12 items-center gap-2'>
+                                    <div className='flex sm:mr-12 items-center gap-2' >
                                         <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
-                                            <div className='flex text-sm sm:text-base items-center gap-1'>
-                                                {SwapModalData.PaySection.TokenSelectButtonText}
-                                                <span className='cursor-pointer' onClick={() => {
+                                            <div className='flex text-sm sm:text-base items-center gap-1' onClick={() => {
                                                     setId(1);
                                                     setSearchToken1(!searchToken1);
                                                 }}>
+                                                {SwapModalData.PaySection.TokenSelectButtonText}
+                                                <span className='cursor-pointer' >
                                                     <ChevronDown />
                                                 </span>
                                             </div>
@@ -214,13 +214,13 @@ const Swap = () => {
 
                         <div>
                             {!RecieveCoin ? (
-                                <div className='flex sm:mr-12 items-center place-self-end gap-2'>
+                                <div className='flex sm:mr-12 items-center place-self-end gap-2'  onClick={() => {
+                                    setId(2);
+                                    setSearchToken2(!searchToken2);
+                                }}>
                                     <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
                                         <div className='flex text-sm sm:text-base items-center gap-1'
-                                            onClick={() => {
-                                                setId(2);
-                                                setSearchToken2(!searchToken2);
-                                            }}>
+                                           >
                                             {SwapModalData.RecieveSection.TokenSelectButtonText}
                                             <span className='cursor-pointer'>
                                                 <ChevronDown />

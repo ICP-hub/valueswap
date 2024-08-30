@@ -22,8 +22,8 @@ export default defineConfig({
       'Content-Security-Policy': "connect-src 'self' http://localhost:* https://icp0.io https://*.icp0.io https://icp-api.io https://api.coingecko.com;",
     },
     proxy: {
-      "/": {
-        target: "https://bakyi-giaaa-aaaag-alnaa-cai.icp0.io",
+      "/api": {
+        target: "http://localhost:3000",
         changeOrigin: true,
       },
     },

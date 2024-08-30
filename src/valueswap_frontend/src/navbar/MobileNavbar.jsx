@@ -69,7 +69,8 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
     }, []);
 
 
-    console.log("isAuthenticated", isAuthenticated, principal)
+    // console.log("isAuthenticated", isAuthenticated, principal)
+    console.log("open", open)
 
 
     return (
@@ -102,21 +103,21 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
 
                         <div
                             onClick={() => {
-                                if (NavbarData.ButtonText === 'Connect Wallet') {
+                                if (!isAuthenticated) {
                                     setClickConnectWallet(true);
+                                    setOpen(!open)
                                 }
 
-                                if (NavbarData.ButtonText === 'Explore Pools') {
-                                    navigate('/dex-swap/pool')
-                                }
+                               
                             }}>
                             <GradientButton
                                 CustomCss={`hover:opacity-75 w-[150px]  text-xs md:text-base lg:text-base lg:h-[60px] py-2 lg:py-4 px-2`}
-                            >{NavbarData.ButtonText}</GradientButton>
+                            >{!isAuthenticated ? NavbarData.ButtonText : NavbarData.ButtonTextDisconnet}</GradientButton>
                         </div>
                     </div>
 
                 </ul>
+
                 <div className="w-full  rounded-2xl  flex justify-between max-w-[1200px] bg-[#686868AB] tracking-wide backdrop-blur-md items-center md:py-4 px-6">
 
                     <div className='flex items-center justify-between px-2 md:justify-start'>
