@@ -3,7 +3,7 @@ dfx deploy swap
 set -e
 
 # Create and use the DevJourney identity
-# dfx identity new Nikhilrai || true
+# dfx identity new default || true --network ic
 dfx identity use Nikhilrai --network ic
 
 # dfx canister create swap
@@ -62,8 +62,8 @@ dfx deploy cketh_ledger --argument "$DEPLOY_ARGUMENTS" --network ic
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
 
-# dfx deploy  --network ic
-# dfx deploy valueswap_backend  --network ic
+# dfx deploy
+# dfx deploy valueswap_backend
 # echo "cketh got deployed"
 
 # Check the balance of the default identity
