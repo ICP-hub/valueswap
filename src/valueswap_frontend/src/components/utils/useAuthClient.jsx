@@ -140,12 +140,13 @@ export const useAuthClient = (options = defaultOptions) => {
             }
         
 
-    const canisterId =
-        process.env.CANISTER_ID_CKETH_LEDGER
+    const canisterId = process.env.CANISTER_ID_CKETH_LEDGER
 
     // const actor = createActorBackend(canisterId, { agentOptions: { identity } });
 
 const getBalance = async (principal, canisterId) =>{
+    console.log("getbalance canisterww")
+    console.log("getbalance canister", canisterId)
     const actor = await createTokenActor(canisterId)
     const balance = await actor.icrc1_balance_of({ owner: principal, subaccount: [] })
     setBalance(balance)

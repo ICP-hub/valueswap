@@ -44,7 +44,7 @@ const Swap = () => {
     useEffect(() => {
         if (PayCoin) {
             getBalance(principal, PayCoin.CanisterId).then(balance => {
-                setPayCoinBalance(balance / 100000000);
+                setPayCoinBalance(balance);
             });
         }
     }, [PayCoin, principal, getBalance]);
@@ -52,7 +52,7 @@ const Swap = () => {
     useEffect(() => {
         if (RecieveCoin) {
             getBalance(principal, RecieveCoin.CanisterId).then(balance => {
-                setRecieveCoinBalance(balance / 100000000);
+                setRecieveCoinBalance(balance);
             });
         }
     }, [RecieveCoin, principal, getBalance]);
