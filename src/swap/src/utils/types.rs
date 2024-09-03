@@ -2,24 +2,29 @@ use candid::{CandidType, Deserialize, Nat, Principal};
 use serde::{Deserialize as SerdeDeserialize, Serialize};
 use std::fmt;
 
-// #[derive(CandidType, SerdeDeserialize, Serialize, Clone, Debug)]
-// pub struct SwapResult {
-//     pub amount0: i64, // Resulting amount of token 0
-//     pub amount1: i64, // Resulting amount of token 1
-//     // Add other necessary fields for the swap result
-// }
-
 #[derive(CandidType, SerdeDeserialize, Serialize, Clone, Debug)]
 pub enum SwapError {
     InternalError(String), // Generic internal error with a message
-    // Add other error types as needed
+    InSufficientBalance,
+    InvalidAmount,
+    UserNotFound,
+    PoolNotFound,
+    UnauthorizedAccess,
+    OverflowError,
+    UnderFlowError
 }
 
 impl fmt::Display for SwapError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             SwapError::InternalError(msg) => write!(f, "Internal error: {}", msg),
-            // Add other error formats as needed
+            SwapError::InSufficientBalance=> write!(f, "Insufficiant Balance"),
+            SwapError::InvalidAmount => write!(f , "Invalid Amount"),
+            SwapError::UserNotFound => write!(f , "UserNotFount"),
+            SwapError::PoolNotFound => write!(f , "PoolNotFound"),
+            SwapError::UnauthorizedAccess => write!(f , "UnauthorizedAccess"),
+            SwapError::OverflowError => write!(f , "OverflowError"),
+            SwapError::UnderFlowError => write!(f , "UnderFlowError")
         }
     }
 }
@@ -29,6 +34,7 @@ impl std::error::Error for SwapError {}
 impl From<String> for SwapError {
     fn from(err: String) -> Self {
         SwapError::InternalError(err)
+
     }
 }
 
@@ -55,9 +61,10 @@ pub struct CreatePoolParams {
 
 #[derive(CandidType, Deserialize ,Clone)]
 pub struct SwapParams {
-    pub token1 : f64,
-    pub token2 : f64,
-    pub zero_for_one : bool
+    pub token1 : u64,
+    pub token2 : u64,
+    pub zero_for_one : bool,
+    swap_amount : u64
 }
 
 #[derive(CandidType, Deserialize, Clone)]

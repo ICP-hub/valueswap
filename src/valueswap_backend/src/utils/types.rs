@@ -231,3 +231,14 @@ pub(crate) struct CreateCanisterArgumentExtended {
 //     pub amount : BTreeMap<String , u64>
      
 // }
+
+
+#[derive(CandidType, Deserialize ,Clone)]
+pub struct SwapParams {
+    pub token1_amount : u64,
+    pub token2_amount : u64,
+    pub token1_name : String,
+    pub token2_name : String,
+    pub zero_for_one : bool,
+    swap_amount : u64
+}

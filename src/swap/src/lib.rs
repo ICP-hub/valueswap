@@ -1,10 +1,12 @@
-use candid::{CandidType,Nat, Deserialize, Principal};
+use candid::{CandidType, Deserialize, Nat, Principal};
 use ic_cdk_macros::*;
+use serde::de::value::Error;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
 mod utils;
 
+pub use utils::maths::*;
 pub use utils::types::*;
 
 thread_local! {
@@ -14,7 +16,6 @@ thread_local! {
 // store user_id with pool data
 #[update]
 async fn store_pool_data(user_principal: Principal, params: Pool_Data) -> Result<(), String> {
-
     // let key = format!("{},{}", pool_name, params.swap_fee);
     let key = user_principal;
 
@@ -58,6 +59,22 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
     Ok(())
 }
 
+fn pre_swap(params: SwapParams) -> Result<(), SwapError> {
+    let entered_token: u64 = if params.zero_for_one {
+        params.token1
+    } else {
+        params.token2
+    };
+
+    if entered_token <= 0 {
+        return Err(SwapError::InvalidAmount);
+    }
+    Ok(())
+}
+
+// fn compute_swap(params: SwapParams , ) -> Result<() , SwapError> {
+    
+// }
 
 // fn pre_swap_for_all(params: SwapParams, operator: Principal) -> Result<Nat, SwapError> {
 //     // let swap_result = match compute_swap(args.clone(), operator, false) {
@@ -82,7 +99,7 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
 //         return Err(SwapError::InternalError(
 //             "The amount of input token is too small.".to_string(),
 //         ));
-    // } else if params.amount_in.parse::<i64>().unwrap_or(0) > effective_amount.to_u64().unwrap_or(0)
+// } else if params.amount_in.parse::<i64>().unwrap_or(0) > effective_amount.to_u64().unwrap_or(0)
 //         && effective_amount > Nat::from(0)
 //     {
 //         return Err(SwapError::InternalError(format!(
@@ -93,10 +110,5 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
 //         return Ok(swap_amount);
 //     }
 // }
-
-// fn compute_swap() {
-
-// }
- 
 
 export_candid!();
