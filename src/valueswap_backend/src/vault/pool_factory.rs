@@ -326,7 +326,7 @@ fn add_liquidity_curr(params : Pool_Data) -> Result<() , String> {
 
 
 // #[query]
-// fn pre_compute_swap(){
+// fn pre_compute_swap() -> Result<f64 , String>{
 
 // }
 
