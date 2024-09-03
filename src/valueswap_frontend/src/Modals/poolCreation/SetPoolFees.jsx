@@ -7,7 +7,7 @@ import { useDispatch } from 'react-redux';
 import { SetFeeShare } from '../../reducer/PoolCreation';
 import BorderGradientButton from '../../buttons/BorderGradientButton';
 
-const SetPoolFees = ({ handleNext }) => {
+const SetPoolFees = ({ handleNext, setFixedActiveSetp }) => {
 
     const dispatch = useDispatch();
     const [ButtonActive, SetButtonActive] = useState(false);
@@ -103,6 +103,7 @@ const SetPoolFees = ({ handleNext }) => {
                                 dispatch(hideAlert());
                             }, [3000])
                         } else {
+                            setFixedActiveSetp(2)
                             handleNext()
                         }
                     }}

@@ -18,9 +18,12 @@ export default defineConfig({
     },
   },
   server: {
+    headers: {
+      'Content-Security-Policy': "connect-src 'self' http://localhost:* https://icp0.io https://*.icp0.io https://icp-api.io https://api.coingecko.com;",
+    },
     proxy: {
       "/api": {
-        target: "http://127.0.0.1:4943",
+        target: "http://localhost:3000",
         changeOrigin: true,
       },
     },

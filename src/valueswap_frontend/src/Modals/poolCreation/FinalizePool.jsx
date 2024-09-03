@@ -30,7 +30,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
     const createPoolHandler = async () => {
         console.log("you click to create pool")
         const pool_data = Tokens?.map((token) => ({
-            weigth: token.weights,
+            weight: token.weights,
             balance: token.Amount,
             value: token.currencyAmount,
             token_name: token.Name
@@ -38,7 +38,9 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
         setSelectedTokenDetails(pool_data)
         const swap_fee = FeeShare
         try {
-            await backendActor.create_pools(pool_data, swap_fee)
+            console.log("actor created", backendActor)
+            console.log("pool_data", pool_data)
+            await backendActor.create_pools({pool_data}, swap_fee)
             console.log("Pool creates successfully")
         } catch (error) {
             console.error("error while creating pool", error)

@@ -1266,7 +1266,7 @@ export const DummyDataTokens = {
             id: "chain-key-bitcoin",
             name: "Chain-key Bitcoin",
             symbol:"ckbtc",
-            CanisterId: process.env.CANISTER_ID_CKBTC_LEDGER,
+            CanisterId: process.env.CANISTER_ID_CKBTC_LEDGER || "d6g4o-amaaa-aaaaa-qaaoq-cai", 
             image: "https://coin-images.coingecko.com/coins/images/33818/large/01_ckBTC_Token_HEX__4x.png",
             // local net
             // CanisterId: 'bkyz2-fmaaa-aaaaa-qaaaq-cai',
@@ -1278,7 +1278,7 @@ export const DummyDataTokens = {
             id: "chain-key-ethereum",
             name: "Chain-key Ethereum",
             symbol: "cketh",
-            CanisterId: process.env.CANISTER_ID_CKETH_LEDGER,
+            CanisterId: process.env.CANISTER_ID_CKETH_LEDGER || "dxfxs-weaaa-aaaaa-qaapa-cai",
             image: "https://coin-images.coingecko.com/coins/images/33819/large/01_ckETH_Token_HEX__4x.png",
         }
 

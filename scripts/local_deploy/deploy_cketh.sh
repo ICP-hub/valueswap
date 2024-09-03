@@ -3,14 +3,14 @@ dfx deploy swap
 set -e
 
 # Create and use the DevJourney identity
-# dfx identity new Nikhilrai || true
-dfx identity use Nikhilrai --network ic
+# dfx identity new default || true 
+dfx identity use default 
 
 # dfx canister create swap
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER=$(dfx identity get-principal --network ic)
+export MINTER=$(dfx identity get-principal )
 echo "MINTER principal: $MINTER"
 
 # Set token details
@@ -24,12 +24,12 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use Nikhilrai --network ic
-export DEFAULT=$(dfx identity get-principal --network ic)
+dfx identity use default 
+export DEFAULT=$(dfx identity get-principal )
 echo "DEFAULT principal: $DEFAULT"
 
 # Set archive controller as the default identity for now
-export ARCHIVE_CONTROLLER=$(dfx identity get-principal --network ic)
+export ARCHIVE_CONTROLLER=$(dfx identity get-principal )
 
 # Set archive options
 export TRIGGER_THRESHOLD=2000
@@ -55,15 +55,15 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy cketh_ledger --argument "$DEPLOY_ARGUMENTS" --network ic
+dfx deploy cketh_ledger --argument "$DEPLOY_ARGUMENTS" 
 
 
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
 
-# dfx deploy  --network ic
-# dfx deploy valueswap_backend  --network ic
+# dfx deploy
+# dfx deploy valueswap_backend
 # echo "cketh got deployed"
 
 # Check the balance of the default identity
