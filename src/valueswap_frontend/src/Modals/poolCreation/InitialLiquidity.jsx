@@ -26,7 +26,7 @@ const InitialLiquidity = () => {
 
   const initialTokenRef = useRef(null);
   const restTokensRefs = useRef([]);
-
+ 
   useEffect(() => {
     if(Tokens.length <= 0){
         return;
@@ -188,7 +188,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
   };
 
 
-
+console.log("NAN", InitialToken.currencyAmount)
 
   return (
     <div className=''>
@@ -279,6 +279,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
                     </div>
                     <span className='text-center font-normal leading-5 text-sm sm:text-base'>
                     $ {token.currencyAmount}
+                    
                     </span>
                   </div>
                 </div>

@@ -36,10 +36,9 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
             token_name: token.Name
         }))
         setSelectedTokenDetails(pool_data)
-        const swap_fee = FeeShare
+        console.log("swap_fee", FeeShare)
+        const swap_fee = await FeeShare
         try {
-            console.log("actor created", backendActor)
-            console.log("pool_data", pool_data)
             await backendActor.create_pools({pool_data}, swap_fee)
             console.log("Pool creates successfully")
         } catch (error) {

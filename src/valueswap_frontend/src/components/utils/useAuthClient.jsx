@@ -65,9 +65,7 @@ export const useAuthClient = (options = defaultOptions) => {
         return new Promise(async (resolve, reject) => {
             try {
                 if (authClient.isAuthenticated() && ((await authClient.getIdentity().getPrincipal().isAnonymous()) === false)) {
-                    console.log("click to login")
-                    const backendActor = await createActorBackend(backendCanisterId, { agentOptions: { identity: identity } });
-                    console.log("backendactor creat",backendActor )
+                    const backendActor = await createActorBackend(backendCanisterId, { agentOptions: { identity: identity } });       
                     setBackendActor(backendActor);
                     updateClient(authClient);
                     resolve(AuthClient);
@@ -145,12 +143,9 @@ export const useAuthClient = (options = defaultOptions) => {
     // const actor = createActorBackend(canisterId, { agentOptions: { identity } });
 
 const getBalance = async (principal, canisterId) =>{
-    console.log("getbalance canisterww")
-    console.log("getbalance canister", canisterId)
     const actor = await createTokenActor(canisterId)
     const balance = await actor.icrc1_balance_of({ owner: principal, subaccount: [] })
     setBalance(balance)
-    console.log("initialActor", actor)
     return balance;
    }
 
