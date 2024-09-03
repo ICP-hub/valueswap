@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 use crate::utils::maths::*;
 use crate::utils::types::{PoolShare, UserShare , CreatePoolParams};
+use crate::Pool_Data;
 
 thread_local! {
     // Pool token balances, weights, and names
@@ -68,7 +69,17 @@ fn get_constant_product_value() -> f64 {
     })
 }
 
+
+
+// use quick sort to sort the pool name in place
 // #[update]
+// pub fn arrange_key(pool_name : String) -> String {
+//     let mut chars: Vec<char> = pool_name.chars().collect();
+//     chars.sort_unstable();
+//     chars.into_iter().collect()
+// }
+
+// #[ushbpdate]
 // fn create_pool(params: CreatePoolParams) {
 //     // Check if lengths match
 //     if params.balances.len() != params.weights.len() || params.balances.len() != params.token_names.len() {

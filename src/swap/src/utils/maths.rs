@@ -37,9 +37,9 @@ pub fn constant_product(balances: &[f64], weights: &[f64]) -> f64 {
 // sF = swapFee                                                                              //
 **********************************************************************************************/
 
-// pub fn spot_price(b_i: f64, w_i: f64, b_o: f64, w_o: f64, fee: f64) -> f64 {
-//     (b_i / w_i) / (b_o / w_o) * (1.0 / (1.0 - fee))
-// }
+pub fn spot_price(b_i: f64, w_i: f64, b_o: f64, w_o: f64, fee: f64) -> f64 {
+    (b_i / w_i) / (b_o / w_o) * (1.0 / (1.0 - fee))
+}
 
 /**********************************************************************************************
 // calcOutGivenIn                                                                            //
@@ -52,11 +52,11 @@ pub fn constant_product(balances: &[f64], weights: &[f64]) -> f64 {
 // sF = swapFee                                                                              //
 **********************************************************************************************/
 
-// pub fn out_given_in(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_in: f64, fee: f64) -> f64 {
-//     b_o * (
-//         1.0 - (b_i / (b_i + amount_in * (1.0 - fee))).powf(w_i / w_o)
-//     )
-// }
+pub fn out_given_in(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_in: f64, fee: f64) -> f64 {
+    b_o * (
+        1.0 - (b_i / (b_i + amount_in * (1.0 - fee))).powf(w_i / w_o)
+    )
+}
 
 /**********************************************************************************************
 // calcInGivenOut                                                                            //
@@ -69,9 +69,9 @@ pub fn constant_product(balances: &[f64], weights: &[f64]) -> f64 {
 // sF = swapFee                                                                              //
 **********************************************************************************************/
 
-// pub fn in_given_out(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_out: f64, fee: f64) -> f64 {
-//     b_i * ((b_o / (b_o - amount_out)).powf(w_o / w_i) - 1.0) / (1.0 - fee)
-// }
+pub fn in_given_out(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_out: f64, fee: f64) -> f64 {
+    b_i * ((b_o / (b_o - amount_out)).powf(w_o / w_i) - 1.0) / (1.0 - fee)
+}
 
 /**********************************************************************************************
 // calcAllAssetWithdraw                                                                      //
