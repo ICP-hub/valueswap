@@ -1,21 +1,13 @@
-use candid::{CandidType, Deserialize, Principal};
+use candid::{CandidType, Deserialize, Nat, Principal};
 use ic_cdk_macros::*;
+use serde::de::value::Error;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
-#[derive(CandidType, Deserialize, Clone)]
-pub struct CreatePoolParams {
-    pub token_name: String,
-    pub balance: u64,
-    pub weight: f64,
-    pub value: u64,
-}
+mod utils;
 
-#[derive(CandidType, Deserialize, Clone)]
-pub struct Pool_Data {
-    pub pool_data: Vec<CreatePoolParams>,
-    pub swap_fee: f64,
-}
+pub use utils::maths::*;
+pub use utils::types::*;
 
 thread_local! {
     pub static POOL_DATA: RefCell<BTreeMap<Principal, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
@@ -24,7 +16,6 @@ thread_local! {
 // store user_id with pool data
 #[update]
 async fn store_pool_data(user_principal: Principal, params: Pool_Data) -> Result<(), String> {
-
     // let key = format!("{},{}", pool_name, params.swap_fee);
     let key = user_principal;
 
@@ -67,5 +58,57 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
 
     Ok(())
 }
+
+fn pre_swap(params: SwapParams) -> Result<(), SwapError> {
+    let entered_token: u64 = if params.zero_for_one {
+        params.token1
+    } else {
+        params.token2
+    };
+
+    if entered_token <= 0 {
+        return Err(SwapError::InvalidAmount);
+    }
+    Ok(())
+}
+
+// fn compute_swap(params: SwapParams , ) -> Result<() , SwapError> {
+    
+// }
+
+// fn pre_swap_for_all(params: SwapParams, operator: Principal) -> Result<Nat, SwapError> {
+//     // let swap_result = match compute_swap(args.clone(), operator, false) {
+//     //     Ok(result) => result,
+//     //     Err(code) => return Err(SwapError::InternalError(format!("preswap {:?}", code))),
+//     // };
+
+//     let mut effective_amount = 0;
+//     let mut swap_amount = 0;
+
+//     // if params.zero_for_one && swap_result.amount1 < 0 {
+//     //     swap_amount = Nat::from((-swap_result.amount1) as u64);
+//     //     effective_amount = Nat::from(swap_result.amount0 as u64);
+//     // }
+
+// //     if !args.zero_for_one && swap_result.amount0 < 0 {
+// //         swap_amount = Nat::from((-swap_result.amount0) as u64);
+// //         effective_amount = Nat::from(swap_result.amount1 as u64);
+// //     }
+
+//     if swap_amount <= Nat::from(0) {
+//         return Err(SwapError::InternalError(
+//             "The amount of input token is too small.".to_string(),
+//         ));
+// } else if params.amount_in.parse::<i64>().unwrap_or(0) > effective_amount.to_u64().unwrap_or(0)
+//         && effective_amount > Nat::from(0)
+//     {
+//         return Err(SwapError::InternalError(format!(
+//             "The maximum amount of input tokens is {:?}",
+//             effective_amount
+// //         )));
+//     } else {
+//         return Ok(swap_amount);
+//     }
+// }
 
 export_candid!();

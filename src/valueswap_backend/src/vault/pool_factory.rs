@@ -1,6 +1,8 @@
 use crate::{user_principal, with_state};
 use candid::{CandidType, Nat, Principal};
+use ic_cdk::api::management_canister::bitcoin::BitcoinNetwork;
 use ic_cdk_macros::*;
+use serde::de::value;
 use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap};
 // use serde::{Deserialize, Serialize};
@@ -20,12 +22,12 @@ use crate::utils::types::*;
 
 use ic_stable_structures::{writer::Writer, Memory as _, StableBTreeMap};
 
-use super::vault_pool::arrange_key;
+// use super::vault_pool::arrange_key;
 
 thread_local! {
     // pub static TOKEN_POOLS: RefCell<HashMap<String, Principal>> = RefCell::new(HashMap::new());
     // pub static POOL_ID : RefCell<BTreeMap<String , String>> = RefCell::new(BTreeMap::new());
-    pub static POOL_DATA: RefCell<BTreeMap<String, Pool_Data>> = RefCell::new(BTreeMap::new());
+    pub static POOL_DATA: RefCell<BTreeMap<String, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
 }
 
 fn prevent_anonymous() -> Result<(), String> {
@@ -51,13 +53,13 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
         .collect::<Vec<String>>()
         .join("");
 
-    let pool_key = arrange_key(pool_name);
+    // let pool_key = arrange_key(pool_name);
 
     // let pool_key = format!("{}{}", pool_name, params.swap_fee);
 
     let pool_canister_id = with_state(|pool| {
         let mut pool_borrowed = &mut pool.TOKEN_POOLS;
-        if let Some(canister_id) = pool_borrowed.get(&pool_key) {
+        if let Some(canister_id) = pool_borrowed.get(&pool_name) {
             return Some(canister_id);
         } else {
             None
@@ -65,6 +67,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
     });
 
     if let Some(canister_id) = pool_canister_id {
+        add_liquidity_curr(params.clone());
         add_liquidity(params.clone() , canister_id.principal);
         //TODO Map canister id with pool_key for adding liquidity
         Ok(())
@@ -75,7 +78,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
                 with_state(|pool| {
                     // pool.    borrow_mut().insert(pool_key.clone(), canister_id);
                     &mut pool.TOKEN_POOLS.insert(
-                        pool_key.clone(),
+                        pool_name.clone(),
                         crate::user_principal {
                             principal: canister_id,
                         },
@@ -90,6 +93,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
                 //     }
                 // });
                 // store_pool_data(params , canister_id.principal);
+                store_pool_data_curr(params.clone());
                 store_pool_data(params.clone(), canister_id_record.canister_id).await?;
 
                 for amount in params.pool_data.iter() {
@@ -245,6 +249,87 @@ async fn store_pool_data( params: Pool_Data , canister_id: Principal) -> Result<
     Ok(())
 }
 
+#[update]
+fn store_pool_data_curr(params : Pool_Data)-> Result<(), String>  {
+    let key = params
+    .pool_data
+    .iter()
+    .map(|pool| pool.token_name.clone())
+    .collect::<Vec<String>>()
+    .join("");
+
+    POOL_DATA.with(|pool|{
+        let mut borrowed_pool = pool.borrow_mut();
+        let liquidity = params.clone();
+        borrowed_pool
+        .entry(key)
+        .or_insert_with(Vec::new)
+        .push(params.clone());
+    });
+    Ok(())
+}
+
+#[query]
+fn get_pool_data() -> BTreeMap<String, Vec<Pool_Data>> {
+    POOL_DATA.with(|pool|{
+        pool.borrow().clone()
+    })
+}
+
+fn get_specific_pool_data(key : String) -> Result<Vec<Pool_Data>, String> {
+    POOL_DATA.with(|pool|{
+        let borrored_pool = pool.borrow();
+        if let Some(pool_data) = borrored_pool.get(&key) {
+            Ok(pool_data.clone())
+        }else{
+            Err("Pool not found".to_string())
+        }
+    })
+}
+
+#[update]
+fn add_liquidity_curr(params : Pool_Data) -> Result<() , String> {
+    let key = params
+    .pool_data
+    .iter()
+    .map(|pool|pool.token_name.clone())
+    .collect::<Vec<String>>()
+    .join("");
+
+    POOL_DATA.with(|pool|{
+        let mut borrowed_pool = pool.borrow_mut();
+        
+        if let Some(existing_pool_data_vec) = borrowed_pool.get_mut(&key){
+
+            for new_token in &params.pool_data{
+                for existing_pool_data in existing_pool_data_vec.iter_mut() {
+                    if let Some(existing_token) = existing_pool_data
+                    .pool_data
+                    .iter_mut()
+                    .find(|token| token.token_name == new_token.token_name)
+                    {
+                        existing_token.balance += new_token.balance;
+                    }
+                }
+            }
+        }
+    });
+    Ok(())
+    
+}
+
+
+// #[update]
+// fn search_swap_pool() -> Result<Vec<String> , String>{
+      
+// }
+
+
+// #[query]
+// fn pre_compute_swap(){
+
+// }
+
 // #[query]
 // fn get_pool_data(pool_id: Principal) -> Result<Option<TokenData>, String> {
 //     let data = POOL.with(|pool| {
@@ -253,8 +338,3 @@ async fn store_pool_data( params: Pool_Data , canister_id: Principal) -> Result<
 //     Ok(data)
 // }
 
-// #[update]
-// fn add_liquidity(canister_id: Principal , params : CreatePoolParams) {
-//     // store_data_in_pool
-
-// }
