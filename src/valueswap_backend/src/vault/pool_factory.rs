@@ -18,6 +18,7 @@ use ic_cdk::{
 
 use crate::api::deposit::deposit_ckbtc;
 use crate::types::state_handlers;
+use crate::utils::maths::*;
 use crate::utils::types::*;
 
 use ic_stable_structures::{writer::Writer, Memory as _, StableBTreeMap};
@@ -315,20 +316,101 @@ fn add_liquidity_curr(params : Pool_Data) -> Result<() , String> {
         }
     });
     Ok(())
+
+}
+
+// take swap elements in the vector 
+#[update]
+fn search_swap_pool(params : SwapParams) -> Result<Vec<String>, String> {
+
+    let mut search_tokens = Vec::new();
+    search_tokens.push(params.token1_name.clone());
+    search_tokens.push(params.token2_name.clone());
     
+    POOL_DATA.with(|pool| {
+        let borrowed_pool = pool.borrow();
+        let mut matching_keys = Vec::new();
+        
+        for key in borrowed_pool.keys() {
+            // Check if all search tokens are present in the key
+            if search_tokens.iter().all(|token| key.contains(token)) {
+                matching_keys.push(key.clone());
+            }
+        }
+        
+        if !matching_keys.is_empty() {
+            Ok(matching_keys)
+        } else {
+            Err("No matching pools found.".to_string())
+        }
+    })
+}
+
+#[query]
+fn pre_compute_swap(params: SwapParams) -> (String, f64) {
+    let required_pools = match search_swap_pool(params.clone()) {
+        Ok(pools) => pools,
+        Err(_) => return ("No matching pools found.".to_string(), 0.0),
+    };
+
+    let mut best_pool = None;
+    let mut max_output_amount = 0.0;
+
+    POOL_DATA.with(|pool_data| {
+        let pool_data = pool_data.borrow();
+
+        for pool_key in required_pools {
+            let pool_entries = match pool_data.get(&pool_key) {
+                Some(entries) => entries,
+                None => continue,
+            };
+
+            for data in pool_entries {
+                if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
+                    continue;
+                }
+
+                for token_data in &data.pool_data {
+                    let b_i = token_data.balance as f64; 
+                    let w_i = token_data.weight as f64;  
+
+                    // Calculate the total balance of output tokens
+                    let b_o = data.pool_data.iter()
+                        .filter(|p| p.token_name != token_data.token_name)
+                        .map(|p| p.balance as f64)
+                        .sum::<f64>();
+
+                    let w_o = token_data.weight as f64;
+
+                    let amount_out = params.swap_amount as f64;
+                    let fee = data.swap_fee; 
+
+                    let required_input = in_given_out(b_i, w_i, b_o, w_o, amount_out, fee);
+
+                    if required_input <= params.token1_amount as f64 {
+                        if amount_out > max_output_amount {
+                            max_output_amount = amount_out;
+                            best_pool = Some(pool_key.clone());
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    match best_pool {
+        Some(pool) => (pool, max_output_amount),
+        None => ("No suitable pool found.".to_string(), 0.0),
+    }
 }
 
 
 // #[update]
-// fn search_swap_pool() -> Result<Vec<String> , String>{
-      
+// async fn compute_swap(params : SwapParams) {
+    
 // }
 
 
-// #[query]
-// fn pre_compute_swap(){
-
-// }
 
 // #[query]
 // fn get_pool_data(pool_id: Principal) -> Result<Option<TokenData>, String> {
