@@ -276,6 +276,7 @@ fn get_pool_data() -> BTreeMap<String, Vec<Pool_Data>> {
     })
 }
 
+#[query]
 fn get_specific_pool_data(key : String) -> Result<Vec<Pool_Data>, String> {
     POOL_DATA.with(|pool|{
         let borrored_pool = pool.borrow();

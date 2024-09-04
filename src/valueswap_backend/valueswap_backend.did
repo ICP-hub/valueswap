@@ -32,22 +32,28 @@ type RejectionCode = variant {
   SysFatal;
   CanisterReject;
 };
-type Result = variant { Ok : text; Err : text };
-type Result_1 = variant {
+type Result = variant { Ok; Err : text };
+type Result_1 = variant { Ok : text; Err : text };
+type Result_2 = variant {
   Ok : record { CanisterIdRecord };
   Err : record { RejectionCode; text };
 };
-type Result_2 = variant { Ok; Err : text };
 type Result_3 = variant { Ok : nat; Err : text };
+type Result_4 = variant { Ok : vec Pool_Data; Err : text };
 service : () -> {
-  create : () -> (Result);
-  create_canister : (CreateCanisterArgument) -> (Result_1);
-  create_pools : (Pool_Data) -> (Result_2);
+  add_liquidity : (Pool_Data, principal) -> (Result);
+  add_liquidity_curr : (Pool_Data) -> (Result);
+  create : () -> (Result_1);
+  create_canister : (CreateCanisterArgument) -> (Result_2);
+  create_pools : (Pool_Data) -> (Result);
   deposit_ckbtc : (nat64) -> (Result_3);
   get_constant_product_value : () -> (float64) query;
   get_lp_tokens : (text) -> (opt nat64) query;
+  get_pool_data : () -> (vec record { text; vec Pool_Data }) query;
+  get_specific_pool_data : (text) -> (Result_4) query;
   get_tokens : () -> (vec record { text; PoolShare }) query;
   pool_lp_tokens : (Pool_Data) -> (vec record { text; nat64 }) query;
-  store_pool_data : (Pool_Data, principal) -> ();
+  store_pool_data : (Pool_Data, principal) -> (Result);
+  store_pool_data_curr : (Pool_Data) -> (Result);
   total_lp_tokens : () -> (nat64) query;
 }

@@ -22,7 +22,7 @@ create_pools() {
     weight2=0.50
     balance2=200000
     value2=10000000
-    token_name2="TokenB"
+    token_name2="TokenC"
 
     # Swap fee
     swap_fee=0.005
