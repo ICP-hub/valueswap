@@ -290,34 +290,45 @@ fn get_specific_pool_data(key : String) -> Result<Vec<Pool_Data>, String> {
 }
 
 #[update]
-fn add_liquidity_curr(params : Pool_Data) -> Result<() , String> {
+fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
     let key = params
-    .pool_data
-    .iter()
-    .map(|pool|pool.token_name.clone())
-    .collect::<Vec<String>>()
-    .join("");
+        .pool_data
+        .iter()
+        .map(|pool| pool.token_name.clone())
+        .collect::<Vec<String>>()
+        .join("");
 
-    POOL_DATA.with(|pool|{
+    POOL_DATA.with(|pool| {
         let mut borrowed_pool = pool.borrow_mut();
-        
-        if let Some(existing_pool_data_vec) = borrowed_pool.get_mut(&key){
 
-            for new_token in &params.pool_data{
-                for existing_pool_data in existing_pool_data_vec.iter_mut() {
-                    if let Some(existing_token) = existing_pool_data
-                    .pool_data
-                    .iter_mut()
-                    .find(|token| token.token_name == new_token.token_name)
-                    {
-                        existing_token.balance += new_token.balance;
+        if let Some(existing_pool_data_vec) = borrowed_pool.get_mut(&key) {
+            let mut fee_matched = false;
+
+            for existing_pool_data in existing_pool_data_vec.iter_mut() {
+                if (existing_pool_data.swap_fee - params.swap_fee).abs() < f64::EPSILON {
+                    fee_matched = true;
+
+                    for new_token in &params.pool_data {
+                        if let Some(existing_token) = existing_pool_data
+                            .pool_data
+                            .iter_mut()
+                            .find(|token| token.token_name == new_token.token_name)
+                        {
+                            existing_token.balance += new_token.balance;
+                        }
                     }
                 }
             }
+
+            if !fee_matched {
+                existing_pool_data_vec.push(params);
+            }
+        } else {
+            borrowed_pool.insert(key, vec![params]);
         }
     });
-    Ok(())
 
+    Ok(())
 }
 
 // take swap elements in the vector 
@@ -325,8 +336,8 @@ fn add_liquidity_curr(params : Pool_Data) -> Result<() , String> {
 fn search_swap_pool(params : SwapParams) -> Result<Vec<String>, String> {
 
     let mut search_tokens = Vec::new();
-    search_tokens.push(params.token1_name.clone());
-    search_tokens.push(params.token2_name.clone());
+    search_tokens.push(params.token1_name);
+    search_tokens.push(params.token2_name);
     
     POOL_DATA.with(|pool| {
         let borrowed_pool = pool.borrow();
@@ -371,26 +382,29 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                     continue;
                 }
 
-                for token_data in &data.pool_data {
-                    let b_i = token_data.balance as f64; 
-                    let w_i = token_data.weight as f64;  
+                // Find the tokenA and tokenB from the pool data
+                let tokenA_data = data.pool_data.iter().find(|p| p.token_name == params.token1_name);
+                let tokenB_data = data.pool_data.iter().find(|p| p.token_name == params.token2_name);
 
-                    // Calculate the total balance of output tokens
-                    let b_o = data.pool_data.iter()
-                        .filter(|p| p.token_name != token_data.token_name)
-                        .map(|p| p.balance as f64)
-                        .sum::<f64>();
+                if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
+                    let b_i = tokenA.balance as f64; 
+                    let w_i = tokenA.weight as f64;
 
-                    let w_o = token_data.weight as f64;
+                    let b_o = tokenB.balance as f64; 
+                    let w_o = tokenB.weight as f64;
 
-                    let amount_out = params.swap_amount as f64;
+                    let amount_out = tokenB.balance as f64;
                     let fee = data.swap_fee; 
 
+                    // Use the in_given_out function to calculate the input required for the desired output
                     let required_input = in_given_out(b_i, w_i, b_o, w_o, amount_out, fee);
 
-                    if required_input <= params.token1_amount as f64 {
-                        if amount_out > max_output_amount {
-                            max_output_amount = amount_out;
+                    // Check if the calculated required input is less than or equal to the available input
+                    if required_input <= params.token_amount as f64 {
+                        let output_amount = b_o - (b_o / (1.0 + ((required_input * (1.0 - fee)) / b_i)).powf(w_i / w_o));
+                        
+                        if output_amount > max_output_amount {
+                            max_output_amount = output_amount;
                             best_pool = Some(pool_key.clone());
                         }
                     }
