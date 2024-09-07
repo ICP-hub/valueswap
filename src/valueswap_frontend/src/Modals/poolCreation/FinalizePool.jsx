@@ -27,24 +27,31 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
     // valueswap_backend.create_pools({
 
     // })\
+
+
     const createPoolHandler = async () => {
-        console.log("you click to create pool")
-        const pool_data = Tokens?.map((token) => ({
+        console.log("You clicked to create pool");
+        // Map tokens data into the required format for pool_data
+        const pool_data = Tokens?.map(token => ({
             weight: token.weights,
-            balance: token.Amount,
-            value: token.currencyAmount,
+            balance: BigInt(token.Amount), // Ensure balance and value are in BigInt since nat64 is used in backend
+            value: BigInt(Math.round(token.currencyAmount)),
             token_name: token.Name
-        }))
-        setSelectedTokenDetails(pool_data)
-        console.log("swap_fee", FeeShare)
-        const swap_fee = await FeeShare
+        }));
+        setSelectedTokenDetails(pool_data); // Update state with the pool data
+        console.log("swap_fee", FeeShare);
         try {
-            await backendActor.create_pools({pool_data}, swap_fee)
-            console.log("Pool creates successfully")
+            const swap_fee = parseFloat(FeeShare); // Ensure swap_fee is parsed as a float if it's not already
+            const poolDetails = { pool_data, swap_fee }; // Combine pool_data and swap_fee into one object
+
+            await backendActor.create_pools(poolDetails); // Pass the combined object to the backend actor
+            console.log("Pool created successfully");
         } catch (error) {
-            console.error("error while creating pool", error)
+            console.error("Error while creating pool", error); // Log any errors during the creation process
         }
-    }
+    };
+
+
 
 
     return (

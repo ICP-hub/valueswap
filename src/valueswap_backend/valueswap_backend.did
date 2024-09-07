@@ -40,6 +40,16 @@ type Result_2 = variant {
 };
 type Result_3 = variant { Ok : nat; Err : text };
 type Result_4 = variant { Ok : vec Pool_Data; Err : text };
+type Result_5 = variant { Ok : vec text; Err : text };
+type SwapParams = record {
+  zero_for_one : bool;
+  token2_name : text;
+  swap_amount : nat64;
+  swap_fee : float64;
+  token1_amount : nat64;
+  token2_amount : nat64;
+  token1_name : text;
+};
 service : () -> {
   add_liquidity : (Pool_Data, principal) -> (Result);
   add_liquidity_curr : (Pool_Data) -> (Result);
@@ -53,6 +63,8 @@ service : () -> {
   get_specific_pool_data : (text) -> (Result_4) query;
   get_tokens : () -> (vec record { text; PoolShare }) query;
   pool_lp_tokens : (Pool_Data) -> (vec record { text; nat64 }) query;
+  pre_compute_swap : (SwapParams) -> (text, float64) query;
+  search_swap_pool : (SwapParams) -> (Result_5);
   store_pool_data : (Pool_Data, principal) -> (Result);
   store_pool_data_curr : (Pool_Data) -> (Result);
   total_lp_tokens : () -> (nat64) query;
