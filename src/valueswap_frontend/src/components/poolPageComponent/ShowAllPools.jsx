@@ -4,6 +4,7 @@ import GradientButton from '../../buttons/GradientButton';
 import { useNavigate } from 'react-router-dom';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import ImportExportIcon from '@mui/icons-material/ImportExport';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useAuth } from "../utils/useAuthClient";
@@ -28,7 +29,7 @@ const ShowAllPools = () => {
     };
     fetchPoolData();
   }, [backendActor]);
-
+console.log(allDataInPool)
   // Sorting logic for PoolValue
   const sortValue = () => {
     if (!allDataInPool?.TableData) return;
@@ -105,8 +106,8 @@ const ShowAllPools = () => {
   };
 
   return (
-    <div className='max-w-[1200px] mx-auto h-screen relative'>
-      <div className='w-full h-screen text-white mt-4 z-20 sm:px-8 mx-auto absolute'>
+    <div className='max-w-[1200px]  mx-auto h-screen relative'>
+      <div className='w-full h-screen text-white mt-4 z-20  mx-auto absolute'>
         <div className='flex justify-between bg-[#010427] p-2 pb-6 pt-6 rounded-t-lg mx-auto'>
           <div className='flex items-center justify-between gap-4 mx-8 md:gap-16 '>
             <span className='font-medium text-white font-cabin md:text-3xl'>Liquidity Pools</span>
@@ -118,11 +119,11 @@ const ShowAllPools = () => {
           </div>
         </div>
         <div className='flex flex-col font-cabin bg-[#05071D]'>
-          <div className='-my-2 overflow-x-auto'>
+          <div className='-my-2 overflow-x-auto scroll-smooth'>
             <div className='inline-block min-w-full py-2 align-middle'>
               <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5'>
                 <SkeletonTheme baseColor="#1f2029" highlightColor="#2b2b2b" borderRadius="0.5rem" duration={2}>
-                  <table className='min-w-full'>
+                  <table className='min-w-[1000px]'>
                     <thead>
                       <tr>
                         {['Pool Name', 'Value', 'Total Volume', 'APR'].map((heading, index) => (
@@ -139,7 +140,7 @@ const ShowAllPools = () => {
                                 ) : (
                                   <ArrowDownwardIcon sx={{ color: '' }} />
                                 )
-                              ) : null}
+                              ) : index != 0 ? <ImportExportIcon/> : ""}
                             </span>
                           </th>
                         ))}
@@ -164,25 +165,28 @@ const ShowAllPools = () => {
                           </tr>
                         ))
                         : allDataInPool?.slice(0, displayCount).map((pool, index) => (
-                          <tr key={index}>
-                            <td className='flex items-center pl-10 pr-3  gap-5 my-4 text-sm font-medium text-white min-w-52 whitespace-nowrap md:text-base'>
-                              <span className='flex gap-2'>
-                                {/* Placeholder for your token pool images */}
-                                <img className='w-10 h-10' src="/image/ckBTC.svg" alt="" />
-                              </span>
-                              <span className='flex items-center'>
-                                <span>{pool[0]}</span> {/* First token name */}
-                                <span>:{pool[1][0]?.pool_data?.map((token) => `/${token?.weight}`)}</span> {/* Token weights */}
+                          <tr key={index} className='min-w-[1000px] '>
+                            <td className='flex items-center  pl-10 pr-3  gap-5 my-4 text-sm font-medium text-white min-w-52 whitespace-nowrap md:text-base'>
+                       
+                              <span className='flex items-center gap-x-2 flex-wrap gap-y-2'>
+                               {pool[1][0]?.pool_data?.map((token) => (
+                                  <div className='flex items-center gap-x-1 border-2 rounded-2xl py-1 px-2 '>
+                                    <img className='w-6 h-6' src={token.image} alt="" />
+                                    <span>{token.token_name}</span>
+                                    <span>{token.weight * 100}%</span>
+                                  </div>
+
+                                ))} {/* Token weights */}
                               </span>
                             </td>
                             <td className='px-3 py-4 text-sm pl-10 pr-3 text-white whitespace-nowrap md:text-base'>
-                              $ {pool.PoolValue?.toLocaleString('en-US') || "0"}
+                              $ {pool.PoolValue?.toLocaleString('en-US') || "46466464"}
                             </td>
                             <td className='px-3 py-4 text-sm pl-10 pr-3 text-white whitespace-nowrap md:text-base'>
-                              $ {pool.TotalVolume?.toLocaleString('en-US') || "0"}
+                              $ {pool.TotalVolume?.toLocaleString('en-US') || "35355"}
                             </td>
                             <td className='py-4  text-sm font-medium pl-10 pr-3 whitespace-nowrap md:text-base'>
-                              {pool.APR || "0"}
+                              {pool.APR || "04% - 6%"}
                             </td>
                           </tr>
                         ))}

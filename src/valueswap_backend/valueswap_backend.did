@@ -11,6 +11,7 @@ type CreatePoolParams = record {
   weight : float64;
   balance : nat64;
   value : nat64;
+  image : text;
   token_name : text;
 };
 type PoolShare = record {
@@ -42,12 +43,9 @@ type Result_3 = variant { Ok : nat; Err : text };
 type Result_4 = variant { Ok : vec Pool_Data; Err : text };
 type Result_5 = variant { Ok : vec text; Err : text };
 type SwapParams = record {
-  zero_for_one : bool;
+  token_amount : nat64;
   token2_name : text;
-  swap_amount : nat64;
   swap_fee : float64;
-  token1_amount : nat64;
-  token2_amount : nat64;
   token1_name : text;
 };
 service : () -> {
