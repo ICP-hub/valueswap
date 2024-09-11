@@ -48,6 +48,7 @@ pub struct CreatePoolParams{
     pub balance : u64,
     pub weight : f64,
     pub value : u64,
+    pub image : String
 }
 
 #[derive(CandidType, Deserialize, Serialize, Clone)]
@@ -236,10 +237,7 @@ pub(crate) struct CreateCanisterArgumentExtended {
 #[derive(CandidType, Deserialize ,Clone)]
 pub struct SwapParams {
     pub token1_name : String,
-    pub token1_amount : u64,
+    pub token_amount : u64,
     pub token2_name : String,
-    pub token2_amount : u64,
-    pub zero_for_one : bool,
-    pub swap_amount : u64,
     pub swap_fee : f64
 }
