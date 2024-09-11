@@ -52,7 +52,7 @@ pub struct CreatePoolParams{
     pub image : String
 }
 
-#[derive(CandidType, Deserialize, Serialize, Clone ,Debug)]
+#[derive(CandidType, Deserialize, Serialize, Clone , Debug)]
 pub struct Pool_Data{
     pub pool_data : Vec<CreatePoolParams>,
     pub swap_fee : f64
@@ -240,5 +240,4 @@ pub struct SwapParams {
     pub token1_name : String,
     pub token_amount : u64,
     pub token2_name : String,
-    pub swap_fee : f64
 }

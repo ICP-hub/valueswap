@@ -387,6 +387,7 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
             };
 
             for data in pool_entries {
+                // Find the tokenA (input) and tokenB (output) from the pool data
                 let tokenA_data = data.pool_data.iter().find(|p| p.token_name == params.token1_name);
                 let tokenB_data = data.pool_data.iter().find(|p| p.token_name == params.token2_name);
 
@@ -394,33 +395,29 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
 
                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
                     let b_i = tokenA.balance as f64; 
-                    let w_i = tokenA.weight as f64;
+                    let w_i = tokenA.weight as f64; 
                     let b_o = tokenB.balance as f64; 
-                    let w_o = tokenB.weight as f64;
+                    let w_o = tokenB.weight as f64;  
 
+                    let amount_out = params.token_amount as f64; 
                     let fee = data.swap_fee; 
                     let amount_out = params.token_amount as f64;
 
+                    // Calculate the required input using the in_given_out formula
                     let required_input = in_given_out(b_i, w_i, b_o, w_o, amount_out, fee);
+                    // ic_cdk::println!("The required output is {:?}", required_input);
 
-                    ic_cdk::println!("Required input: {}, Token amount available: {}", required_input, params.token_amount);
-                    ic_cdk::println!("Balances: b_i = {}, b_o = {}, Weights: w_i = {}, w_o = {}, Fee: {}", b_i, b_o, w_i, w_o, fee);
 
-                    if required_input <= params.token_amount as f64 {
-                        // Debugging intermediate steps for the output_amount calculation
-                        let power_result = (1.0 + ((required_input * (1.0 - fee)) / b_i)).powf(w_i / w_o);
-                        ic_cdk::println!("Power result: {}", power_result);
+                    // Ensure the user has enough balance to provide the input
+                    if required_input <= b_i {
+                        // Calculate how much the user would get as output for their input
+                        max_output_amount = required_input; // This is the actual output the user will receive
 
-                        let output_amount = b_o - (b_o / power_result);
-
-                        ic_cdk::println!("Output amount: {}", output_amount);
-
-                        if output_amount > max_output_amount {
-                            max_output_amount = output_amount;
                             best_pool = Some(pool_key.clone());
-                        }
-                    } else {
-                        ic_cdk::println!("Required input exceeds available token amount.");
+                        // Check if the current pool gives a better output
+                        // if calculated_output > max_output_amount {
+                        //     max_output_amount = calculated_output;
+                        // }
                     }
                 } else {
                     ic_cdk::println!("Either tokenA or tokenB was not found in pool.");
@@ -434,6 +431,8 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
         None => ("No suitable pool found.".to_string(), 0.0),
     }
 }
+
+
 
 // #[update]
 // async fn compute_swap(params: SwapParams) -> Result<(), String> {
@@ -451,6 +450,23 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
 //             None
 //         }
 //     });
-//     Ok(data)
+
+//     let result: Result<(), String> = call(
+//         canister_id, 
+//         "execute_swap",
+//         (params),
+//     )
+//     .await
+//     .map_err(|e| format!("Failed to perform swap: {:?}", e));
+
+//     if let Err(e) = result {
+//         return Err(e);
+//     }
+
+//     Ok(())
 // }
 
+
+               // if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
+                //     continue;
+                // }
