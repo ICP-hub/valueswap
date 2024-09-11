@@ -15,16 +15,16 @@ create_pools() {
     # Token 1 details
     weight1=0.25
     balance1=100000000    # nat64 (no decimal)
-    value1=50000000000000     # nat64 (no decimal)
+    value1=48000000000000     # nat64 (no decimal)
     image1="https://coin-images.coingecko.com/coins/images/14495/large/Internet_Computer_logo.png?1696514180"
-    token_name1="icp"
+    token_name1="eth"
 
     # Token 2 details
     weight2=0.20
     balance2=20000000    # nat64 (no decimal)
-    value2=1000000000000     # nat64 (no decimal)
+    value2=1340000000000     # nat64 (no decimal)
     image2="https://coin-images.coingecko.com/coins/images/25788/large/Asset_19.png?1703173153"
-    token_name2="ogy"
+    token_name2="btc"
 
     # Swap fee (float64)
     swap_fee=0.005
