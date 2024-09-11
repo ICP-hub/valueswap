@@ -378,35 +378,34 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
             };
 
             for data in pool_entries {
-                if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
-                    continue;
-                }
-
-                // Find the tokenA and tokenB from the pool data
+                // Find the tokenA (input) and tokenB (output) from the pool data
                 let tokenA_data = data.pool_data.iter().find(|p| p.token_name == params.token1_name);
                 let tokenB_data = data.pool_data.iter().find(|p| p.token_name == params.token2_name);
 
                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
                     let b_i = tokenA.balance as f64; 
-                    let w_i = tokenA.weight as f64;
-
+                    let w_i = tokenA.weight as f64; 
                     let b_o = tokenB.balance as f64; 
-                    let w_o = tokenB.weight as f64;
+                    let w_o = tokenB.weight as f64;  
 
-                    let amount_out = tokenB.balance as f64;
+                    let amount_out = params.token_amount as f64; 
                     let fee = data.swap_fee; 
 
-                    // Use the in_given_out function to calculate the input required for the desired output
+                    // Calculate the required input using the in_given_out formula
                     let required_input = in_given_out(b_i, w_i, b_o, w_o, amount_out, fee);
+                    // ic_cdk::println!("The required output is {:?}", required_input);
 
-                    // Check if the calculated required input is less than or equal to the available input
-                    if required_input <= params.token_amount as f64 {
-                        let output_amount = b_o - (b_o / (1.0 + ((required_input * (1.0 - fee)) / b_i)).powf(w_i / w_o));
-                        
-                        if output_amount > max_output_amount {
-                            max_output_amount = output_amount;
+
+                    // Ensure the user has enough balance to provide the input
+                    if required_input <= b_i {
+                        // Calculate how much the user would get as output for their input
+                        max_output_amount = required_input; // This is the actual output the user will receive
+
                             best_pool = Some(pool_key.clone());
-                        }
+                        // Check if the current pool gives a better output
+                        // if calculated_output > max_output_amount {
+                        //     max_output_amount = calculated_output;
+                        // }
                     }
                 }
             }
@@ -418,6 +417,8 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
         None => ("No suitable pool found.".to_string(), 0.0),
     }
 }
+
+
 
 // #[update]
 // async fn compute_swap(params: SwapParams) -> Result<(), String> {
@@ -452,3 +453,6 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
 // }
 
 
+               // if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
+                //     continue;
+                // }
