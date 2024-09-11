@@ -436,14 +436,20 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
 }
 
 // #[update]
-// async fn compute_swap(params : SwapParams) {
+// async fn compute_swap(params: SwapParams) -> Result<(), String> {
+//     let (pool, _) = pre_compute_swap(params.clone());
 
-// }
+//     if pool == "No suitable pool found.".to_string() || pool == "No matching pools found.".to_string() {
+//         return Err(pool); 
+//     }
 
-// #[query]
-// fn get_pool_data(pool_id: Principal) -> Result<Option<TokenData>, String> {
-//     let data = POOL.with(|pool| {
-//         pool.borrow().values().find(|&data| data.user_id == pool_id).cloned()
+//     let canister_id = with_state(|pool| {
+//         let mut pool_borrowed = &mut pool.TOKEN_POOLS;
+//         if let Some(canister_id) = pool_borrowed.get(pool) {
+//             return Some(canister_id);
+//         } else {
+//             None
+//         }
 //     });
 //     Ok(data)
 // }
