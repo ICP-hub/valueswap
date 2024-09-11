@@ -31,7 +31,8 @@ const Swap = () => {
     const [ClickedSwap, setClickSwap] = useState(false);
     const [payCoinBalance, setPayCoinBalance] = useState(null); // New state for PayCoin balance
     const [recieveCoinBalance, setRecieveCoinBalance] = useState(null); // New state for RecieveCoin balance
-    const { createTokenActor, principal, getBalance } = useAuth();
+    const { backendActor, principal, getBalance } = useAuth();
+
 
     useEffect(() => {
         if (PayCoin && RecieveCoin) {
@@ -78,8 +79,15 @@ const Swap = () => {
     const handleSettings = () => {
         setSettings((prev) => !prev);
     };
-    
 
+    const swapHandler = () => {
+        try {
+            backendActor.pre_compute_swap({ token_amount: payCoinBalance, token2_name: PayCoin, token1_name: RecieveCoin})
+        } catch (error) {
+            console.log("Error while calling swap function")
+        }
+    }
+    
     return (
         <div className='px-4 md:px-0'>
             <div className='flex justify-center my-auto flex-col'>
@@ -134,9 +142,9 @@ const Swap = () => {
                                     <div className='flex sm:mr-12 items-center gap-2' >
                                         <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
                                             <div className='flex text-sm sm:text-base items-center gap-1' onClick={() => {
-                                                    setId(1);
-                                                    setSearchToken1(!searchToken1);
-                                                }}>
+                                                setId(1);
+                                                setSearchToken1(!searchToken1);
+                                            }}>
                                                 {SwapModalData.PaySection.TokenSelectButtonText}
                                                 <span className='cursor-pointer' >
                                                     <ChevronDown />
@@ -146,7 +154,7 @@ const Swap = () => {
                                     </div>
                                     <div>
 
-                                    {searchToken1 && <SearchToken setSearchToken={setSearchToken1} setPayToken={setPayCoin} setRecToken={setRecieveCoin} id={id} />}
+                                        {searchToken1 && <SearchToken setSearchToken={setSearchToken1} setPayToken={setPayCoin} setRecToken={setRecieveCoin} id={id} />}
                                     </div>
                                 </div>
                             ) : (
@@ -214,13 +222,13 @@ const Swap = () => {
 
                         <div>
                             {!RecieveCoin ? (
-                                <div className='flex sm:mr-12 items-center place-self-end gap-2'  onClick={() => {
+                                <div className='flex sm:mr-12 items-center place-self-end gap-2' onClick={() => {
                                     setId(2);
                                     setSearchToken2(!searchToken2);
                                 }}>
                                     <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
                                         <div className='flex text-sm sm:text-base items-center gap-1'
-                                           >
+                                        >
                                             {SwapModalData.RecieveSection.TokenSelectButtonText}
                                             <span className='cursor-pointer'>
                                                 <ChevronDown />
@@ -331,7 +339,7 @@ const Swap = () => {
                                             <div onClick={() => {
                                                 navigate('/dex-swap/transaction-successfull');
                                             }}>
-                                                <GradientButton CustomCss={'w-full md:w-full font-extrabold text-3xl'}>
+                                                <GradientButton CustomCss={'w-full md:w-full font-extrabold text-3xl'} onClick={swapHandler}>
                                                     {SwapModalData.MainButtonsText.ConfirmSwapping}
                                                 </GradientButton>
                                             </div>
