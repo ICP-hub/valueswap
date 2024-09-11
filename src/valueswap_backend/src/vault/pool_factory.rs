@@ -429,7 +429,7 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
 
 //     let canister_id = with_state(|pool| {
 //         let mut pool_borrowed = &mut pool.TOKEN_POOLS;
-//         if let Some(canister_id) = pool_borrowed.get(&pool) {
+//         if let Some(canister_id) = pool_borrowed.get(pool) {
 //             return Some(canister_id);
 //         } else {
 //             None
