@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Bolt, ChevronDown, ChevronUp, Dot, Info } from 'lucide-react';
 import BlueGradientButton from '../buttons/BlueGradientButton';
 import GradientButton from '../buttons/GradientButton';
@@ -42,21 +42,26 @@ const Swap = () => {
         }
     }, [PayCoin, RecieveCoin]);
 
+
     useEffect(() => {
         if (PayCoin) {
-            getBalance(principal, PayCoin.CanisterId).then(balance => {
-                setPayCoinBalance(balance);
-            });
+            getBalance(PayCoin.CanisterId)
+                .then(balance => {
+                    setPayCoinBalance(Number(balance)/ 100000000);
+                })
+                .catch((err) => console.log(err));
+            console.log("Balance", payCoinBalance);
         }
-    }, [PayCoin, principal, getBalance]);
+    }, [PayCoin, getBalance]);
+
 
     useEffect(() => {
         if (RecieveCoin) {
-            getBalance(principal, RecieveCoin.CanisterId).then(balance => {
-                setRecieveCoinBalance(balance);
-            });
+            getBalance(RecieveCoin.CanisterId).then(balance => {
+                setRecieveCoinBalance(Number(balance)/ 100000000);
+            }).catch((err) => console.log(err));;
         }
-    }, [RecieveCoin, principal, getBalance]);
+    }, [RecieveCoin, getBalance]);
 
     function ClickedChange() {
         let Temp = changePayCoin;
@@ -81,13 +86,14 @@ const Swap = () => {
     };
 
     const swapHandler = () => {
+        console.log("click on swap", payCoinBalance, PayCoin, RecieveCoin)
         try {
-            backendActor.pre_compute_swap({ token_amount: payCoinBalance, token2_name: PayCoin, token1_name: RecieveCoin})
+            backendActor.pre_compute_swap({ token_amount: payCoinBalance, token2_name: PayCoin.ShortForm, token1_name: RecieveCoin.ShortForm }).then(res => console.log(res))
         } catch (error) {
             console.log("Error while calling swap function")
         }
     }
-    
+
     return (
         <div className='px-4 md:px-0'>
             <div className='flex justify-center my-auto flex-col'>
@@ -184,7 +190,7 @@ const Swap = () => {
                                         {searchToken1 && <SearchToken setSearchToken={setSearchToken1} setPayToken={setPayCoin} setRecToken={setRecieveCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${PayCoin.marketPrice * CoinAmount}
+                                        ${CoinAmount ? PayCoin.marketPrice * CoinAmount : 0}
                                     </span>
                                 </div>
                             )}
@@ -207,7 +213,7 @@ const Swap = () => {
                         {RecieveCoin ? (
                             <div className='flex flex-col font-cabin font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.RecieveSection.Heading}</span>
-                                <span className='text-3xl md:text-4xl'>{((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice).toFixed(4)}</span>
+                                <span className='text-3xl md:text-4xl'>{CoinAmount ? ((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice).toFixed(4) : 0}</span>
                                 <span className='text-sm sm:text-base font-normal'>
                                     {SwapModalData.RecieveSection.Balance}: {recieveCoinBalance !== null ? parseFloat(recieveCoinBalance) : 'Loading...'}
                                 </span>
@@ -265,7 +271,7 @@ const Swap = () => {
                                         {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice).toFixed(4) * RecieveCoin.marketPrice}
+                                        ${CoinAmount ? ((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice).toFixed(4) * RecieveCoin.marketPrice : 0}
                                     </span>
                                 </div>
                             )}
@@ -337,9 +343,10 @@ const Swap = () => {
                                     <div className='w-full'>
                                         {ClickedSwap ? (
                                             <div onClick={() => {
+                                                swapHandler()
                                                 navigate('/dex-swap/transaction-successfull');
                                             }}>
-                                                <GradientButton CustomCss={'w-full md:w-full font-extrabold text-3xl'} onClick={swapHandler}>
+                                                <GradientButton CustomCss={'w-full md:w-full font-extrabold text-3xl'} >
                                                     {SwapModalData.MainButtonsText.ConfirmSwapping}
                                                 </GradientButton>
                                             </div>
