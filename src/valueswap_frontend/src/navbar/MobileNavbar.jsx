@@ -29,21 +29,27 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
     // }
     const { isAuthenticated, login, logout, principal, reloadLogin } = useAuth();
 
-    useEffect(() => {
+    useEffect(() => { 
         const getDisplayFunction = () => {
-            const SlicedPrincipal = principal.toText().slice(0, 5);
-            // console.log(typeof SlicedPrincipal)
-            const FinalId = SlicedPrincipal.padEnd(10, '.') + principal.toText().slice(60, 63);
-            setPrincipal(FinalId)
-            console.log("Principal of user is:", FinalId)
+          console.log('principal:', principal);
+          console.log('Type of principal:', typeof principal);
+        //   console.log('Is principal an instance of Principal:', principal instanceof Principal);
+      
+          // Convert the Principal object to a string
+          const principalString = principal.toText();
+      
+          // Format the principal string for display
+          const SlicedPrincipal = principalString.slice(0, 5);
+          const FinalId = SlicedPrincipal.padEnd(10, '.') + principalString.slice(-3);
+          setPrincipal(FinalId);
+          console.log("Principal of user is:", FinalId);
         }
-
+      
         if (principal) {
-            getDisplayFunction()
+          getDisplayFunction();
         }
-
-
-    }, [principal]);
+      }, [principal]);
+      
     const navigate = useNavigate();
 
     useEffect(() => {

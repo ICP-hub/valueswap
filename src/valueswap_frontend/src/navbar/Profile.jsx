@@ -51,9 +51,7 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
         setShowProfile(false);
     };
 
-    console.log("hii", isAuthenticated)
-
-     console.log("principal, ", principal.toText())
+     console.log("principal, ", principal)
    
     return (
         <div className='relative '>
@@ -67,7 +65,7 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
             {showProfile ? <div className='absolute bg-[#010427] top-16 w-[27vw] lg:w-[20vw] right-[-2rem] rounded-md py-2 px-2 lg:px-4 flex flex-col gap-y-4'>
                 <div className='flex gap-x-4 w-full'>
                     <img src="/image/Ellipse.png" alt="" className='' />
-                    <div className='w-full'>
+                    <div className='w-full flex'>
                         {
                             isAuthenticated && <div className='flex w-full flex-row items-center justify-between text-center text-white font-cabin text-xl font-normal'>
                                 <span>
@@ -100,19 +98,19 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
                     </div>
                 </div>
                 <hr />
-                <div className='flex justify-between items-center'>
+                {/* <div className='flex justify-between items-center'>
                     <span className='text-3xl font-normal'>$ {parseFloat(balance)}</span>
                     <ArrowCircleRightOutlinedIcon sx={{ transform: 'rotate(-45deg)', fontSize: '23px', cursor: 'pointer' }} />
-                </div>
+                </div> */}
                 <div className='w-full'>
-                    <GradientButton CustomCss={`w-full`}>
+                    <GradientButton CustomCss={`w-full md:w-full h-[37px] font-[500]`}>
                         Buy
                     </GradientButton>
                 </div>
-                <div className={`flex items-center justify-between`}>
+                {/* <div className={`flex items-center justify-between`}>
                     <p className='text-[#FFFFFFBF] font-normal'>Theme</p>
                     <DarkModeToggle onToggle={setIsDarkMode} />
-                </div>
+                </div> */}
                 {/* <div className='text-[#FFFFFFBF] font-normal flex justify-between'>
                     <p>Language</p>
                     <select name="" id="English" className='focus:outline-none focus:shadow-outline bg-transparent'>
