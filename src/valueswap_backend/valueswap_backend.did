@@ -45,7 +45,6 @@ type Result_5 = variant { Ok : vec text; Err : text };
 type SwapParams = record {
   token_amount : nat64;
   token2_name : text;
-  swap_fee : float64;
   token1_name : text;
 };
 service : () -> {
