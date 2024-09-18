@@ -5,16 +5,18 @@ use ic_cdk::call;
 use crate::utils::types::*;
 
 // Function to handle deposits
+// Function to handle deposits to dynamically created canisters
 #[ic_cdk_macros::update]
-pub async fn deposit_ckbtc(amount: u64) -> Result<Nat, String> {
+pub async fn deposit_tokens(amount: u64, target_canister_id: Principal) -> Result<Nat, String> {
     let ledger_canister_id =
         Principal::from_text(CKBTC_LEDGER_ADDRESS).map_err(|e| e.to_string())?;
 
     ic_cdk::println!("ckbtc canister principal {}", ledger_canister_id);
     let user_principal = ic_cdk::api::caller();
-    let platform_principal =
-        Principal::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").map_err(|e| e.to_string())?;
-    ic_cdk::println!("platform canister principal {}", platform_principal);
+    
+    // Use the dynamically passed target canister principal
+    let platform_principal = target_canister_id;
+    ic_cdk::println!("Target canister principal for deposit {}", platform_principal);
 
     let amount_nat = Nat::from(amount);
     transfer_from_ckbtc(
@@ -25,6 +27,30 @@ pub async fn deposit_ckbtc(amount: u64) -> Result<Nat, String> {
     )
     .await
 }
+
+// Static caniste id for testing purpose only
+// #[ic_cdk_macros::update]
+// pub async fn deposit_ckbtc(amount: u64) -> Result<Nat, String> {
+//     let ledger_canister_id =
+//         Principal::from_text(CKBTC_LEDGER_ADDRESS).map_err(|e| e.to_string())?;
+
+//     ic_cdk::println!("ckbtc canister principal {}", ledger_canister_id);
+//     let user_principal = ic_cdk::api::caller();
+//     let platform_principal =
+//         Principal::from_text("bkyz2-fmaaa-aaaaa-qaaaq-cai").map_err(|e| e.to_string())?;
+//     ic_cdk::println!("platform canister principal {}", platform_principal);
+
+//     let amount_nat = Nat::from(amount);
+//     transfer_from_ckbtc(
+//         ledger_canister_id,
+//         user_principal,
+//         platform_principal,
+//         amount_nat,
+//     )
+//     .await
+// }
+
+
 
 // the function above is just an sample function, deposit function will use validation logic, reserve logic and other checks according to aave
 pub async fn transfer_from_ckbtc(
