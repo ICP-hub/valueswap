@@ -21,19 +21,19 @@ function Footer() {
                 <div className='space-y-4'>
                     <h1 className='text-lg font-fahkwang hover:text-[#C16800] w-1/2 md:w-1/4'>Learn</h1>
                     <ul className='flex flex-col cursor-pointer gap-y-2 font-cabin'>
-                        <li className='hover:text-[#C16800] w-1/2 md:w-1/4 '>Docs <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
-                        <li className='hover:text-[#C16800] w-1/2 md:w-1/4'>Risk <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
-                        <li className='hover:text-[#C16800] md:w-2/4'>WhitePaper <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
-                        <li className='hover:text-[#C16800] w-1/2 md:w-1/4'>Careers <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
-                        <li className='hover:text-[#C16800] md:w-1/2 '>Terms of Use <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
+                        <li className='hover:text-[#C16800] w-3/4  '>Docs <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
+                        <li className='hover:text-[#C16800] w-3/4 '>Risk <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
+                        <li className='hover:text-[#C16800] w-3/4 '>WhitePaper <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
+                        <li className='hover:text-[#C16800] w-3/4 '>Careers <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
+                        <li className='hover:text-[#C16800] w-3/4 '>Terms of Use <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
                     </ul>
                 </div>
                 <div className='space-y-4'>
                     <h1 className='text-lg font-fahkwang hover:text-[#C16800] w-1/2 md:w-1/4'>Ecosystem</h1>
                     <ul className='flex flex-col cursor-pointer gap-y-2 font-cabin'>
-                        <li className='hover:text-[#C16800] w-1/2 md:w-1/4'>Forums <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
-                        <li className='hover:text-[#C16800] w-1/2 md:w-1/4'>Grants <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
-                        <li className='hover:text-[#C16800] md:w-1/2'>Brands assets <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /> </li>
+                        <li className='hover:text-[#C16800] w-3/4'>Forums <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
+                        <li className='hover:text-[#C16800] w-3/4'>Grants <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /></li>
+                        <li className='hover:text-[#C16800] w-3/4'>Brands assets <NorthEastIcon style={{ fontSize: '1rem', paddingBottom: "1px" }} /> </li>
                     </ul>
                 </div>
                 <div className='space-y-4'>
