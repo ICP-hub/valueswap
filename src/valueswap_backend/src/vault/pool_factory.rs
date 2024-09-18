@@ -49,57 +49,48 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
         return Err("Anonymous principal not allowed to make calls".to_string());
     }
 
+let pool_name = params
+    .pool_data
+    .iter()
+    .map(|pool| pool.token_name.clone())
+    .collect::<Vec<String>>()
+    .join("");
 
-    let pool_name = params
-        .pool_data
-        .iter()
-        .map(|pool| pool.token_name.clone())
-        .collect::<Vec<String>>()
-        .join("");
-
-    let pool_canister_id = with_state(|pool| {
-        let mut pool_borrowed = &mut pool.TOKEN_POOLS;
-        if let Some(canister_id) = pool_borrowed.get(&pool_name) {
-            return Some(canister_id);
-        } else {
-            None
-        }
-    });
-
-    if let Some(canister_id) = pool_canister_id {
-        add_liquidity_curr(params.clone());
-        add_liquidity(params.clone(), canister_id.principal);
-        Ok(())
+let pool_canister_id = with_state(|pool| {
+    let mut pool_borrowed = &mut pool.TOKEN_POOLS;
+    if let Some(canister_id) = pool_borrowed.get(&pool_name) {
+        return Some(canister_id);
     } else {
-        match create_canister(CreateCanisterArgument { settings: None }).await {
-            Ok((canister_id_record,)) => {
-                let canister_id = canister_id_record.canister_id;
-                with_state(|pool| {
-                    pool.TOKEN_POOLS.insert(
-                        pool_name.clone(),
-                        crate::user_principal {
-                            principal: canister_id,
-                        },
-                    );
-                });
+        None
+    }
+});
 
-                store_pool_data_curr(params.clone());
-                store_pool_data(params.clone(), canister_id_record.canister_id).await?;
+if let Some(canister_id) = pool_canister_id {
+    add_liquidity_curr(params.clone());
+    add_liquidity(params.clone(), canister_id.principal);
+    Ok(())
+} else {
+    match create_canister(CreateCanisterArgument { settings: None }).await {
+        Ok((canister_id_record,)) => {
+            let canister_id = canister_id_record.canister_id;
+            with_state(|pool| {
+                pool.TOKEN_POOLS.insert(
+                    pool_name.clone(),
+                    crate::user_principal {
+                        principal: canister_id,
+                    },
+                );
+            });
 
-                for amount in params.pool_data.iter() {
-                    // Deposit tokens to the newly created canister
-                    deposit_tokens(amount.balance.clone(), canister_id).await?;
-                    // Deposit tokens when testing with static canister id
-                    // deposit_tokens(amount.balance.clone(), canister_id).await?;
-                }
+            store_pool_data_curr(params.clone());
+            store_pool_data(params.clone(), canister_id_record.canister_id).await?;
 
-                Ok(())
+            for amount in params.pool_data.iter() {
+                // Deposit tokens to the newly created canister
+                deposit_tokens(amount.balance.clone(), canister_id).await?;
+                // Deposit tokens when testing with static canister id
+                // deposit_tokens(amount.balance.clone(), canister_id).await?;
             }
-
-            // params.pool_data
-            // .iter()
-            // .map(|pool|pool.balance.clone())
-            // .deposit_ckbtc().await?;
 
             Ok(())
         }
@@ -107,6 +98,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
     }
 }
 }
+
 
 #[update]
 // Create canister
