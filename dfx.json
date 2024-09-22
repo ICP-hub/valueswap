@@ -20,14 +20,11 @@
         }
       }
     },
-    "xrc_demo": {
-      "main": "src/xrc_demo/main.mo",
-      "type": "motoko",
-      "dependencies": ["xrc"]
-    },
+
     "xrc": {
       "type": "custom",
       "candid": "src/xrc/xrc.did",
+      "id": "uf6dk-hyaaa-aaaaq-qaaaq-cai",
       "wasm": "src/xrc/xrc.wasm.gz",
       "remote": {
         "candid": "src/xrc/xrc.did",

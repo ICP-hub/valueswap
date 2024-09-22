@@ -1,10 +1,11 @@
 
 
+chmod 777 ./generate_did.sh
+./generate_did.sh
 
 chmod 777 ./deploy_ckbtc.sh
 ./deploy_ckbtc.sh
 
-dfx canister create xrc_demo
 dfx deploy --with-cycles 10000000000
 
 # If xrc demo canister fails to deploy 
