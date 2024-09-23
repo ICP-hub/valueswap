@@ -59,10 +59,10 @@ const PoolCompositions = ({ TableData }) => {
                                                         <img src={token.ImagePath} alt="" className='w-8 h-8 transform scale-125' />
                                                     </span>
                                                     <span>{token.ShortForm}</span>
-                                                    <span>{token.WeightedPercentage} %</span>
+                                                    <span>{token.weights} %</span>
                                                 </td>
                                                 <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
-                                                    {token.WeightedPercentage} %
+                                                    {token.weights} %
                                                 </td>
                                                 <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
                                                     $ {token.Balance.toLocaleString('en-US')}

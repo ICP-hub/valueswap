@@ -1,0 +1,11 @@
+{
+  "swap": {
+    "ic": "kz5mc-qyaaa-aaaag-alm7a-cai"
+  },
+  "valueswap_backend": {
+    "ic": "k64kw-5aaaa-aaaag-alm7q-cai"
+  },
+  "valueswap_frontend": {
+    "ic": "bakyi-giaaa-aaaag-alnaa-cai"
+  }
+}

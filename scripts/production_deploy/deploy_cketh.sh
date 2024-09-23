@@ -3,7 +3,7 @@ dfx deploy swap
 set -e
 
 # Create and use the DevJourney identity
-# dfx identity new Nikhilrai || true
+# dfx identity new default || true --network ic
 dfx identity use Nikhilrai --network ic
 
 # dfx canister create swap
@@ -24,9 +24,8 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use Harshit
-export DEFAULT=$(dfx identity get-principal)
-
+dfx identity use Nikhilrai --network ic
+export DEFAULT=$(dfx identity get-principal --network ic)
 echo "DEFAULT principal: $DEFAULT"
 
 # Set archive controller as the default identity for now
@@ -63,18 +62,11 @@ dfx deploy cketh_ledger --argument "$DEPLOY_ARGUMENTS" --network ic
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
 
-# dfx deploy  --network ic
-# dfx deploy valueswap_backend  --network ic
+# dfx deploy
+# dfx deploy valueswap_backend
 # echo "cketh got deployed"
 
 # Check the balance of the default identity
 # balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
 # echo "Balance of the DEFAULT account: $balance"
-
-balance=$(dfx canister call cketh_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
-echo "Balance of the DEFAULT account: $balance"
-
-
-
-# default xrinq-kad56-qulgo-h6pa5-gdqps-jif5v-ghngz-gcxac-5rbp3-acjjs-kae
 
