@@ -59,7 +59,8 @@ export const CommonNavbarData = {
         },
         {
             LinkName: 'Pool',
-            LinkPath: '/dex-swap/pool',
+            LinkPath: "/dex-swap/pool/",
+            InnerLinkPath: "/dex-swap/pool/create-pool",
             LinkId: 'pool',
         },
         {

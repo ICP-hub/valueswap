@@ -2,9 +2,9 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     CoinCount: 2,
-    FeeShare: null,
+    FeeShare: 0,
     PercentShare: 50,
-    TotalAmount: null,
+    TotalAmount: 0,
     Confirmation: false,
     TotalPercentage: 100,
     TotalAmount: 0,
@@ -19,7 +19,7 @@ const initialState = {
             ImagePath: null,
             Amount: 0.0,
             marketPrice: 0,
-            currencyAmount:0,
+            currencyAmount: 0,
             weightsLocked: false,
             CanisterId: null
         },

@@ -75,7 +75,7 @@ function SwapSetting() {
                             </span>
                         </button> */}
                             <div  onClick={handleShowInput}>
-                        <BorderGradientButton customCss={`bg-[#05071D] h-[40px]`}>
+                        <BorderGradientButton customCss={`bg-[#05071D] h-[38px] md:h-[38px]`}>
                             Custom
                         </BorderGradientButton>
                             </div>
@@ -105,7 +105,7 @@ function SwapSetting() {
                            
 
                         </div> */}
-                         <BorderGradientButton customCss={`bg-[#010427] h-[37px] `}>
+                         <BorderGradientButton customCss={`bg-[#010427] h-[38px] md:h-[38px] `}>
                          <input type='number' maxLength="3" className=" bg-[#010427] flex w-8 justify-center items-center appearance-none	outline-none text-center" />
 
                          </BorderGradientButton>

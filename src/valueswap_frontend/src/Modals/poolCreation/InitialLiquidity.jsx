@@ -26,7 +26,7 @@ const InitialLiquidity = () => {
 
   const initialTokenRef = useRef(null);
   const restTokensRefs = useRef([]);
-
+ 
   useEffect(() => {
     if(Tokens.length <= 0){
         return;
@@ -75,7 +75,7 @@ console.log("tokenApiDetails", tokenApiDetails)
     const fetchInitialTokenBalance = async () => {
       if (tokenActor && principal) {
         const balance = await tokenActor.icrc1_balance_of({ owner: principal, subaccount: [] });
-        setInitialTokenBalance(parseFloat(balance));
+        setInitialTokenBalance(parseFloat(Number(balance)/100000000));
       }
     };
     fetchInitialTokenBalance();
@@ -85,9 +85,9 @@ console.log("tokenApiDetails", tokenApiDetails)
     if (Tokens.length > 1) {
       const balances = await Promise.all(
         Tokens.slice(1).map(async (token) => {
-           const balance = await getBalance(principal, token.CanisterId)
+           const balance = await getBalance(token.CanisterId)
        
-          return parseFloat(balance);
+          return parseFloat(Number(balance)/ 100000000);
         })
       );
       setRestTokensBalances(balances);
@@ -140,7 +140,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
     const decimals = Number(metaData[0]?.[1].Nat);
     const fee = Number(metaData[3]?.[1].Nat);
     const amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
-    const balance = await getBalance(principal, canisterId);
+    const balance = await getBalance(canisterId);
 
     if (balance >= amount + fee) {
       const transaction = {
@@ -188,7 +188,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
   };
 
 
-
+console.log("NAN", InitialToken.currencyAmount)
 
   return (
     <div className=''>
@@ -279,6 +279,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
                     </div>
                     <span className='text-center font-normal leading-5 text-sm sm:text-base'>
                     $ {token.currencyAmount}
+                    
                     </span>
                   </div>
                 </div>
