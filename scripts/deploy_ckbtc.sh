@@ -67,6 +67,6 @@ dfx deploy valueswap_backend
 echo "ckBTC got deployed"
 
 # Check the balance of the default identity
-# balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
-# echo "Balance of the DEFAULT account: $balance"
+balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
+echo "Balance of the DEFAULT account: $balance"
 

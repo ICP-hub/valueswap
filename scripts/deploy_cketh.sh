@@ -21,7 +21,7 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use anonymous
+dfx identity use Harshit
 export DEFAULT=$(dfx identity get-principal)
 echo "DEFAULT principal: $DEFAULT"
 
@@ -58,3 +58,7 @@ echo "ckETH got deployed"
 
 balance=$(dfx canister call cketh_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
 echo "Balance of the DEFAULT account: $balance"
+
+
+
+# default xrinq-kad56-qulgo-h6pa5-gdqps-jif5v-ghngz-gcxac-5rbp3-acjjs-kae

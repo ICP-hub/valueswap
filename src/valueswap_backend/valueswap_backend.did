@@ -45,7 +45,6 @@ type Result_5 = variant { Ok : vec text; Err : text };
 type SwapParams = record {
   token_amount : nat64;
   token2_name : text;
-  swap_fee : float64;
   token1_name : text;
 };
 service : () -> {
@@ -54,7 +53,7 @@ service : () -> {
   create : () -> (Result_1);
   create_canister : (CreateCanisterArgument) -> (Result_2);
   create_pools : (Pool_Data) -> (Result);
-  deposit_ckbtc : (nat64) -> (Result_3);
+  deposit_tokens : (nat64, principal) -> (Result_3);
   get_constant_product_value : () -> (float64) query;
   get_lp_tokens : (text) -> (opt nat64) query;
   get_pool_data : () -> (vec record { text; vec Pool_Data }) query;

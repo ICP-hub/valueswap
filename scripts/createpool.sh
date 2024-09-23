@@ -17,7 +17,7 @@ create_pools() {
     balance1=100000000    # nat64 (no decimal)
     value1=48000000000000     # nat64 (no decimal)
     image1="https://coin-images.coingecko.com/coins/images/14495/large/Internet_Computer_logo.png?1696514180"
-    token_name1="eth"
+    token_name1="dai"
 
     # Token 2 details
     weight2=0.20
@@ -27,7 +27,7 @@ create_pools() {
     token_name2="btc"
 
     # Swap fee (float64)
-    swap_fee=0.005
+    swap_fee=0.002
 
     # Construct the pool_data Candid structure with proper quoting for text values
     pool_data="vec{record {weight=$weight1; balance=$balance1; value=$value1; image=\"$image1\"; token_name=\"$token_name1\"}; record {weight=$weight2; balance=$balance2; value=$value2; image=\"$image2\"; token_name=\"$token_name2\"}}"
