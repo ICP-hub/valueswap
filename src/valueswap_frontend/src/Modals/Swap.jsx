@@ -145,12 +145,12 @@ const Swap = () => {
                         <div>
                             {!PayCoin ? (
                                 <div>
-                                    <div className='flex sm:mr-12 items-center gap-2' >
-                                        <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
-                                            <div className='flex text-sm sm:text-base items-center gap-1' onClick={() => {
+                                    <div className='flex sm:mr-12 items-center gap-2' onClick={() => {
                                                 setId(1);
                                                 setSearchToken1(!searchToken1);
                                             }}>
+                                        <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
+                                            <div className='flex text-sm sm:text-base items-center gap-1' >
                                                 {SwapModalData.PaySection.TokenSelectButtonText}
                                                 <span className='cursor-pointer' >
                                                     <ChevronDown />
