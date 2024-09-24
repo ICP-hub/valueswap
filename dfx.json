@@ -20,7 +20,20 @@
         }
       }
     },
-    "internet_identity" : {
+
+    "xrc": {
+      "type": "custom",
+      "candid": "https://raw.githubusercontent.com/THLO/xrc_demo/refs/heads/main/xrc/xrc.did",
+      "id": "uf6dk-hyaaa-aaaaq-qaaaq-cai",
+      "wasm": "https://github.com/THLO/xrc_demo/raw/refs/heads/main/xrc/xrc.wasm.gz",
+      "remote": {
+        "candid": "https://raw.githubusercontent.com/THLO/xrc_demo/refs/heads/main/xrc/xrc.did",
+        "id": {
+          "ic": "uf6dk-hyaaa-aaaaq-qaaaq-cai"
+        }
+      }
+    },
+    "internet_identity": {
       "type": "pull",
       "id": "rdmx6-jaaaa-aaaaa-aaadq-cai"
     },
@@ -35,12 +48,8 @@
       "type": "rust"
     },
     "valueswap_frontend": {
-      "dependencies": [
-        "valueswap_backend"
-      ],
-      "source": [
-        "src/valueswap_frontend/dist"
-      ],
+      "dependencies": ["valueswap_backend"],
+      "source": ["src/valueswap_frontend/dist"],
       "type": "assets",
       "workspace": "valueswap_frontend"
     }
@@ -55,7 +64,7 @@
     {
       "name": "candid:service"
     }
- ],
+  ],
   "output_env_file": ".env",
   "version": 1
 }
