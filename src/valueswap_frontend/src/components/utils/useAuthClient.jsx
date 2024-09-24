@@ -426,6 +426,7 @@ export const useAuthClient = () => {
       try {
         // Assuming you have a function to create an actor for other providers
         const actor = await createTokenActor(canisterId);
+        console.log("actoir hai", actor)
         const ownerPrincipal = typeof principal === 'string' ? Principal.fromText(principal) : principal;
         const balance = await actor.icrc1_balance_of({ owner: ownerPrincipal });
         console.log("Balance:", balance.toString());
