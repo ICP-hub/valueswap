@@ -110,7 +110,7 @@ const Swap = () => {
                             </div>
                         </>
                     )}
-                    <div className='mx-auto sm:mx-8 w-full flex justify-between items-center'>
+                    <div className='mx-auto sm:mx-4 w-full flex justify-between items-center'>
                         {PayCoin ? (
                             <div className='flex flex-col font-cabin font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.PaySection.Heading}</span>
@@ -190,7 +190,7 @@ const Swap = () => {
                                         {searchToken1 && <SearchToken setSearchToken={setSearchToken1} setPayToken={setPayCoin} setRecToken={setRecieveCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${CoinAmount ? PayCoin.marketPrice * CoinAmount : 0}
+                                        ${CoinAmount ? (PayCoin.marketPrice * CoinAmount).toFixed(4)  : 0}
                                     </span>
                                 </div>
                             )}
@@ -209,7 +209,7 @@ const Swap = () => {
                         </div>
                     </div>
 
-                    <div className='mx-auto sm:mx-8 w-full flex justify-between items-center'>
+                    <div className='mx-auto sm:mx-4 w-full flex justify-between items-center'>
                         {RecieveCoin ? (
                             <div className='flex flex-col font-cabin font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.RecieveSection.Heading}</span>
@@ -271,7 +271,7 @@ const Swap = () => {
                                         {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${CoinAmount ? ((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice).toFixed(4) * RecieveCoin.marketPrice : 0}
+                                        ${CoinAmount ? (((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice)* RecieveCoin.marketPrice).toFixed(4)  : 0}
                                     </span>
                                 </div>
                             )}
