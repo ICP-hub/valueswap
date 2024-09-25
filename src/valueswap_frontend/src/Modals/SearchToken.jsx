@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { SearchTokenData, DummyDataTokens } from '../TextData';
 import { useSelector } from 'react-redux';
 import { useAuth } from '../components/utils/useAuthClient';
 import SearchIcon from '@mui/icons-material/Search';
-import { fetchCoinGeckoData } from '../components/utils/fetchCoinGeckoData';
+import { fetchCoinGeckoData, searchCoinGeckoById } from '../components/utils/fetchCoinGeckoData';
 
 const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenData }) => {
   const { createTokenActor } = useAuth();
@@ -15,13 +15,14 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
   const [metadata, setMetadata] = useState([]);
   const [allTokens, setAllTokens] = useState([]);
   const [filteredTokens, setFilteredTokens] = useState([]);
+  const [canisterIdToken, setCanisterIdToken] = useState([]);
 
   const HandleClickToken = (index) => {
     SetTokenOption(TokenOption === index ? null : index);
   };
 
   // Fetch all tokens data from CoinGecko API using fetchCoinGeckoData
-  useMemo(() => {
+  useEffect(() => {
     const fetchListOfCoins = async () => {
       try {
         const fetchedListOfData = await fetchCoinGeckoData();
@@ -51,16 +52,19 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
     }
   }, [searchQuery, allTokens]);
 
-  // Fetch metadata for tokens from DummyDataTokens
+  // Fetch metadata for tokens when canisterIdToken changes
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
         const fetchedMetadata = await Promise.all(
-          DummyDataTokens.Tokens.map(async (token) => {
-            const ledgerActor = await createTokenActor(token?.CanisterId);
+          canisterIdToken.map(async (token) => {
+            console.log('ledger', token.contract_address);
+            const ledgerActor = await createTokenActor(token?.contract_address);
+            console.log('ledgerActor', ledgerActor);
             const result = await ledgerActor?.icrc1_metadata();
+            console.log('metadata result', result);
             return {
-              CanisterId: token?.CanisterId,
+              CanisterId: token?.contract_address,
               id: token.id,
               image: token.image,
               Name: token.name,
@@ -73,8 +77,29 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
         console.error('Error fetching metadata:', error);
       }
     };
-    fetchMetadata();
-  }, [createTokenActor]);
+    if (canisterIdToken.length > 0) {
+      fetchMetadata();
+    }
+  }, [canisterIdToken, createTokenActor]);
+
+  // Fetch token containing mainnet Canister ID
+  const fetchCanisterIdHandler = async (tokenName) => {
+    try {
+      const fetchResult = await searchCoinGeckoById(tokenName);
+      if (!fetchResult) {
+        throw new Error('cannot call fetchCanisterIdHandler');
+      }
+      console.log('fetchCanisterIdHandler', fetchResult);
+      // Ensure canisterIdToken is an array
+      setCanisterIdToken([fetchResult]);
+      return fetchResult;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  };
+
+  // const finalToken = canisterIdToken.length > 0 ? canisterIdToken : filteredTokens;
 
   return (
     <div className='flex z-50 justify-center fixed inset-0 bg-opacity-50 backdrop-blur-sm'>
@@ -109,18 +134,19 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
 
         <div className='flex flex-col items-center gap-4 mb-10 overflow-y-scroll h-72'>
           {filteredTokens?.length > 0 ? (
-            filteredTokens.slice(0, 50).map((token, index) => {
+            filteredTokens.map((token, index) => {
               // Extract data from token
               const TokenName = token.name || '';
               const TokenId = token.id || '';
-              const ShortForm = token.symbol ? token.symbol.toUpperCase() : '';
-              const ImagePath = token.image || token.thumb || token.large || '';
-              const marketPrice = token.current_price || '-';
+              const ShortForm = token.symbol ? token.symbol : '';
+              const ImagePath = token.image?.large || token.image || token.thumb || token.large || '';
+              const marketPrice = token.current_price || token.market_data?.current_price?.usd || '-';
 
               // Find corresponding metadata if available
-              const tokenMetadata = metadata.find((meta) => meta.Name === TokenName);
-              const CanisterId = tokenMetadata?.CanisterId || null;
-              const findAmount = Tokens?.find((tokens) => tokens?.CanisterId === CanisterId);
+              const CanisterId = canisterIdToken? token.contract_address : null;
+
+              // Find the amount based on CanisterId
+              const findAmount = Tokens?.find((t) => t?.CanisterId === CanisterId);
               const TokenAmount = findAmount ? findAmount.Amount : 0;
 
               return (
@@ -131,22 +157,30 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
                       : ''
                   }`}
                   key={index}
-                  onClick={() => {
-                    const tokenData = {
-                      id: TokenId,
-                      Name: TokenName,
-                      ImagePath: ImagePath,
-                      ShortForm: ShortForm,
-                      CanisterId: CanisterId,
-                      marketPrice: marketPrice,
-                      currencyAmount: marketPrice * TokenAmount,
-                    };
-                    if (id === 1) setPayToken(tokenData);
-                    else if (id === 2) setRecToken(tokenData);
-                    else if (id === 3) setTokenData(tokenData);
+                  onClick={async () => {
+                    const fetchResult = await fetchCanisterIdHandler(TokenId);
+                    if (fetchResult) {
+                      const CanisterId = await fetchResult?.contract_address;
+                      const tokenData = {
+                        id: TokenId,
+                        Name: TokenName,
+                        ImagePath: ImagePath,
+                        ShortForm: ShortForm,
+                        CanisterId: CanisterId,
+                        marketPrice: marketPrice,
+                        currencyAmount: marketPrice * TokenAmount,
+                      };
+                      console.log("result hai", tokenData)
+                      console.log("result id", id)
+                      if (id === 1) setPayToken(tokenData);
+                      else if (id === 2) setRecToken(tokenData);
+                      else if (id === 3) setTokenData(tokenData);
 
-                    HandleClickToken(index);
-                    setSearchToken(false);
+                      HandleClickToken(index);
+                      setSearchToken(false);
+                    } else {
+                      console.error('Failed to fetch token details');
+                    }
                   }}
                 >
                   <div className='rounded-lg bg-[#3D3F47] p-2'>

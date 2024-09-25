@@ -42,7 +42,7 @@ const Swap = () => {
         }
     }, [PayCoin, RecieveCoin]);
 
-
+console.log("recive coin", RecieveCoin)
     useEffect(() => {
         if (PayCoin) {
             getBalance(PayCoin.CanisterId)
@@ -57,7 +57,7 @@ const Swap = () => {
 
     useEffect(() => {
         if (RecieveCoin) {
-            getBalance(RecieveCoin.CanisterId).then(balance => {
+            getBalance(RecieveCoin?.CanisterId).then(balance => {
                 setRecieveCoinBalance(Number(balance)/ 100000000);
             }).catch((err) => console.log(err));;
         }
@@ -213,7 +213,7 @@ const Swap = () => {
                         {RecieveCoin ? (
                             <div className='flex flex-col font-cabin font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.RecieveSection.Heading}</span>
-                                <span className='text-3xl md:text-4xl'>{CoinAmount ? ((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice).toFixed(4) : 0}</span>
+                                <span className='text-3xl md:text-4xl'>{CoinAmount ? ((PayCoin.marketPrice * CoinAmount) / RecieveCoin?.marketPrice).toFixed(4) : 0}</span>
                                 <span className='text-sm sm:text-base font-normal'>
                                     {SwapModalData.RecieveSection.Balance}: {recieveCoinBalance !== null ? parseFloat(recieveCoinBalance) : 'Loading...'}
                                 </span>
@@ -247,11 +247,11 @@ const Swap = () => {
                                 <div className='flex flex-col gap-1'>
                                     <div className='flex sm:mr-12 items-center place-self-end gap-2'>
                                         <BlueGradientButton customCss={'disabled px-2 py-2 normal-cursor'}>
-                                            <img src={RecieveCoin.ImagePath} alt="" className='h-6 w-6 transform scale-150' />
+                                            <img src={RecieveCoin?.ImagePath} alt="" className='h-6 w-6 transform scale-150' />
                                         </BlueGradientButton>
 
                                         <div className='font-cabin font-normal text-2xl'>
-                                            {RecieveCoin.ShortForm}
+                                            {RecieveCoin?.ShortForm}
                                         </div>
                                         {!searchToken2 ? (
                                             <span className='cursor-pointer' onClick={() => {
@@ -271,7 +271,7 @@ const Swap = () => {
                                         {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${CoinAmount ? (((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice)* RecieveCoin.marketPrice).toFixed(4)  : 0}
+                                        ${CoinAmount ? (((PayCoin?.marketPrice * CoinAmount) / RecieveCoin?.marketPrice)* RecieveCoin?.marketPrice).toFixed(4)  : 0}
                                     </span>
                                 </div>
                             )}

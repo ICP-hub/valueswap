@@ -400,7 +400,7 @@ export const useAuthClient = () => {
 
 
   const getBalance = useCallback(async (canisterId) => {
-    console.log("Provider:", provider);
+    console.log("Provider:", canisterId);
   
     if (provider === "plug") {
         try { 
