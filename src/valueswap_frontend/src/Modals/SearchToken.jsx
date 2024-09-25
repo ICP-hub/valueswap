@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { useAuth } from '../components/utils/useAuthClient';
 import SearchIcon from '@mui/icons-material/Search';
 import { fetchCoinGeckoData, searchCoinGeckoById } from '../components/utils/fetchCoinGeckoData';
+import Skeleton from 'react-loading-skeleton';
 
 const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenData }) => {
   const { createTokenActor } = useAuth();
@@ -193,7 +194,9 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
               );
             })
           ) : (
-            <div>No tokens found.</div>
+            <div>
+              <Skeleton count={5} />
+            </div>
           )}
         </div>
         <div className='border border-transparent font-bold custom-height-3 bg-gradient-to-r from-transparent via-[#00308E] to-transparent w-full mx-auto'></div>

@@ -117,7 +117,7 @@ console.log("recive coin", RecieveCoin)
                                 <span className='text-3xl md:text-4xl'>
                                     <input
                                         type="number"
-                                        className='bg-transparent w-64 outline-none hide-arrows'
+                                        className='bg-transparent w-64 outline-none hide-arrows w-full'
                                         placeholder='0.0'
                                         value={CoinAmount}
                                         onChange={handleChangeAmount}
