@@ -42,12 +42,12 @@ const Swap = () => {
         }
     }, [PayCoin, RecieveCoin]);
 
-console.log("recive coin", RecieveCoin)
+    console.log("recive coin", RecieveCoin)
     useEffect(() => {
         if (PayCoin) {
             getBalance(PayCoin.CanisterId)
                 .then(balance => {
-                    setPayCoinBalance(Number(balance)/ 100000000);
+                    setPayCoinBalance(Number(balance) / 100000000);
                 })
                 .catch((err) => console.log(err));
             console.log("Balance", payCoinBalance);
@@ -58,7 +58,7 @@ console.log("recive coin", RecieveCoin)
     useEffect(() => {
         if (RecieveCoin) {
             getBalance(RecieveCoin?.CanisterId).then(balance => {
-                setRecieveCoinBalance(Number(balance)/ 100000000);
+                setRecieveCoinBalance(Number(balance) / 100000000);
             }).catch((err) => console.log(err));;
         }
     }, [RecieveCoin, getBalance]);
@@ -146,9 +146,9 @@ console.log("recive coin", RecieveCoin)
                             {!PayCoin ? (
                                 <div>
                                     <div className='flex sm:mr-12 items-center gap-2' onClick={() => {
-                                                setId(1);
-                                                setSearchToken1(!searchToken1);
-                                            }}>
+                                        setId(1);
+                                        setSearchToken1(!searchToken1);
+                                    }}>
                                         <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
                                             <div className='flex text-sm sm:text-base items-center gap-1' >
                                                 {SwapModalData.PaySection.TokenSelectButtonText}
@@ -190,7 +190,7 @@ console.log("recive coin", RecieveCoin)
                                         {searchToken1 && <SearchToken setSearchToken={setSearchToken1} setPayToken={setPayCoin} setRecToken={setRecieveCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${CoinAmount ? (PayCoin.marketPrice * CoinAmount).toFixed(4)  : 0}
+                                        ${CoinAmount ? (PayCoin.marketPrice * CoinAmount).toFixed(4) : 0}
                                     </span>
                                 </div>
                             )}
@@ -228,20 +228,24 @@ console.log("recive coin", RecieveCoin)
 
                         <div>
                             {!RecieveCoin ? (
-                                <div className='flex sm:mr-12 items-center place-self-end gap-2' onClick={() => {
-                                    setId(2);
-                                    setSearchToken2(!searchToken2);
-                                }}>
-                                    <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
-                                        <div className='flex text-sm sm:text-base items-center gap-1'
-                                        >
-                                            {SwapModalData.RecieveSection.TokenSelectButtonText}
-                                            <span className='cursor-pointer'>
-                                                <ChevronDown />
-                                            </span>
-                                            {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
-                                        </div>
-                                    </BlueGradientButton>
+                                <div>
+                                    <div className='flex sm:mr-12 items-center place-self-end gap-2' onClick={() => {
+                                        setId(2);
+                                        setSearchToken2(!searchToken2);
+                                    }}>
+                                        <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
+                                            <div className='flex text-sm sm:text-base items-center gap-1'
+                                            >
+                                                {SwapModalData.RecieveSection.TokenSelectButtonText}
+                                                <span className='cursor-pointer'>
+                                                    <ChevronDown />
+                                                </span>
+                                            </div>
+                                        </BlueGradientButton>
+                                    </div>
+                                    <div>
+                                        {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className='flex flex-col gap-1'>
@@ -271,7 +275,7 @@ console.log("recive coin", RecieveCoin)
                                         {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${CoinAmount ? (((PayCoin?.marketPrice * CoinAmount) / RecieveCoin?.marketPrice)* RecieveCoin?.marketPrice).toFixed(4)  : 0}
+                                        ${CoinAmount ? (((PayCoin?.marketPrice * CoinAmount) / RecieveCoin?.marketPrice) * RecieveCoin?.marketPrice).toFixed(4) : 0}
                                     </span>
                                 </div>
                             )}
