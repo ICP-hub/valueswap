@@ -229,27 +229,27 @@ export const useAuthClient = () => {
     }
     try {
       setProvider(selectedProvider); // Set the provider
-      const tokenCanisterIds = DummyDataTokens.Tokens.map(token => token.CanisterId);
-      const additionalCanisterIds = [
-        process.env.CANISTER_ID_CKBTC_LEDGER,
-        process.env.CANISTER_ID_CKETH_LEDGER
-      ];
-
-      // Combine all canister IDs
-      const whitelist = [
-        process.env.CANISTER_ID_VALUESWAP_BACKEND,
-        ...tokenCanisterIds,
-        ...additionalCanisterIds
-      ];
-
-      // Remove duplicates, if any
-      const uniqueWhitelist = [...new Set(whitelist)];
-
+  
       if (selectedProvider === "plug") {
         // Plug login
   
         // Collect all canister IDs you need to whitelist
-       
+        const tokenCanisterIds = DummyDataTokens.Tokens.map(token => token.CanisterId);
+        const additionalCanisterIds = [
+          process.env.CANISTER_ID_CKBTC_LEDGER,
+          process.env.CANISTER_ID_CKETH_LEDGER
+        ];
+  
+        // Combine all canister IDs
+        const whitelist = [
+          process.env.CANISTER_ID_VALUESWAP_BACKEND,
+          ...tokenCanisterIds,
+          ...additionalCanisterIds
+        ];
+  
+        // Remove duplicates, if any
+        const uniqueWhitelist = [...new Set(whitelist)];
+  
         // Ensure all canister IDs are valid
         if (uniqueWhitelist.includes(undefined) || uniqueWhitelist.includes('')) {
           console.error("One or more canister IDs are undefined or empty. Please check your environment variables.");
@@ -266,15 +266,14 @@ export const useAuthClient = () => {
         // Request connection with the necessary whitelist
         const result = await window.ic.plug.requestConnect({
           whitelist: uniqueWhitelist,
-          host: process.env.DFX_NETWORK === "local" ? 'http://localhost:3000' : 'https://mainnet.dfinity.network', // or your local network
-          
+          host: 'http://localhost:3000', // or your local network
         });
   
         if (!result) {
           console.error("User denied the connection.");
           return;
         }
-        console.log("result o f infinity",result)
+  
         // After connecting, the agent should be initialized
         if (!window.ic.plug.agent) {
           console.error("Plug agent is not initialized.");
@@ -298,55 +297,11 @@ export const useAuthClient = () => {
         setIdentity(null);
   
         console.log("Plug login successful.");
-      }else if( selectedProvider === "bitfinityWallet"){ 
-        // Check if bitfinityWallet is installed
-        if (!window.ic || !window.ic.infinityWallet) {
-          console.error("bitfinityWallet wallet is not installed.");
-          return;
-        }
-        const result = await window.ic.infinityWallet.requestConnect({
-          whitelist: uniqueWhitelist,
-          host: process.env.DFX_NETWORK === "local" ? 'http://localhost:3000' : 'https://mainnet.dfinity.network',
-           // or your local network
-          
-        });
-        console.log("result o f infinity",result)
-        if (!result) {
-          console.error("User denied the connection.");
-          return;
-        }
-  
-        // After connecting, the agent should be initialized
-        // if (!window.ic.infinityWallet.agent) {
-        //   console.error("bitfinityWallet agent is not initialized.");
-        //   return;
-        // }
-  
-        // Get the principal via the agent
-        const principal = await window.ic.infinityWallet.getPrincipal();
-        console.log("Principal:", principal.toString());
-        setPrincipal(principal); // Store the Principal object
-        setIsAuthenticated(true);
-  
-        // Create the backend actor using Plug's createActor method
-        const backendActor = await window.ic.infinityWallet.createActor({
-          canisterId: process.env.CANISTER_ID_VALUESWAP_BACKEND,
-          interfaceFactory: idlFactory,
-          host: process.env.DFX_NETWORK === "local" ? 'http://localhost:3000' : 'https://mainnet.dfinity.network', // Ensure idlFactory is imported correctly
-        });
-        setBackendActor(backendActor);
-  
-        // Plug does not expose identity directly
-        setIdentity(null);
-  
-        console.log("bitfinityWallet login successful.");
-
-      }else if (selectedProvider === "stoic") {
+      } else if (selectedProvider === "stoic") {
         // Stoic login
         const userObject = await StoicLogin();
-        const identity =   userObject.agent._identity; 
-        // console.log("identity", StoicLogin())// StoicLogin returns identity
-        const principal = await identity._principal;
+        const identity = userObject.identity; // StoicLogin returns identity
+        const principal = identity.getPrincipal();
         setPrincipal(principal); // Store the Principal object
         setIdentity(identity);
         setIsAuthenticated(true);
@@ -390,12 +345,11 @@ export const useAuthClient = () => {
     try {
       if (provider === "plug") {
         // Plug logout logic (if any)
-        console.log("window.ic", window.ic)
         // Plug does not have a logout method, but you can disconnect
         await window.ic.plug.disconnect();
       } else if (provider === "stoic") {
         // Stoic logout
-        await authClient.logout();
+        await StoicLogin.disconnect();
       } else if (provider === "nfid" || provider === "ii") {
         // NFID and II logout
         await authClient.logout();
@@ -446,7 +400,7 @@ export const useAuthClient = () => {
 
 
   const getBalance = useCallback(async (canisterId) => {
-    console.log("Provider:", canisterId);
+    console.log("Provider:", provider);
   
     if (provider === "plug") {
         try { 
@@ -472,7 +426,6 @@ export const useAuthClient = () => {
       try {
         // Assuming you have a function to create an actor for other providers
         const actor = await createTokenActor(canisterId);
-        console.log("actoir hai", actor)
         const ownerPrincipal = typeof principal === 'string' ? Principal.fromText(principal) : principal;
         const balance = await actor.icrc1_balance_of({ owner: ownerPrincipal });
         console.log("Balance:", balance.toString());

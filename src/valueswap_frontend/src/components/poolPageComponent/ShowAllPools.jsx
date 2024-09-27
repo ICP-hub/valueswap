@@ -136,7 +136,7 @@ const ShowAllPools = () => {
           <input
             type="text"
             placeholder="Search..."
-            className="w-full py-3 pl-10 pr-4 bg-transparent rounded-lg shadow-inner  text-gray-400 placeholder-gray-400 border border-transparent border-blue-300  ring-2 transition duration-200 ease-in-out"
+            className="w-full py-3 pl-10 pr-4 bg-transparent rounded-lg shadow-inner  text-gray-400 placeholder-gray-400 border border-transparent border-blue-300 hover:border-blue-400 focus:ring-2 transition duration-200 ease-in-out"
             value={filterData}
             onChange={(e) => setFilterData(e.target.value)}
           />
