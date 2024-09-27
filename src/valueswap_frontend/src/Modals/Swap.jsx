@@ -42,12 +42,12 @@ const Swap = () => {
         }
     }, [PayCoin, RecieveCoin]);
 
-
+    console.log("recive coin", RecieveCoin)
     useEffect(() => {
         if (PayCoin) {
             getBalance(PayCoin.CanisterId)
                 .then(balance => {
-                    setPayCoinBalance(Number(balance)/ 100000000);
+                    setPayCoinBalance(Number(balance) / 100000000);
                 })
                 .catch((err) => console.log(err));
             console.log("Balance", payCoinBalance);
@@ -57,8 +57,8 @@ const Swap = () => {
 
     useEffect(() => {
         if (RecieveCoin) {
-            getBalance(RecieveCoin.CanisterId).then(balance => {
-                setRecieveCoinBalance(Number(balance)/ 100000000);
+            getBalance(RecieveCoin?.CanisterId).then(balance => {
+                setRecieveCoinBalance(Number(balance) / 100000000);
             }).catch((err) => console.log(err));;
         }
     }, [RecieveCoin, getBalance]);
@@ -117,7 +117,7 @@ const Swap = () => {
                                 <span className='text-3xl md:text-4xl'>
                                     <input
                                         type="number"
-                                        className='bg-transparent w-64 outline-none hide-arrows'
+                                        className='bg-transparent w-64 outline-none hide-arrows w-full'
                                         placeholder='0.0'
                                         value={CoinAmount}
                                         onChange={handleChangeAmount}
@@ -146,9 +146,9 @@ const Swap = () => {
                             {!PayCoin ? (
                                 <div>
                                     <div className='flex sm:mr-12 items-center gap-2' onClick={() => {
-                                                setId(1);
-                                                setSearchToken1(!searchToken1);
-                                            }}>
+                                        setId(1);
+                                        setSearchToken1(!searchToken1);
+                                    }}>
                                         <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
                                             <div className='flex text-sm sm:text-base items-center gap-1' >
                                                 {SwapModalData.PaySection.TokenSelectButtonText}
@@ -190,7 +190,7 @@ const Swap = () => {
                                         {searchToken1 && <SearchToken setSearchToken={setSearchToken1} setPayToken={setPayCoin} setRecToken={setRecieveCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${CoinAmount ? (PayCoin.marketPrice * CoinAmount).toFixed(4)  : 0}
+                                        ${CoinAmount ? (PayCoin.marketPrice * CoinAmount).toFixed(4) : 0}
                                     </span>
                                 </div>
                             )}
@@ -213,7 +213,7 @@ const Swap = () => {
                         {RecieveCoin ? (
                             <div className='flex flex-col font-cabin font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.RecieveSection.Heading}</span>
-                                <span className='text-3xl md:text-4xl'>{CoinAmount ? ((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice).toFixed(4) : 0}</span>
+                                <span className='text-3xl md:text-4xl'>{CoinAmount ? ((PayCoin.marketPrice * CoinAmount) / RecieveCoin?.marketPrice).toFixed(4) : 0}</span>
                                 <span className='text-sm sm:text-base font-normal'>
                                     {SwapModalData.RecieveSection.Balance}: {recieveCoinBalance !== null ? parseFloat(recieveCoinBalance) : 'Loading...'}
                                 </span>
@@ -228,30 +228,34 @@ const Swap = () => {
 
                         <div>
                             {!RecieveCoin ? (
-                                <div className='flex sm:mr-12 items-center place-self-end gap-2' onClick={() => {
-                                    setId(2);
-                                    setSearchToken2(!searchToken2);
-                                }}>
-                                    <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
-                                        <div className='flex text-sm sm:text-base items-center gap-1'
-                                        >
-                                            {SwapModalData.RecieveSection.TokenSelectButtonText}
-                                            <span className='cursor-pointer'>
-                                                <ChevronDown />
-                                            </span>
-                                            {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
-                                        </div>
-                                    </BlueGradientButton>
+                                <div>
+                                    <div className='flex sm:mr-12 items-center place-self-end gap-2' onClick={() => {
+                                        setId(2);
+                                        setSearchToken2(!searchToken2);
+                                    }}>
+                                        <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
+                                            <div className='flex text-sm sm:text-base items-center gap-1'
+                                            >
+                                                {SwapModalData.RecieveSection.TokenSelectButtonText}
+                                                <span className='cursor-pointer'>
+                                                    <ChevronDown />
+                                                </span>
+                                            </div>
+                                        </BlueGradientButton>
+                                    </div>
+                                    <div>
+                                        {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className='flex flex-col gap-1'>
                                     <div className='flex sm:mr-12 items-center place-self-end gap-2'>
                                         <BlueGradientButton customCss={'disabled px-2 py-2 normal-cursor'}>
-                                            <img src={RecieveCoin.ImagePath} alt="" className='h-6 w-6 transform scale-150' />
+                                            <img src={RecieveCoin?.ImagePath} alt="" className='h-6 w-6 transform scale-150' />
                                         </BlueGradientButton>
 
                                         <div className='font-cabin font-normal text-2xl'>
-                                            {RecieveCoin.ShortForm}
+                                            {RecieveCoin?.ShortForm}
                                         </div>
                                         {!searchToken2 ? (
                                             <span className='cursor-pointer' onClick={() => {
@@ -271,7 +275,7 @@ const Swap = () => {
                                         {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${CoinAmount ? (((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice)* RecieveCoin.marketPrice).toFixed(4)  : 0}
+                                        ${CoinAmount ? (((PayCoin?.marketPrice * CoinAmount) / RecieveCoin?.marketPrice) * RecieveCoin?.marketPrice).toFixed(4) : 0}
                                     </span>
                                 </div>
                             )}
