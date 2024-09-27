@@ -8,25 +8,23 @@ use ic_xrc_types::{Asset, AssetClass, GetExchangeRateRequest, GetExchangeRateRes
 // Function to handle deposits
 // Function to handle deposits to dynamically created canisters
 #[ic_cdk_macros::update]
-pub async fn deposit_tokens(amount: u64, target_canister_id: Principal) -> Result<Nat, String> {
-    let ledger_canister_id =
-        Principal::from_text(CKBTC_LEDGER_ADDRESS).map_err(|e| e.to_string())?;
+pub async fn deposit_tokens(amount: u64, ledger_canister_id: Principal , target_canister_id: Principal) -> Result<Nat, String> {
+    // let ledger_canister_id =
+        // Principal::from_text(CKBTC_LEDGER_ADDRESS).map_err(|e| e.to_string())?;
 
-    ic_cdk::println!("ckbtc canister principal {}", ledger_canister_id);
+    // ic_cdk::println!("ckbtc canister principal {}", ledger_canister_id);
     let user_principal = ic_cdk::api::caller();
 
     // Use the dynamically passed target canister principal
-    let platform_principal = target_canister_id;
-    ic_cdk::println!(
-        "Target canister principal for deposit {}",
-        platform_principal
-    );
+
+    let target_canister = target_canister_id;
+    ic_cdk::println!("Target canister principal for deposit {}", target_canister);
 
     let amount_nat = Nat::from(amount);
-    transfer_from_ckbtc(
+    transfer_from(
         ledger_canister_id,
         user_principal,
-        platform_principal,
+        target_canister,
         amount_nat,
     )
     .await
@@ -131,7 +129,7 @@ pub async fn get_exchange_rates() -> Result<(f64, u64), String>  {
 // }
 
 // the function above is just an sample function, deposit function will use validation logic, reserve logic and other checks according to aave
-pub async fn transfer_from_ckbtc(
+pub async fn transfer_from(
     ledger_canister_id: Principal,
     from: Principal,
     to: Principal,
@@ -161,3 +159,5 @@ pub async fn transfer_from_ckbtc(
         TransferFromResult::Err(err) => Err(format!("{:?}", err)),
     }
 }
+
+

@@ -238,7 +238,7 @@ console.log("NAN", InitialToken.currencyAmount)
               </span>
             </div>
             <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-             $ {InitialToken.currencyAmount || 0}
+             $ {InitialToken.currencyAmount}
             </span>
           </div>
         </div>
@@ -278,7 +278,7 @@ console.log("NAN", InitialToken.currencyAmount)
                       </span>
                     </div>
                     <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-                    $ {token.currencyAmount || 0}
+                    $ {token.currencyAmount}
                     
                     </span>
                   </div>

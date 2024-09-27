@@ -75,18 +75,11 @@ const ConnectWallet = ({ setClickConnectWallet, setWalletClicked }) => {
                         <div className='font-normal text-lg font-cabin text-start'>Nfid</div>
                     </div>
                     <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
-                        onClick={() => handleWalletConnect("bitfinityWallet")}>
+                        onClick={() => handleWalletConnect("stoic")}>
                         <div className='rounded-lg bg-[#3D3F47]'>
                             <img src="/image/bifinity.png" alt="" className='w-8 h-8' />
                         </div>
                         <div className='font-normal text-lg font-cabin text-start'>Bifinity</div>
-                    </div>
-                    <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
-                        onClick={() => handleWalletConnect("stoic")}>
-                        <div className='rounded-lg bg-[#3D3F47]'>
-                            <img src="/image/stoic.png" alt="" className='w-8 h-8' />
-                        </div>
-                        <div className='font-normal text-lg font-cabin text-start'>Stoic</div>
                     </div>
                     <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
                         onClick={() => handleWalletConnect("plug")}>
