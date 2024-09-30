@@ -221,7 +221,6 @@ async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), 
 }
 
 
-
 #[update]
 fn store_pool_data_curr(params: Pool_Data) -> Result<(), String> {
     let key = params
@@ -365,6 +364,7 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                     .find(|p| p.token_name == params.token2_name);
 
 
+
                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
                     let b_i = tokenA.balance as f64;
                     let w_i = tokenA.weight as f64;
@@ -373,7 +373,7 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
 
                     let amount_out = params.token_amount as f64;
                     let fee = data.swap_fee;
-
+<
 
                     // Calculate the required input using the in_given_out formula
                     let required_input = in_given_out(b_i, w_i, b_o, w_o, amount_out, fee);
@@ -425,7 +425,9 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<()
 #[update]
 async fn compute_swap(params: SwapParams) -> Result<(), String> {
     let (pool_name, _) = pre_compute_swap(params.clone());
+
     let (_ , amount) = pre_compute_swap(params.clone());
+
 
     if pool_name == "No suitable pool found.".to_string()
         || pool_name == "No matching pools found.".to_string()
@@ -448,6 +450,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
     let result: Result<(), String> = call(
         canister_id,
         "add_liquidity_to_pool",
+
         (api::caller(),params , amount),
     )
     .await
@@ -459,6 +462,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
 
     Ok(())
 }
+
 
 
 // #[update]
@@ -492,6 +496,9 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
 
 //     Ok(())
 // }
+
+
+
 
 // if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
 //     continue;
