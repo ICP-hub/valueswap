@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { valueswap_backend } from 'declarations/valueswap_backend';
 import AppRoutes from './AppRoutes';
 import { Suspense } from 'react';
@@ -9,11 +9,17 @@ import MobileNavbar from './navbar/MobileNavbar';
 import ConnectWallet from './Modals/ConnectWallet';
 import { CommonNavbarData } from './TextData';
 import LandingPage from './pages/LandingPage';
+import { useAuth } from './components/utils/useAuthClient';
 function App() {
   const [clickConnectWallet, setClickConnectWallet] = useState(false);
   const [walletClicked, setWalletClicked] = useState(false);
   const { show, type, text } = useSelector((state) => state.alert)
+  //  const {login} = useAuth
 
+  //  useEffect(()=>{
+
+  //    console.log("hiii", login("Icp"))
+  //  })
 
   
   return (

@@ -7,6 +7,8 @@ import { showAlert, hideAlert } from '../../reducer/Alert';
 import { useDispatch, useSelector } from 'react-redux';
 import { UpdateAmount, toggleConfirm } from '../../reducer/PoolCreation';
 import { useAuth } from '../../components/utils/useAuthClient';
+import { Principal } from '@dfinity/principal';
+import { searchCoinGeckoById } from '../../components/utils/fetchCoinGeckoData';
 
 const InitialLiquidity = () => {
   const dispatch = useDispatch();
@@ -18,10 +20,35 @@ const InitialLiquidity = () => {
   const [restTokensAmount, setRestTokensAmount] = useState([]);
   const [ButtonActive, SetButtonActive] = useState(false);
   const [AmountSelectCheck, setAmountSelectCheck] = useState(false);
+  const [tokenApiDetails, setTokenApiDetails] = useState()
+ 
   const { Tokens, Confirmation } = useSelector((state) => state.pool);
 
   const initialTokenRef = useRef(null);
   const restTokensRefs = useRef([]);
+ 
+  useEffect(() => {
+    if(Tokens.length <= 0){
+        return;
+    }
+    const fetchSelectedToken = async () => {
+        const fetchedSelectedToken = await Promise.all(
+            Tokens?.map(async (list, index) => {
+              let name = list.id.toLowerCase()
+              const tokenDetail = await searchCoinGeckoById(name)
+              console.log("get val", tokenDetail)
+
+                return {
+                    tokenDetail
+                }
+            })
+        )
+        setTokenApiDetails(fetchedSelectedToken)
+    }
+    fetchSelectedToken()
+}, [])
+console.log("tokenApiDetails", tokenApiDetails)
+
 
   useEffect(() => {
     if (Tokens.length > 0) {
@@ -30,12 +57,15 @@ const InitialLiquidity = () => {
     }
   }, [Tokens]);
 
+
+
   const fetchTokenActor = useCallback(async () => {
     if (Tokens.length > 0) {
       const actor = await createTokenActor(Tokens[0].CanisterId);
       setTokenActor(actor);
     }
   }, [Tokens, createTokenActor]);
+
 
   useEffect(() => {
     fetchTokenActor();
@@ -45,7 +75,7 @@ const InitialLiquidity = () => {
     const fetchInitialTokenBalance = async () => {
       if (tokenActor && principal) {
         const balance = await tokenActor.icrc1_balance_of({ owner: principal, subaccount: [] });
-        setInitialTokenBalance(parseFloat(balance));
+        setInitialTokenBalance(parseFloat(Number(balance)/100000000));
       }
     };
     fetchInitialTokenBalance();
@@ -55,9 +85,9 @@ const InitialLiquidity = () => {
     if (Tokens.length > 1) {
       const balances = await Promise.all(
         Tokens.slice(1).map(async (token) => {
-           const balance = await getBalance(principal, token.CanisterId)
+           const balance = await getBalance(token.CanisterId)
        
-          return parseFloat(balance);
+          return parseFloat(Number(balance)/ 100000000);
         })
       );
       setRestTokensBalances(balances);
@@ -67,6 +97,7 @@ const InitialLiquidity = () => {
   useEffect(() => {
     fetchRestTokensBalances();
   }, [fetchRestTokensBalances]);
+
 
   const handleInput = (event, index) => {
     const newValue = parseFloat(event.target.value);
@@ -102,46 +133,46 @@ const InitialLiquidity = () => {
 
 
 
-  const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
-    try {
-      const metaData = await tokenActor.icrc1_metadata();
-      const decimals = parseInt(metaData?.["icrc1:decimals"]);
-      const fee = parseInt(metaData?.["icrc1:fee"]);
+// token Approval function
+const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
+  try {
+    const metaData = await tokenActor.icrc1_metadata();
+    const decimals = Number(metaData[0]?.[1].Nat);
+    const fee = Number(metaData[3]?.[1].Nat);
+    const amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
+    const balance = await getBalance(canisterId);
 
-      const amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
-      const balance = await getBalance(principal, canisterId);
+    if (balance >= amount + fee) {
+      const transaction = {
+        amount: amount,  // Amount to approve (not including fee)
+        from_subaccount: [],  // Optional, if you're using subaccounts
+        spender: {
+          owner: Principal.fromText(backendCanisterID),  // Canister actor's principal
+          subaccount: [],  // Optional subaccount for the spender, if any
+        },
+        fee: [],  // Fee is optional here because it's applied during the transfer, not approval
+        memo: [],  // Optional memo
+        created_at_time: [],  // Optional timestamp
+        expected_allowance: [],  // Optional expected allowance
+        expires_at: [],  // Optional expiration time for the approval
+      };
 
-      if (balance >= amount + fee) {
-        const transaction = {
-          amount: Number(amount) + Number([fee]),
-          from_subaccount: [],
-          spender: {
-            owner: backendCanisterID,
-            subaccount: [],
-          },
-          fee: [fee],
-          memo: [],
-          created_at_time: [],
-          expected_allowance: [],
-          expires_at: [],
-        };
+      const response = await tokenActor.icrc2_approve(transaction);
 
-        const response = await tokenActor.icrc2_approve(transaction);
-
-        if (response?.Err) {
-          console.error("Approval error:", response.Err);
-          return;
-        } else {
-          console.log("Approval successful:", response.Ok);
-          // afterPaymentFlow(parseInt(response.Ok).toString(), amount);
-        }
+      if (response?.Err) {
+        console.error("Approval error:", response.Err);
+        return;
       } else {
-        console.error("Insufficient balance:", balance, "required:", amount + fee);
+        console.log("Approval successful:", response.Ok);
+        // After approval, you can proceed with the transfer flow if needed.
       }
-    } catch (error) {
-      console.error("Error in transferApprove:", error);
+    } else {
+      console.error("Insufficient balance:", balance, "required:", amount + fee);
     }
-  };
+  } catch (error) {
+    console.error("Error in transferApprove:", error);
+  }
+};
 
 
 
@@ -155,6 +186,9 @@ const InitialLiquidity = () => {
       console.error("Error creating pool:", error);
     }
   };
+
+
+console.log("NAN", InitialToken.currencyAmount)
 
   return (
     <div className=''>
@@ -193,18 +227,18 @@ const InitialLiquidity = () => {
           </div>
           <div className='flex flex-col justify-center'>
             <div className='flex gap-3 items-center'>
-              <BlueGradientButton customCss={'disabled px-2 py-2 sm:px-4 sm:py-3 normal-cursor'}>
-                <img src={InitialToken.ImagePath} alt="" className=' h-3 w-3 sm:h-8 sm:w-8 transform scale-150' />
+              <BlueGradientButton customCss={'disabled px-2 py-2  normal-cursor'}>
+                <img src={InitialToken.ImagePath} alt="" className=' h-3 w-3 sm:h-6 sm:w-6 transform scale-150' />
               </BlueGradientButton>
               <span className='text-base sm:text-2xl font-normal'>
                 {InitialToken.ShortForm}
               </span>
               <span className='bg-[#3E434B] py-1 rounded-lg px-2 sm:px-3'>
-                {InitialToken.WeightedPercentage} %
+                {InitialToken.weights} %
               </span>
             </div>
             <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-              $66.12
+             $ {InitialToken.currencyAmount || 0}
             </span>
           </div>
         </div>
@@ -233,18 +267,19 @@ const InitialLiquidity = () => {
                   </div>
                   <div className='flex flex-col justify-center'>
                     <div className='flex gap-3 items-center'>
-                      <BlueGradientButton customCss={'disabled px-2 py-2 sm:px-4 sm:py-3 normal-cursor'}>
-                        <img src={token.ImagePath} alt="" className='h-3 w-3 sm:h-8 sm:w-8 transform scale-150' />
+                      <BlueGradientButton customCss={'disabled px-2 py-2  normal-cursor'}>
+                        <img src={token.ImagePath} alt="" className='h-3 w-3 sm:h-6 sm:w-6 transform scale-150' />
                       </BlueGradientButton>
                       <span className='text-sm sm:text-2xl font-normal'>
                         {token.ShortForm}
                       </span>
                       <span className='bg-[#3E434B] py-1 rounded-lg px-2 sm:px-3'>
-                        {token.WeightedPercentage} %
+                        {token.weights} %
                       </span>
                     </div>
                     <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-                      $66.12
+                    $ {token.currencyAmount || 0}
+                    
                     </span>
                   </div>
                 </div>

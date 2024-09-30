@@ -2,35 +2,39 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     CoinCount: 2,
-    FeeShare: null,
+    FeeShare: 0,
     PercentShare: 50,
-    TotalAmount: null,
+    TotalAmount: 0,
     Confirmation: false,
     TotalPercentage: 100,
     TotalAmount: 0,
     Tokens: [
         {
+            id: "",
             Name: 'Token1',
             ShortForm: 'Token 1',
             Amount: 0,
             Selected: false,
-            WeightedPercentage: 50,
+            weights: 50,
             ImagePath: null,
             Amount: 0.0,
-            currencyAmount: 66.10,
-            WeightedPercentageLocked: false,
+            marketPrice: 0,
+            currencyAmount: 0,
+            weightsLocked: false,
             CanisterId: null
         },
         {
+            id: "",
             Name: "Token2",
             ShortForm: 'Token 2',
             Amount: 0,
             Selected: false,
-            WeightedPercentage: 50,
+            weights: 50,
             ImagePath: null,
             Amount: 0,
-            currencyAmount: 64.89,
-            WeightedPercentageLocked: false,
+            marketPrice: 0,
+            currencyAmount: 0,
+            weightsLocked: false,
             CanisterId: null
         }
     ],
@@ -45,26 +49,28 @@ const Pool = createSlice({
             state.CoinCount += 1;
             let coinCount = state.CoinCount;
             state.Tokens.forEach((token) => {
-                if (token.WeightedPercentageLocked) {
+                if (token.weightsLocked) {
                     coinCount -= 1;
                 }
             });
             let PercentShare = parseFloat(state.TotalPercentage / coinCount).toFixed(2)
             state.Tokens.push(
                 {
+                    id: "id",
                     Name: 'new Token',
                     ShortForm: `Token ${state.CoinCount}`,
                     Amount: 0,
                     Selected: false,
-                    WeightedPercentage: PercentShare,
+                    weights: PercentShare,
                     ImagePath: null,
+                    marketPrice: 0,
                     currencyAmount: 0,
-                    WeightedPercentageLocked: false,
+                    weightsLocked: false,
                 }
             )
             state.Tokens.forEach((token) => {
-                if (!token.WeightedPercentageLocked) {
-                    token.WeightedPercentage = PercentShare;
+                if (!token.weightsLocked) {
+                    token.weights = PercentShare;
                 }
             });
 
@@ -75,7 +81,7 @@ const Pool = createSlice({
             state.CoinCount -= 1;
             let coinCount = state.CoinCount;
             state.Tokens.forEach((token) => {
-                if (token.WeightedPercentageLocked) {
+                if (token.weightsLocked) {
                     coinCount -= 1;
                 }
             });
@@ -87,22 +93,22 @@ const Pool = createSlice({
             state.Tokens = TempToken
             const newPercentShare = parseFloat(state.TotalPercentage / coinCount).toFixed(2);
             state.Tokens.forEach((token) => {
-                if (!token.WeightedPercentageLocked) {
-                    token.WeightedPercentage = newPercentShare;
+                if (!token.weightsLocked) {
+                    token.weights = newPercentShare;
                 }
             });
             // const lastCoinIndex = state.Tokens.length - 1;
-            // state.Tokens[lastCoinIndex].WeightedPercentage = (state.TotalPercentage - newPercentShare * (state.CoinCount - 1)).toFixed(2);
+            // state.Tokens[lastCoinIndex].weights = (state.TotalPercentage - newPercentShare * (state.CoinCount - 1)).toFixed(2);
             state.TotalAmount = SumUpValue(state.Tokens)
 
         },
         setWeightedPercent: (state, action) => {
             const index = action.payload.index;
-            state.Tokens[index].WeightedPercentage = action.payload.percent;
+            state.Tokens[index].weights = action.payload.percent;
         },
         ToggleLocked: (state, action) => {
             const index = action.payload.index;
-            state.Tokens[index].WeightedPercentageLocked = action.payload.toggle
+            state.Tokens[index].weightsLocked = action.payload.toggle
 
             if (action.payload.toggle === true) {
                 console.log("percent gya", action.payload.percent)
@@ -117,10 +123,13 @@ const Pool = createSlice({
         SetToken: (state, action) => {
 
             const index = action.payload.index
+            state.Tokens[index].id = action.payload.TokenData.id;
             state.Tokens[index].Name = action.payload.TokenData.Name;
             state.Tokens[index].ShortForm = action.payload.TokenData.ShortForm;
             state.Tokens[index].ImagePath = action.payload.TokenData.ImagePath;
             state.Tokens[index].CanisterId = action.payload.TokenData.CanisterId;
+            state.Tokens[index]. marketPrice = action.payload.TokenData.marketPrice;
+            state.Tokens[index].currencyAmount = action.payload.TokenData.currencyAmount;
             state.Tokens[index].Selected = true;
             state.TotalAmount = SumUpValue(state.Tokens)
         },
@@ -132,6 +141,7 @@ const Pool = createSlice({
             console.log("amount update reducer called", action)
             const index = action.payload.index;
             state.Tokens[index].Amount = action.payload.Amount
+            state.Tokens[index].currencyAmount = parseFloat((state.Tokens[index].Amount * state.Tokens[index].marketPrice).toFixed(3)),
             state.TotalAmount = state.Tokens.reduce((total, token) => total + token.Amount, 0);
             state.TotalAmount = SumUpValue(state.Tokens)
         },

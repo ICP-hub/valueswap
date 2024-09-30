@@ -3,6 +3,7 @@ use std::collections::{HashMap,BTreeMap};
 use candid::{Principal, Nat};
 use std::cell::RefCell;
 use ic_cdk::api::call::CallResult;
+use ic_xrc_types::GetExchangeRateResult;
 
 mod utils;
 pub mod vault;

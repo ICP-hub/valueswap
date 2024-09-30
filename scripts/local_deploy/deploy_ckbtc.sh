@@ -3,19 +3,19 @@ dfx deploy swap
 set -e
 
 # Create and use the DevJourney identity
-# dfx identity new Nikhilrai || true
-dfx identity use Nikhilrai --network ic
+# dfx identity new default || true 
+dfx identity use default 
 
 # dfx canister create swap
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER=$(dfx identity get-principal --network ic)
+export MINTER=$(dfx identity get-principal )
 echo "MINTER principal: $MINTER"
 
 # Set token details
-export TOKEN_NAME="ckETH"
-export TOKEN_SYMBOL="ckETH"
+export TOKEN_NAME="ckBTC"
+export TOKEN_SYMBOL="ckBTC"
 echo "Token Name: $TOKEN_NAME"
 echo "Token Symbol: $TOKEN_SYMBOL"
 
@@ -24,14 +24,12 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-
-dfx identity use Harshit
+dfx identity use default 
 export DEFAULT=$(dfx identity get-principal)
-
 echo "DEFAULT principal: $DEFAULT"
 
 # Set archive controller as the default identity for now
-export ARCHIVE_CONTROLLER=$(dfx identity get-principal --network ic)
+export ARCHIVE_CONTROLLER=$(dfx identity get-principal)
 
 # Set archive options
 export TRIGGER_THRESHOLD=2000
@@ -57,26 +55,18 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy cketh_ledger --argument "$DEPLOY_ARGUMENTS" --network ic
+dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS" 
 
 
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
-
-# dfx deploy  --network ic
-# dfx deploy valueswap_backend  --network ic
-# echo "cketh got deployed"
+./deploy_cketh.sh
+dfx deploy   
+dfx deploy valueswap_backend 
+# echo "ckBTC got deployed"
 
 # Check the balance of the default identity
 # balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
 # echo "Balance of the DEFAULT account: $balance"
-
-
-balance=$(dfx canister call cketh_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
-echo "Balance of the DEFAULT account: $balance"
-
-
-
-# default xrinq-kad56-qulgo-h6pa5-gdqps-jif5v-ghngz-gcxac-5rbp3-acjjs-kae
 

@@ -14,22 +14,20 @@ echo "Canister ID: $CANISTER"
 create_pools() {
     # Token 1 details
     weight1=0.25
-    balance1=100000000    # nat64 (no decimal)
-    value1=48000000000000     # nat64 (no decimal)
+    balance1=100000000000     # nat64 (no decimal)
+    value1=50000000000000     # nat64 (no decimal)
     image1="https://coin-images.coingecko.com/coins/images/14495/large/Internet_Computer_logo.png?1696514180"
-
-    token_name1="dai"
-
+    token_name1="icp"
 
     # Token 2 details
     weight2=0.20
-    balance2=20000000    # nat64 (no decimal)
-    value2=1340000000000     # nat64 (no decimal)
+    balance2=20000000000     # nat64 (no decimal)
+    value2=1000000000000     # nat64 (no decimal)
     image2="https://coin-images.coingecko.com/coins/images/25788/large/Asset_19.png?1703173153"
-    token_name2="ffs"
+    token_name2="dog"
 
     # Swap fee (float64)
-    swap_fee=0.002
+    swap_fee=0.005
 
     # Construct the pool_data Candid structure with proper quoting for text values
     pool_data="vec{record {weight=$weight1; balance=$balance1; value=$value1; image=\"$image1\"; token_name=\"$token_name1\"}; record {weight=$weight2; balance=$balance2; value=$value2; image=\"$image2\"; token_name=\"$token_name2\"}}"

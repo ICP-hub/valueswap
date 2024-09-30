@@ -135,8 +135,7 @@ async fn deposit_cycles(arg: CanisterIdRecord, cycles: u128) -> CallResult<()> {
 
 async fn install_code(arg: InstallCodeArgument) -> CallResult<()> {
     let wasm_module_sample: Vec<u8> =
-        include_bytes!("/Users/admin/Documents/valueswap/.dfx/local/canisters/swap/swap.wasm")
-            .to_vec();
+        include_bytes!("/home/nikhilrai/projects/valueswap/.dfx/local/canisters/swap/swap.wasm").to_vec();
 
     let extended_arg = InstallCodeArgumentExtended {
         mode: arg.mode,
@@ -198,6 +197,7 @@ pub async fn create() -> Result<String, String> {
 }
 
 // update to store all pool data
+
 #[update]
 async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), String> {
     let pool_name = params
@@ -219,6 +219,8 @@ async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), 
     }
     Ok(())
 }
+
+
 
 #[update]
 fn store_pool_data_curr(params: Pool_Data) -> Result<(), String> {
@@ -300,6 +302,7 @@ fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
 }
 
 // take swap elements in the vector
+
 #[update]
 fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
     let mut search_tokens = Vec::new();
@@ -329,7 +332,10 @@ fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
 fn pre_compute_swap(params: SwapParams) -> (String, f64) {
     let required_pools = match search_swap_pool(params.clone()) {
         Ok(pools) => pools,
-        Err(_) => return ("No matching pools found.".to_string(), 0.0),
+        Err(_) => {
+            ic_cdk::println!("No matching pools found.");
+            return ("No matching pools found.".to_string(), 0.0);
+        }
     };
 
     let mut best_pool = None;
@@ -341,7 +347,10 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
         for pool_key in required_pools {
             let pool_entries = match pool_data.get(&pool_key) {
                 Some(entries) => entries,
-                None => continue,
+                None => {
+                    ic_cdk::println!("Pool key {} not found in POOL_DATA.", pool_key);
+                    continue;
+                }
             };
 
             for data in pool_entries {
@@ -355,6 +364,7 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                     .iter()
                     .find(|p| p.token_name == params.token2_name);
 
+
                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
                     let b_i = tokenA.balance as f64;
                     let w_i = tokenA.weight as f64;
@@ -363,6 +373,7 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
 
                     let amount_out = params.token_amount as f64;
                     let fee = data.swap_fee;
+
 
                     // Calculate the required input using the in_given_out formula
                     let required_input = in_given_out(b_i, w_i, b_o, w_o, amount_out, fee);
@@ -378,6 +389,8 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                         //     max_output_amount = calculated_output;
                         // }
                     }
+                } else {
+                    ic_cdk::println!("Either tokenA or tokenB was not found in pool.");
                 }
             }
         }
@@ -388,6 +401,7 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
         None => ("No suitable pool found.".to_string(), 0.0),
     }
 }
+
 
 // Adding liquidity to the specific pool
 #[update]
@@ -411,6 +425,7 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<()
 #[update]
 async fn compute_swap(params: SwapParams) -> Result<(), String> {
     let (pool_name, _) = pre_compute_swap(params.clone());
+    let (_ , amount) = pre_compute_swap(params.clone());
 
     if pool_name == "No suitable pool found.".to_string()
         || pool_name == "No matching pools found.".to_string()
@@ -433,7 +448,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
     let result: Result<(), String> = call(
         canister_id,
         "add_liquidity_to_pool",
-        (api::caller(),params),
+        (api::caller(),params , amount),
     )
     .await
     .map_err(|e| format!("Failed to perform swap: {:?}", e));
@@ -444,6 +459,39 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
 
     Ok(())
 }
+
+
+// #[update]
+// async fn compute_swap(params: SwapParams) -> Result<(), String> {
+//     let (pool, _) = pre_compute_swap(params.clone());
+
+//     if pool == "No suitable pool found.".to_string() || pool == "No matching pools found.".to_string() {
+//         return Err(pool);
+//     }
+
+//     let canister_id = with_state(|pool| {
+//         let mut pool_borrowed = &mut pool.TOKEN_POOLS;
+//         if let Some(canister_id) = pool_borrowed.get(pool) {
+//             return Some(canister_id);
+//         } else {
+//             None
+//         }
+//     });
+
+//     let result: Result<(), String> = call(
+//         canister_id,
+//         "execute_swap",
+//         (params),
+//     )
+//     .await
+//     .map_err(|e| format!("Failed to perform swap: {:?}", e));
+
+//     if let Err(e) = result {
+//         return Err(e);
+//     }
+
+//     Ok(())
+// }
 
 // if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
 //     continue;
