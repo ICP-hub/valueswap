@@ -29,6 +29,7 @@ impl PoolShare {
             token_balances: balances,
             token_weights: weights,
             token_value: values,
+            
         }
     }
 }
@@ -49,6 +50,7 @@ pub struct CreatePoolParams{
     pub balance : u64,
     pub weight : f64,
     pub value : u64,
+    pub ledger_canister_id: Principal, // Ledger canister ID for the token (e.g., ckBTC, ckETH)
     pub image : String
 }
 
@@ -231,7 +233,6 @@ pub(crate) struct CreateCanisterArgumentExtended {
 //     pub pool_key: String,
 //     pub user_id : Principal,
 //     pub amount : BTreeMap<String , u64>
-     
 // }
 
 
