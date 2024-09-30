@@ -62,9 +62,9 @@ dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS"
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
 ./deploy_cketh.sh
-dfx deploy 
+# dfx deploy 
 # dfx deploy valueswap_backend 
-echo "ckBTC got deployed"
+# echo "ckBTC got deployed"
 
 # Check the balance of the default identity
 # balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")

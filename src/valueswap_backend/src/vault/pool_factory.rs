@@ -4,7 +4,10 @@ use ic_cdk::api::management_canister::bitcoin::BitcoinNetwork;
 use ic_cdk_macros::*;
 use serde::de::value;
 use std::cell::RefCell;
+use std::cmp;
 use std::collections::{BTreeMap, HashMap};
+// use std::simd::cmp;
+use core::cmp::max;
 // use serde::{Deserialize, Serialize};
 use ic_cdk::{
     api,
@@ -16,10 +19,11 @@ use ic_cdk::{
     call,
 };
 
-use crate::api::deposit::deposit_ckbtc;
+use crate::api::deposit::deposit_tokens;
 use crate::types::state_handlers;
 use crate::utils::maths::*;
 use crate::utils::types::*;
+use crate::vault::lp_tokens::*;
 
 use ic_stable_structures::{writer::Writer, Memory as _, StableBTreeMap};
 
@@ -40,23 +44,15 @@ fn prevent_anonymous() -> Result<(), String> {
 }
 
 #[update(guard = prevent_anonymous)]
-// #[update]
 async fn create_pools(params: Pool_Data) -> Result<(), String> {
     let principal_id = api::caller();
-    if principal_id == Principal::anonymous() {
-        return Err("Anonymous principal not allowed to make calls".to_string());
-    }
 
     let pool_name = params
         .pool_data
-        .iter()
+        .iter() 
         .map(|pool| pool.token_name.clone())
         .collect::<Vec<String>>()
         .join("");
-
-    // let pool_key = arrange_key(pool_name);
-
-    // let pool_key = format!("{}{}", pool_name, params.swap_fee);
 
     let pool_canister_id = with_state(|pool| {
         let mut pool_borrowed = &mut pool.TOKEN_POOLS;
@@ -69,16 +65,21 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
 
     if let Some(canister_id) = pool_canister_id {
         add_liquidity_curr(params.clone());
-        add_liquidity(params.clone() , canister_id.principal);
-        //TODO Map canister id with pool_key for adding liquidity
+        add_liquidity(params.clone(), canister_id.principal);
+        increase_lp_tokens(params.clone());
+        for amount in params.pool_data.iter() {
+            // Deposit tokens to the newly created canister
+            deposit_tokens(amount.balance.clone(), canister_id.principal , amount.ledger_canister_id.clone()).await?;
+            // Deposit tokens when testing with static canister id
+            // deposit_tokens(amount.balance.clone(), canister_id).await?;
+        }
         Ok(())
     } else {
         match create_canister(CreateCanisterArgument { settings: None }).await {
             Ok((canister_id_record,)) => {
                 let canister_id = canister_id_record.canister_id;
                 with_state(|pool| {
-                    // pool.    borrow_mut().insert(pool_key.clone(), canister_id);
-                    &mut pool.TOKEN_POOLS.insert(
+                    pool.TOKEN_POOLS.insert(
                         pool_name.clone(),
                         crate::user_principal {
                             principal: canister_id,
@@ -86,25 +87,16 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
                     );
                 });
 
-                // POOL.with(|pool| {
-                //     let mut pool_borrowed = pool.borrow_mut();
-                //     let token_map = pool_borrowed.entry(pool_key).or_insert_with(HashMap::new);
-                //     for (token, value) in params.token_names.iter().zip(params.balances.iter()) {
-                //         token_map.insert(token.clone(), *value);
-                //     }
-                // });
-                // store_pool_data(params , canister_id.principal);
                 store_pool_data_curr(params.clone());
                 store_pool_data(params.clone(), canister_id_record.canister_id).await?;
+                increase_lp_tokens(params.clone());
 
                 for amount in params.pool_data.iter() {
-                    deposit_ckbtc(amount.balance.clone()).await?;
+                    // Deposit tokens to the newly created canister
+                    deposit_tokens(amount.balance.clone(), canister_id , amount.ledger_canister_id.clone() ).await?;
+                    // Deposit tokens when testing with static canister id
+                    // deposit_tokens(amount.balance.clone(), canister_id).await?;
                 }
-
-                // params.pool_data
-                // .iter()
-                // .map(|pool|pool.balance.clone())
-                // .deposit_ckbtc().await?;
 
                 Ok(())
             }
@@ -143,9 +135,8 @@ async fn deposit_cycles(arg: CanisterIdRecord, cycles: u128) -> CallResult<()> {
 
 async fn install_code(arg: InstallCodeArgument) -> CallResult<()> {
     let wasm_module_sample: Vec<u8> =
-        include_bytes!("/home/nikhil27/valueswap/.dfx/local/canisters/swap/swap.wasm")
-            .to_vec();
-       
+        include_bytes!("../../../../.dfx/local/canisters/swap/swap.wasm").to_vec();
+
     let extended_arg = InstallCodeArgumentExtended {
         mode: arg.mode,
         canister_id: arg.canister_id,
@@ -206,6 +197,7 @@ pub async fn create() -> Result<String, String> {
 }
 
 // update to store all pool data
+
 #[update]
 async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), String> {
     let pool_name = params
@@ -217,13 +209,10 @@ async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), 
 
     // let key = format!("{},{}", pool_name, params.swap_fee);
 
-    let result: Result<(), String> = call(
-        canister_id, 
-        "store_data_inpool",
-        (api::caller(), params)
-    )
-        .await
-        .map_err(|e| format!("Failed to add liquidity: {:?}", e));
+    let result: Result<(), String> =
+        call(canister_id, "store_data_inpool", (api::caller(), params))
+            .await
+            .map_err(|e| format!("Failed to add liquidity: {:?}", e));
 
     if let Err(e) = result {
         return Err(e);
@@ -232,58 +221,40 @@ async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), 
 }
 
 // Adding liquidity to the specific pool
-#[update]
-async fn store_pool_data( params: Pool_Data , canister_id: Principal) -> Result<(), String> {
-    // Call the canister's add_liquidity function with the provided data
-    let result: Result<(), String> = call(
-        canister_id,
-        "add_liquidity_to_pool",
-        (api::caller(), params),
-    )
-    .await
-    .map_err(|e| format!("Failed to store token data: {:?}", e));
 
-    if let Err(e) = result {
-        return Err(e);
-    }
-
-    Ok(())
-}
 
 #[update]
-fn store_pool_data_curr(params : Pool_Data)-> Result<(), String>  {
+fn store_pool_data_curr(params: Pool_Data) -> Result<(), String> {
     let key = params
-    .pool_data
-    .iter()
-    .map(|pool| pool.token_name.clone())
-    .collect::<Vec<String>>()
-    .join("");
+        .pool_data
+        .iter()
+        .map(|pool| pool.token_name.clone())
+        .collect::<Vec<String>>()
+        .join("");
 
-    POOL_DATA.with(|pool|{
+    POOL_DATA.with(|pool| {
         let mut borrowed_pool = pool.borrow_mut();
         let liquidity = params.clone();
         borrowed_pool
-        .entry(key)
-        .or_insert_with(Vec::new)
-        .push(params.clone());
+            .entry(key)
+            .or_insert_with(Vec::new)
+            .push(params.clone());
     });
     Ok(())
 }
 
 #[query]
 fn get_pool_data() -> BTreeMap<String, Vec<Pool_Data>> {
-    POOL_DATA.with(|pool|{
-        pool.borrow().clone()
-    })
+    POOL_DATA.with(|pool| pool.borrow().clone())
 }
 
 #[query]
-fn get_specific_pool_data(key : String) -> Result<Vec<Pool_Data>, String> {
-    POOL_DATA.with(|pool|{
+fn get_specific_pool_data(key: String) -> Result<Vec<Pool_Data>, String> {
+    POOL_DATA.with(|pool| {
         let borrored_pool = pool.borrow();
         if let Some(pool_data) = borrored_pool.get(&key) {
             Ok(pool_data.clone())
-        }else{
+        } else {
             Err("Pool not found".to_string())
         }
     })
@@ -331,25 +302,24 @@ fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
     Ok(())
 }
 
-// take swap elements in the vector 
+// take swap elements in the vector
 #[update]
-fn search_swap_pool(params : SwapParams) -> Result<Vec<String>, String> {
-
+fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
     let mut search_tokens = Vec::new();
     search_tokens.push(params.token1_name);
     search_tokens.push(params.token2_name);
-    
+
     POOL_DATA.with(|pool| {
         let borrowed_pool = pool.borrow();
         let mut matching_keys = Vec::new();
-        
+
         for key in borrowed_pool.keys() {
             // Check if all search tokens are present in the key
             if search_tokens.iter().all(|token| key.contains(token)) {
                 matching_keys.push(key.clone());
             }
         }
-        
+
         if !matching_keys.is_empty() {
             Ok(matching_keys)
         } else {
@@ -362,7 +332,10 @@ fn search_swap_pool(params : SwapParams) -> Result<Vec<String>, String> {
 fn pre_compute_swap(params: SwapParams) -> (String, f64) {
     let required_pools = match search_swap_pool(params.clone()) {
         Ok(pools) => pools,
-        Err(_) => return ("No matching pools found.".to_string(), 0.0),
+        Err(_) => {
+            ic_cdk::println!("No matching pools found.");
+            return ("No matching pools found.".to_string(), 0.0);
+        }
     };
 
     let mut best_pool = None;
@@ -374,40 +347,55 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
         for pool_key in required_pools {
             let pool_entries = match pool_data.get(&pool_key) {
                 Some(entries) => entries,
-                None => continue,
+                None => {
+                    ic_cdk::println!("Pool key {} not found in POOL_DATA.", pool_key);
+                    continue;
+                }
             };
 
             for data in pool_entries {
-                if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
-                    continue;
-                }
+                // Find the tokenA (input) and tokenB (output) from the pool data
+                let tokenA_data = data
+                    .pool_data
+                    .iter()
+                    .find(|p| p.token_name == params.token1_name);
+                let tokenB_data = data 
+                    .pool_data
+                    .iter()
+                    .find(|p| p.token_name == params.token2_name);
 
-                // Find the tokenA and tokenB from the pool data
-                let tokenA_data = data.pool_data.iter().find(|p| p.token_name == params.token1_name);
-                let tokenB_data = data.pool_data.iter().find(|p| p.token_name == params.token2_name);
+                ic_cdk::println!(
+                    "Testing pool_key {} with tokenA_data: {:?}, tokenB_data: {:?}",
+                    pool_key,
+                    tokenA_data,
+                    tokenB_data
+                );
 
                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
-                    let b_i = tokenA.balance as f64; 
+                    let b_i = tokenA.balance as f64;
                     let w_i = tokenA.weight as f64;
-
-                    let b_o = tokenB.balance as f64; 
+                    let b_o = tokenB.balance as f64;
                     let w_o = tokenB.weight as f64;
 
-                    let amount_out = tokenB.balance as f64;
-                    let fee = data.swap_fee; 
+                    let amount_out = params.token_amount as f64;
+                    let fee = data.swap_fee;
 
-                    // Use the in_given_out function to calculate the input required for the desired output
+                    // Calculate the required input using the in_given_out formula
                     let required_input = in_given_out(b_i, w_i, b_o, w_o, amount_out, fee);
+                    // ic_cdk::println!("The required output is {:?}", required_input);
 
-                    // Check if the calculated required input is less than or equal to the available input
-                    if required_input <= params.token_amount as f64 {
-                        let output_amount = b_o - (b_o / (1.0 + ((required_input * (1.0 - fee)) / b_i)).powf(w_i / w_o));
-                        
-                        if output_amount > max_output_amount {
-                            max_output_amount = output_amount;
-                            best_pool = Some(pool_key.clone());
-                        }
+                    // Ensure the user has enough balance to provide the input
+                    if required_input >= max_output_amount {
+                        max_output_amount = f64::max(required_input, max_output_amount);
+
+                        best_pool = Some(pool_key.clone());
+                        // Check if the current pool gives a better output
+                        // if calculated_output > max_output_amount {
+                        //     max_output_amount = calculated_output;
+                        // }
                     }
+                } else {
+                    ic_cdk::println!("Either tokenA or tokenB was not found in pool.");
                 }
             }
         }
@@ -419,36 +407,67 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
     }
 }
 
-// #[update]
-// async fn compute_swap(params: SwapParams) -> Result<(), String> {
-//     let (pool, _) = pre_compute_swap(params.clone());
+// Adding liquidity to the specific pool
+#[update]
+async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<(), String> {
+    // Call the canister's add_liquidity function with the provided data
+    let result: Result<(), String> = call(
+        canister_id,
+        "add_liquidity_to_pool",
+        (api::caller(), params),
+    )
+    .await
+    .map_err(|e| format!("Failed to store token data: {:?}", e));
 
-//     if pool == "No suitable pool found.".to_string() || pool == "No matching pools found.".to_string() {
-//         return Err(pool); 
-//     }
+    if let Err(e) = result {
+        return Err(e);
+    }
 
-//     let canister_id = with_state(|pool| {
-//         let mut pool_borrowed = &mut pool.TOKEN_POOLS;
-//         if let Some(canister_id) = pool_borrowed.get(&pool) {
-//             return Some(canister_id);
-//         } else {
-//             None
-//         }
-//     });
+    Ok(())
+}
 
-//     let result: Result<(), String> = call(
-//         canister_id, 
-//         "execute_swap",
-//         (params),
-//     )
-//     .await
-//     .map_err(|e| format!("Failed to perform swap: {:?}", e));
+#[update]
+async fn compute_swap(params: SwapParams) -> Result<(), String> {
+    let (pool_name, _) = pre_compute_swap(params.clone());
+    let (_ , amount) = pre_compute_swap(params.clone());
 
-//     if let Err(e) = result {
-//         return Err(e);
-//     }
+    if pool_name == "No suitable pool found.".to_string()
+        || pool_name == "No matching pools found.".to_string()
+    {
+        return Err(pool_name);
+    }
 
-//     Ok(())
+    let canister_id = with_state(|pool| {
+        let mut pool_borrowed = &mut pool.TOKEN_POOLS;
+        // Extract the principal if available
+        pool_borrowed.get(&pool_name).map(|user_principal| user_principal.principal)
+    });
+
+    let canister_id = match canister_id {
+        Some(id) => id,
+        None => return Err("No canister ID found for the pool".to_string()),
+    };
+
+    // Proceed with the call using the extracted principal
+    let result: Result<(), String> = call(
+        canister_id,
+        "swap",
+        (api::caller(),params , amount),
+    )
+    .await
+    .map_err(|e| format!("Failed to perform swap: {:?}", e));
+
+    if let Err(e) = result {
+        return Err(e);
+    }
+
+    Ok(())
+}
+
+// if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
+//     continue;
 // }
 
-
+// if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
+//     continue;
+// }

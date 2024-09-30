@@ -49,7 +49,6 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
         const fetchMetadata = async () => {
             const fetchedMetadata = await Promise.all(
                 DummyDataTokens.Tokens.map(async (token) => {
-                    console.log("test case 1", token.CanisterId)
                     const ledgerActor = await createTokenActor(token?.CanisterId);
                     const result = await ledgerActor?.icrc1_metadata();
                     
@@ -116,16 +115,14 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
 
 
                             const tokenMetadata = metadata?.find(meta => meta?.Name === token?.name);
-                            console.log("test4 ", tokenMetadata)
                             // const TokenName = tokenMetadata?.metadata[1]?.[1]?.Text;
                             const TokenId = token.id;
                             const TokenName = token.name ? token.name : tokenMetadata?.metadata[1]?.[1]?.Text;
                             const CanisterId = tokenMetadata?.CanisterId;
-                            console.log("test3 ", CanisterId)
                             const ShortForm = tokenMetadata?.metadata[2]?.[1]?.Text;
                             const ImagePath = token.image;
                             const findAmount = Tokens?.find(tokens => tokens?.CanisterId === CanisterId);
-                            const TokenAmount =  findAmount?.Amount;
+                            const TokenAmount = findAmount? findAmount.Amount : 0;
                             const marketPrice = token.current_price;
                             // const 
 
@@ -152,6 +149,7 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
                                             CanisterId: CanisterId,
                                             marketPrice: marketPrice,
                                             currencyAmount: marketPrice * TokenAmount
+
                                         })
                                         if (id === 3) {
                                             setTokenData({
@@ -162,6 +160,7 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
                                                 CanisterId: CanisterId,
                                                 marketPrice: marketPrice,
                                                 currencyAmount: marketPrice * TokenAmount
+
                                             })
                                         }
                                         HandleClickToken(index);

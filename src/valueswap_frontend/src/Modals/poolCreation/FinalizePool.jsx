@@ -23,29 +23,67 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
 
     let RestTokens = Tokens.slice(1)
 
-    const { backendActor } = useAuth()
+    const { backendActor, isAuthenticated } = useAuth()
     // valueswap_backend.create_pools({
 
     // })\
+
     const createPoolHandler = async () => {
-        console.log("you click to create pool")
-        const pool_data = Tokens?.map((token) => ({
-            weight: token.weights,
-            balance: token.Amount,
-            value: token.currencyAmount,
-            token_name: token.Name
-        }))
-        setSelectedTokenDetails(pool_data)
-        const swap_fee = FeeShare
-        try {
-            console.log("actor created", backendActor)
-            console.log("pool_data", pool_data)
-            await backendActor.create_pools({pool_data}, swap_fee)
-            console.log("Pool creates successfully")
-        } catch (error) {
-            console.error("error while creating pool", error)
+        console.log("You clicked to create pool");
+    
+        // Check if Tokens array is valid
+        if (!Tokens || Tokens.length === 0) {
+            console.error("No tokens available to create a pool");
+            return;
         }
-    }
+    
+        // Map tokens data into the required format for pool_data
+        const pool_data = Tokens.map(token => ({
+            weight: parseFloat(token.weights / 100),  // Ensure weight is float64
+            balance: BigInt(token.Amount),  // nat64 requires BigInt in JavaScript
+            value: BigInt(Math.round(token.currencyAmount)),  // nat64 requires BigInt
+            image: token.ImagePath || "",  // Ensure image is a string
+            token_name: token.ShortForm || "Unnamed Token"  // Ensure token name is a string
+        }));
+    
+        // Ensure swap fee is valid and convert it
+        const swap_fee = parseFloat(FeeShare);
+        if (isNaN(swap_fee)) {
+            console.error("Invalid swap fee:", FeeShare);
+            return;
+        }
+    
+        // Combine pool_data and swap_fee into the expected structure
+        const poolDetails = { pool_data, swap_fee };
+        setSelectedTokenDetails(pool_data); // Update state with the pool data
+        console.log("poolDetails:", poolDetails);
+    
+        try {
+            if (!backendActor || !backendActor.create_pools) {
+                console.error("Backend actor is not available or create_pools method is missing");
+                return;
+            }
+    
+            // Call the backend to create the pool
+            const result = await backendActor.create_pools(poolDetails);
+            
+            if (result && result.Ok) {
+                console.log("Pool created successfully");
+                setPoolCreated(true); // Update state on success
+            } else if (result && result.Err) {
+                console.error("Error creating pool:", result.Err); // Log the error message from the backend
+            } else {
+                console.error("Unexpected response from backend:", result); // Log any unexpected response
+            }
+    
+        } catch (error) {
+            console.error("Error while creating pool", error);
+        }
+    };
+    
+
+
+    console.log("isAuthenticated", isAuthenticated)
 
 
     return (
