@@ -50,7 +50,7 @@ pub struct CreatePoolParams{
     pub balance : u64,
     pub weight : f64,
     pub value : u64,
-    pub ledger_canister_id: Principal, // Ledger canister ID for the token (e.g., ckBTC, ckETH)
+    pub ledger_canister_id: String, // Ledger canister ID for the token (e.g., ckBTC, ckETH)
     pub image : String
 }
 
