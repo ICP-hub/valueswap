@@ -332,7 +332,7 @@ export const useAuthClient = () => {
         const backendActor = await window.ic.infinityWallet.createActor({
           canisterId: process.env.CANISTER_ID_VALUESWAP_BACKEND,
           interfaceFactory: idlFactory,
-          host: process.env.DFX_NETWORK === "local" ? 'http://localhost:3000' : 'https://mainnet.dfinity.network', // Ensure idlFactory is imported correctly
+          host: process.env.DFX_NETWORK === 'local' ? 'http://localhost:3000' : 'https://mainnet.dfinity.network', // Ensure idlFactory is imported correctly
         });
         setBackendActor(backendActor);
   

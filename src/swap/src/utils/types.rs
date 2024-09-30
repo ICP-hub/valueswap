@@ -1,6 +1,7 @@
 use candid::{CandidType, Deserialize};
 use serde::{Deserialize as SerdeDeserialize, Serialize};
 use std::fmt;
+use candid::{Nat, Principal};
 
 #[derive(CandidType, SerdeDeserialize, Serialize, Clone, Debug)]
 pub enum SwapError {

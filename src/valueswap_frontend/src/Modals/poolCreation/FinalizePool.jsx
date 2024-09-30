@@ -5,6 +5,7 @@ import BlueGradientButton from '../../buttons/BlueGradientButton';
 import { toggleConfirm } from '../../reducer/PoolCreation';
 import GradientButton from '../../buttons/GradientButton';
 import { useAuth } from '../../components/utils/useAuthClient';
+import { Principal } from '@dfinity/principal';
 
 const FinalizePool = ({ handleCreatePoolClick }) => {
   const { Tokens, Confirmation, TotalAmount, FeeShare } = useSelector((state) => state.pool);
@@ -35,30 +36,68 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
     }
 
     // Map tokens data into the required format for pool_data
-    const pool_data = Tokens.map((token) => {
+    const pool_data = Tokens.map((token, index) => {
+      console.log(`Processing token at index ${index}:`, token);
+
+      // Check if token properties exist
+      if (
+        token.weights === undefined ||
+        token.Amount === undefined ||
+        token.currencyAmount === undefined ||
+        token.CanisterId === undefined
+      ) {
+        console.error(`Missing data for token ${token.ShortForm}`);
+        return null;
+      }
+
       // Validate and parse weight
-      const weight = parseFloat(token.weights);
-      if (isNaN(weight)) {
+      const weightStr = token.weights.toString().replace(/[^0-9.-]+/g, "");
+      const weight = parseFloat(weightStr);
+      console.log(`Token ${token.ShortForm} weightStr:`, weightStr);
+      console.log(`Token ${token.ShortForm} parsed weight:`, weight);
+
+      if (!Number.isFinite(weight)) {
         console.error(`Invalid weight value for token ${token.ShortForm}: ${token.weights}`);
         return null;
       }
       const normalizedWeight = weight / 100;
+      console.log(`Token ${token.ShortForm} normalized weight:`, normalizedWeight);
 
       // Validate and parse amount
-      const amount = parseFloat(token.Amount);
-      if (isNaN(amount)) {
+      const amountStr = token.Amount.toString().replace(/[^0-9.-]+/g, "");
+      const amount = parseFloat(amountStr);
+      console.log(`Token ${token.ShortForm} amountStr:`, amountStr);
+      console.log(`Token ${token.ShortForm} parsed amount:`, amount);
+
+      if (!Number.isFinite(amount)) {
         console.error(`Invalid amount value for token ${token.ShortForm}: ${token.Amount}`);
         return null;
       }
       const balance = BigInt(Math.round(amount));
+      console.log(`Token ${token.ShortForm} balance (BigInt):`, balance);
 
       // Validate and parse currency amount
-      const currencyAmount = parseFloat(token.currencyAmount);
-      if (isNaN(currencyAmount)) {
+      const currencyAmountStr = token.currencyAmount.toString().replace(/[^0-9.-]+/g, "");
+      const currencyAmount = parseFloat(currencyAmountStr);
+      console.log(`Token ${token.ShortForm} currencyAmountStr:`, currencyAmountStr);
+      console.log(`Token ${token.ShortForm} parsed currencyAmount:`, currencyAmount);
+
+      if (!Number.isFinite(currencyAmount)) {
         console.error(`Invalid currency amount for token ${token.ShortForm}: ${token.currencyAmount}`);
         return null;
       }
       const value = BigInt(Math.round(currencyAmount));
+      console.log(`Token ${token.ShortForm} value (BigInt):`, value);
+
+      // Convert CanisterId to Principal
+      let CanisterId;
+      try {
+        CanisterId = Principal.fromText(token.CanisterId);
+        console.log(`Token ${token.ShortForm} CanisterId (Principal):`, CanisterId.toText());
+      } catch (error) {
+        console.error(`Invalid Canister ID for token ${token.ShortForm}: ${token.CanisterId}`);
+        return null;
+      }
 
       return {
         weight: normalizedWeight,
@@ -66,11 +105,15 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
         value: value,
         image: token.ImagePath || "",
         token_name: token.ShortForm || "Unnamed Token",
+        ledger_canister_id: CanisterId,
       };
     });
 
+    console.log("Pool data after processing tokens:", pool_data);
+
     // Filter out any null entries due to errors
     const validPoolData = pool_data.filter((data) => data !== null);
+    console.log("Valid pool data:", validPoolData);
 
     if (validPoolData.length !== Tokens.length) {
       console.error("Error processing tokens. Aborting pool creation.");
@@ -78,8 +121,16 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
     }
 
     // Ensure swap fee is valid and convert it
-    const swap_fee = parseFloat(FeeShare);
-    if (isNaN(swap_fee)) {
+    if (FeeShare === undefined || FeeShare === null) {
+      console.error("FeeShare is undefined or null");
+      return;
+    }
+    const feeShareStr = FeeShare.toString().replace(/[^0-9.-]+/g, "");
+    const swap_fee = parseFloat(feeShareStr);
+    console.log("FeeShare string:", feeShareStr);
+    console.log("Parsed swap_fee:", swap_fee);
+
+    if (!Number.isFinite(swap_fee)) {
       console.error("Invalid swap fee:", FeeShare);
       return;
     }
@@ -87,7 +138,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
     // Combine pool_data and swap_fee into the expected structure
     const poolDetails = { pool_data: validPoolData, swap_fee };
     setSelectedTokenDetails(validPoolData); // Update state with the pool data
-    console.log("poolDetails:", poolDetails);
+    console.log("Final poolDetails to be sent to backend:", poolDetails);
 
     try {
       if (!backendActor || !backendActor.create_pools) {
@@ -97,6 +148,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
 
       // Call the backend to create the pool
       const result = await backendActor.create_pools(poolDetails);
+      console.log("Backend response:", result);
 
       if (result && result.Ok) {
         console.log("Pool created successfully");
@@ -152,10 +204,12 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
               <div className="flex flex-col justify-center items-center">
                 <div className="text-center">
                   <span className="font-normal leading-5 text-xl sm:text-3xl px-2 py-1 inline-block">
-                    {token.Amount}
+                    {Number.isFinite(parseFloat(token.Amount)) ? token.Amount : 'N/A'}
                   </span>
                 </div>
-                <span className="text-sm sm:text-base font-normal ">${token.currencyAmount}</span>
+                <span className="text-sm sm:text-base font-normal ">
+                  ${Number.isFinite(parseFloat(token.currencyAmount)) ? token.currencyAmount : 'N/A'}
+                </span>
               </div>
             </div>
           </div>
@@ -220,7 +274,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
             onClick={async () => {
               setConfirmPool(true);
               handleCreatePoolClick("ctiya-peaaa-aaaaa-qaaja-cai");
-              createPoolHandler();
+              await createPoolHandler();
             }}
           >
             <GradientButton CustomCss={` w-full md:w-full`}>Confirm and Create Pool</GradientButton>

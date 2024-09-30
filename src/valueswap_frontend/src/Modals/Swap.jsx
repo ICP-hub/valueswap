@@ -86,9 +86,10 @@ const Swap = () => {
     };
 
     const swapHandler = () => {
-        console.log("click on swap", payCoinBalance, PayCoin, RecieveCoin)
+        console.log("click on swap", CoinAmount, PayCoin, RecieveCoin)
         try {
-            backendActor.pre_compute_swap({ token_amount: payCoinBalance, token2_name: PayCoin.ShortForm, token1_name: RecieveCoin.ShortForm }).then(res => console.log(res))
+            let amount = BigInt(CoinAmount);
+            backendActor.pre_compute_swap({ token_amount: amount, token2_name: PayCoin.ShortForm, token1_name: RecieveCoin.ShortForm }).then(res => console.log(res))
         } catch (error) {
             console.log("Error while calling swap function")
         }

@@ -1,5 +1,5 @@
 #!/bin/bash
-dfx deploy swap
+dfx deploy swap --network ic
 set -e
 
 # Create and use the DevJourney identity

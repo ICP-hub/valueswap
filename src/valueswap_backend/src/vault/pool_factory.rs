@@ -46,12 +46,6 @@ fn prevent_anonymous() -> Result<(), String> {
 #[update(guard = prevent_anonymous)]
 async fn create_pools(params: Pool_Data) -> Result<(), String> {
     let principal_id = api::caller();
-<<<<<<< HEAD
-    // if principal_id == Principal::anonymous() {
-    //     return Err("Anonymous principal not allowed to make calls".to_string());
-    // }
-=======
->>>>>>> 09c26c5aba98804f9eb1b6dcf3e8862417ede676
 
     let pool_name = params
         .pool_data
@@ -175,7 +169,7 @@ pub async fn create() -> Result<String, String> {
     let canister_id = canister_id_record.canister_id;
 
     let _add_cycles: Result<(), String> =
-        match deposit_cycles(canister_id_record, 100_000_000).await {
+        match deposit_cycles(canister_id_record, 200_000_000_000).await {
             Ok(_) => Ok(()),
             Err((_, err_string)) => {
                 ic_cdk::println!("Error in depositing cycles: {}", err_string);
