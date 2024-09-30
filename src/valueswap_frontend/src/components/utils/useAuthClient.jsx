@@ -446,7 +446,6 @@ export const useAuthClient = () => {
 
 
   const getBalance = useCallback(async (canisterId) => {
-    console.log("Provider:", canisterId);
   
     if (provider === "plug") {
         try { 
@@ -474,7 +473,8 @@ export const useAuthClient = () => {
         const actor = await createTokenActor(canisterId);
         console.log("actoir hai", actor)
         const ownerPrincipal = typeof principal === 'string' ? Principal.fromText(principal) : principal;
-        const balance = await actor.icrc1_balance_of({ owner: ownerPrincipal });
+        console.log("princes",  principal)
+        const balance = await actor?.icrc1_balance_of({ owner: ownerPrincipal,  subaccount: []});
         console.log("Balance:", balance.toString());
         return balance;
       } catch (error) {
