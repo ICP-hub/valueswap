@@ -24,6 +24,7 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
+
 dfx identity use Harshit
 export DEFAULT=$(dfx identity get-principal)
 
@@ -70,6 +71,7 @@ dfx deploy cketh_ledger --argument "$DEPLOY_ARGUMENTS" --network ic
 # Check the balance of the default identity
 # balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
 # echo "Balance of the DEFAULT account: $balance"
+
 
 balance=$(dfx canister call cketh_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
 echo "Balance of the DEFAULT account: $balance"

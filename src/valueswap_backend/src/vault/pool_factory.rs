@@ -135,7 +135,7 @@ async fn deposit_cycles(arg: CanisterIdRecord, cycles: u128) -> CallResult<()> {
 
 async fn install_code(arg: InstallCodeArgument) -> CallResult<()> {
     let wasm_module_sample: Vec<u8> =
-        include_bytes!("../../../../.dfx/local/canisters/swap/swap.wasm").to_vec();
+        include_bytes!("/home/nikhilrai/projects/valueswap/.dfx/local/canisters/swap/swap.wasm").to_vec();
 
     let extended_arg = InstallCodeArgumentExtended {
         mode: arg.mode,
@@ -219,6 +219,7 @@ async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), 
     }
     Ok(())
 }
+
 
 #[update]
 fn store_pool_data_curr(params: Pool_Data) -> Result<(), String> {
@@ -363,13 +364,6 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                     .find(|p| p.token_name == params.token2_name);
 
 
-                ic_cdk::println!(
-                    "Testing pool_key {} with tokenA_data: {:?}, tokenB_data: {:?}",
-                    pool_key,
-                    tokenA_data,
-                    tokenB_data
-                );
-
 
                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
                     let b_i = tokenA.balance as f64;
@@ -379,6 +373,7 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
 
                     let amount_out = params.token_amount as f64;
                     let fee = data.swap_fee;
+<
 
                     // Calculate the required input using the in_given_out formula
                     let required_input = in_given_out(b_i, w_i, b_o, w_o, amount_out, fee);
@@ -431,43 +426,8 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<()
 async fn compute_swap(params: SwapParams) -> Result<(), String> {
     let (pool_name, _) = pre_compute_swap(params.clone());
 
-    if pool_name == "No suitable pool found.".to_string()
-        || pool_name == "No matching pools found.".to_string()
-    {
-        return Err(pool_name);
-    }
+    let (_ , amount) = pre_compute_swap(params.clone());
 
-    let canister_id = with_state(|pool| {
-        let mut pool_borrowed = &mut pool.TOKEN_POOLS;
-        // Extract the principal if available
-        pool_borrowed.get(&pool_name).map(|user_principal| user_principal.principal)
-    });
-
-    let canister_id = match canister_id {
-        Some(id) => id,
-        None => return Err("No canister ID found for the pool".to_string()),
-    };
-
-    // Proceed with the call using the extracted principal
-    let result: Result<(), String> = call(
-        canister_id,
-        "add_liquidity_to_pool",
-        (api::caller(),params),
-    )
-    .await
-    .map_err(|e| format!("Failed to perform swap: {:?}", e));
-
-    if let Err(e) = result {
-        return Err(e);
-    }
-
-    Ok(())
-}
-
-
-#[update]
-async fn compute_swap(params: SwapParams) -> Result<(), String> {
-    let (pool_name, _) = pre_compute_swap(params.clone());
 
     if pool_name == "No suitable pool found.".to_string()
         || pool_name == "No matching pools found.".to_string()
@@ -490,7 +450,8 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
     let result: Result<(), String> = call(
         canister_id,
         "add_liquidity_to_pool",
-        (api::caller(),params),
+
+        (api::caller(),params , amount),
     )
     .await
     .map_err(|e| format!("Failed to perform swap: {:?}", e));
@@ -501,6 +462,42 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
 
     Ok(())
 }
+
+
+
+// #[update]
+// async fn compute_swap(params: SwapParams) -> Result<(), String> {
+//     let (pool, _) = pre_compute_swap(params.clone());
+
+//     if pool == "No suitable pool found.".to_string() || pool == "No matching pools found.".to_string() {
+//         return Err(pool);
+//     }
+
+//     let canister_id = with_state(|pool| {
+//         let mut pool_borrowed = &mut pool.TOKEN_POOLS;
+//         if let Some(canister_id) = pool_borrowed.get(pool) {
+//             return Some(canister_id);
+//         } else {
+//             None
+//         }
+//     });
+
+//     let result: Result<(), String> = call(
+//         canister_id,
+//         "execute_swap",
+//         (params),
+//     )
+//     .await
+//     .map_err(|e| format!("Failed to perform swap: {:?}", e));
+
+//     if let Err(e) = result {
+//         return Err(e);
+//     }
+
+//     Ok(())
+// }
+
+
 
 
 // if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
