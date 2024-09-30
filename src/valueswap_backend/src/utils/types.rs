@@ -233,7 +233,6 @@ pub(crate) struct CreateCanisterArgumentExtended {
 //     pub pool_key: String,
 //     pub user_id : Principal,
 //     pub amount : BTreeMap<String , u64>
-     
 // }
 
 

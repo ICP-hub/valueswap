@@ -9,17 +9,12 @@ use ic_xrc_types::{Asset, AssetClass, GetExchangeRateRequest, GetExchangeRateRes
 // Function to handle deposits to dynamically created canisters
 #[ic_cdk_macros::update]
 pub async fn deposit_tokens(amount: u64, ledger_canister_id: Principal , target_canister_id: Principal) -> Result<Nat, String> {
-    // let ledger_canister_id =
-        // Principal::from_text(CKBTC_LEDGER_ADDRESS).map_err(|e| e.to_string())?;
 
-    // ic_cdk::println!("ckbtc canister principal {}", ledger_canister_id);
     let user_principal = ic_cdk::api::caller();
 
     // Use the dynamically passed target canister principal
-
     let target_canister = target_canister_id;
     ic_cdk::println!("Target canister principal for deposit {}", target_canister);
-
 
     let amount_nat = Nat::from(amount);
     transfer_from(

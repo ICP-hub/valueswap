@@ -23,6 +23,7 @@ use crate::api::deposit::deposit_tokens;
 use crate::types::state_handlers;
 use crate::utils::maths::*;
 use crate::utils::types::*;
+use crate::vault::lp_tokens::*;
 
 use ic_stable_structures::{writer::Writer, Memory as _, StableBTreeMap};
 
@@ -45,9 +46,12 @@ fn prevent_anonymous() -> Result<(), String> {
 #[update(guard = prevent_anonymous)]
 async fn create_pools(params: Pool_Data) -> Result<(), String> {
     let principal_id = api::caller();
+<<<<<<< HEAD
     // if principal_id == Principal::anonymous() {
     //     return Err("Anonymous principal not allowed to make calls".to_string());
     // }
+=======
+>>>>>>> 09c26c5aba98804f9eb1b6dcf3e8862417ede676
 
     let pool_name = params
         .pool_data
@@ -68,6 +72,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
     if let Some(canister_id) = pool_canister_id {
         add_liquidity_curr(params.clone());
         add_liquidity(params.clone(), canister_id.principal);
+        increase_lp_tokens(params.clone());
         for amount in params.pool_data.iter() {
             // Deposit tokens to the newly created canister
             deposit_tokens(amount.balance.clone(), canister_id.principal , amount.ledger_canister_id.clone()).await?;
@@ -90,6 +95,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
 
                 store_pool_data_curr(params.clone());
                 store_pool_data(params.clone(), canister_id_record.canister_id).await?;
+                increase_lp_tokens(params.clone());
 
                 for amount in params.pool_data.iter() {
                     // Deposit tokens to the newly created canister
@@ -135,7 +141,7 @@ async fn deposit_cycles(arg: CanisterIdRecord, cycles: u128) -> CallResult<()> {
 
 async fn install_code(arg: InstallCodeArgument) -> CallResult<()> {
     let wasm_module_sample: Vec<u8> =
-        include_bytes!("/home/nikhilrai/projects/valueswap/.dfx/local/canisters/swap/swap.wasm").to_vec();
+        include_bytes!("../../../../.dfx/local/canisters/swap/swap.wasm").to_vec();
 
     let extended_arg = InstallCodeArgumentExtended {
         mode: arg.mode,
@@ -220,6 +226,8 @@ async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), 
     Ok(())
 }
 
+// Adding liquidity to the specific pool
+
 
 #[update]
 fn store_pool_data_curr(params: Pool_Data) -> Result<(), String> {
@@ -301,7 +309,6 @@ fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
 }
 
 // take swap elements in the vector
-
 #[update]
 fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
     let mut search_tokens = Vec::new();
@@ -358,12 +365,17 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                     .pool_data
                     .iter()
                     .find(|p| p.token_name == params.token1_name);
-                let tokenB_data = data
+                let tokenB_data = data 
                     .pool_data
                     .iter()
                     .find(|p| p.token_name == params.token2_name);
 
-
+                ic_cdk::println!(
+                    "Testing pool_key {} with tokenA_data: {:?}, tokenB_data: {:?}",
+                    pool_key,
+                    tokenA_data,
+                    tokenB_data
+                );
 
                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
                     let b_i = tokenA.balance as f64;
@@ -373,7 +385,6 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
 
                     let amount_out = params.token_amount as f64;
                     let fee = data.swap_fee;
-<
 
                     // Calculate the required input using the in_given_out formula
                     let required_input = in_given_out(b_i, w_i, b_o, w_o, amount_out, fee);
@@ -402,7 +413,6 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
     }
 }
 
-
 // Adding liquidity to the specific pool
 #[update]
 async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<(), String> {
@@ -425,9 +435,7 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<()
 #[update]
 async fn compute_swap(params: SwapParams) -> Result<(), String> {
     let (pool_name, _) = pre_compute_swap(params.clone());
-
     let (_ , amount) = pre_compute_swap(params.clone());
-
 
     if pool_name == "No suitable pool found.".to_string()
         || pool_name == "No matching pools found.".to_string()
@@ -449,8 +457,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
     // Proceed with the call using the extracted principal
     let result: Result<(), String> = call(
         canister_id,
-        "add_liquidity_to_pool",
-
+        "swap",
         (api::caller(),params , amount),
     )
     .await
@@ -463,42 +470,9 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
     Ok(())
 }
 
-
-
-// #[update]
-// async fn compute_swap(params: SwapParams) -> Result<(), String> {
-//     let (pool, _) = pre_compute_swap(params.clone());
-
-//     if pool == "No suitable pool found.".to_string() || pool == "No matching pools found.".to_string() {
-//         return Err(pool);
-//     }
-
-//     let canister_id = with_state(|pool| {
-//         let mut pool_borrowed = &mut pool.TOKEN_POOLS;
-//         if let Some(canister_id) = pool_borrowed.get(pool) {
-//             return Some(canister_id);
-//         } else {
-//             None
-//         }
-//     });
-
-//     let result: Result<(), String> = call(
-//         canister_id,
-//         "execute_swap",
-//         (params),
-//     )
-//     .await
-//     .map_err(|e| format!("Failed to perform swap: {:?}", e));
-
-//     if let Err(e) = result {
-//         return Err(e);
-//     }
-
-//     Ok(())
+// if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
+//     continue;
 // }
-
-
-
 
 // if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
 //     continue;

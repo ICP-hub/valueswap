@@ -3,8 +3,8 @@ dfx deploy swap
 set -e
 
 # Create and use the DevJourney identity
-# dfx identity new Nikhilrai || true
-dfx identity use Nikhilrai --network ic
+# dfx identity new DevJourney || true
+dfx identity use DevJourney --network ic
 
 # dfx canister create swap
 # dfx  build --all

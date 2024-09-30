@@ -17,9 +17,7 @@ create_pools() {
     balance1=100000000    # nat64 (no decimal)
     value1=48000000000000     # nat64 (no decimal)
     image1="https://coin-images.coingecko.com/coins/images/14495/large/Internet_Computer_logo.png?1696514180"
-
     token_name1="dai"
-
 
     # Token 2 details
     weight2=0.20

@@ -12,6 +12,7 @@ type CreatePoolParams = record {
   balance : nat64;
   value : nat64;
   image : text;
+  ledger_canister_id : principal;
   token_name : text;
 };
 type PoolShare = record {
@@ -51,10 +52,11 @@ type SwapParams = record {
 service : () -> {
   add_liquidity : (Pool_Data, principal) -> (Result);
   add_liquidity_curr : (Pool_Data) -> (Result);
+  compute_swap : (SwapParams) -> (Result);
   create : () -> (Result_1);
   create_canister : (CreateCanisterArgument) -> (Result_2);
   create_pools : (Pool_Data) -> (Result);
-  deposit_tokens : (nat64, principal) -> (Result_3);
+  deposit_tokens : (nat64, principal, principal) -> (Result_3);
   get_constant_product_value : () -> (float64) query;
   get_exchange_rates : () -> (Result_4);
   get_lp_tokens : (text) -> (opt nat64) query;
