@@ -4,9 +4,11 @@ use std::cell::RefCell;
 use std::collections::BTreeMap;
 
 mod utils;
+mod api;
 
 pub use utils::maths::*;
 pub use utils::types::*;
+pub use api::transfer::*;
 
 thread_local! {
     pub static POOL_DATA: RefCell<BTreeMap<Principal, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
@@ -69,6 +71,11 @@ fn pre_swap(params: SwapParams) -> Result<(), SwapError> {
         return Err(SwapError::InvalidAmount);
     }
     Ok(())
+}
+
+#[update]
+fn swap(){
+
 }
 
 // fn compute_swap(params: SwapParams , ) -> Result<() , SwapError> {
