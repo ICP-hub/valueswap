@@ -169,7 +169,7 @@ pub async fn create() -> Result<String, String> {
     let canister_id = canister_id_record.canister_id;
 
     let _add_cycles: Result<(), String> =
-        match deposit_cycles(canister_id_record, 100_000_000).await {
+        match deposit_cycles(canister_id_record, 200_000_000_000).await {
             Ok(_) => Ok(()),
             Err((_, err_string)) => {
                 ic_cdk::println!("Error in depositing cycles: {}", err_string);

@@ -26,6 +26,7 @@ pub async fn deposit_tokens(amount: u64, ledger_canister_id: Principal , target_
     .await
 }
 
+
 // to get exchange rates
 #[ic_cdk::update]
 pub async fn get_exchange_rates() -> Result<(f64, u64), String>  {
@@ -123,6 +124,7 @@ pub async fn get_exchange_rates() -> Result<(f64, u64), String>  {
 //     )
 //     .await
 // }
+
 
 // the function above is just an sample function, deposit function will use validation logic, reserve logic and other checks according to aave
 pub async fn transfer_from(

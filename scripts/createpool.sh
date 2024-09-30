@@ -24,7 +24,7 @@ create_pools() {
     balance2=20000000    # nat64 (no decimal)
     value2=1340000000000     # nat64 (no decimal)
     image2="https://coin-images.coingecko.com/coins/images/25788/large/Asset_19.png?1703173153"
-    token_name2="btc"
+    token_name2="ffs"
 
     # Swap fee (float64)
     swap_fee=0.002

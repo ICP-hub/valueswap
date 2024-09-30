@@ -137,11 +137,16 @@ console.log("tokenApiDetails", tokenApiDetails)
 const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
   try {
     const metaData = await tokenActor.icrc1_metadata();
-    const decimals = Number(metaData[0]?.[1].Nat);
-    const fee = Number(metaData[3]?.[1].Nat);
+    const decimals = Number(metaData[1]?.[1].Nat);
+    const fee = Number(metaData[4]?.[1].Nat);
     const amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
     const balance = await getBalance(canisterId);
-
+    console.log("init metaData", metaData)
+    console.log("init decimals", decimals)
+    console.log("init fee", fee)
+    console.log("init amount", amount)
+    console.log("init balance", balance)
+  
     if (balance >= amount + fee) {
       const transaction = {
         amount: amount,  // Amount to approve (not including fee)
@@ -156,6 +161,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
         expected_allowance: [],  // Optional expected allowance
         expires_at: [],  // Optional expiration time for the approval
       };
+      console.log("transaction", transaction)
 
       const response = await tokenActor.icrc2_approve(transaction);
 
@@ -238,7 +244,7 @@ console.log("NAN", InitialToken.currencyAmount)
               </span>
             </div>
             <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-             $ {InitialToken.currencyAmount}
+             $ {InitialToken.currencyAmount || 0}
             </span>
           </div>
         </div>
@@ -278,7 +284,7 @@ console.log("NAN", InitialToken.currencyAmount)
                       </span>
                     </div>
                     <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-                    $ {token.currencyAmount}
+                    $ {token.currencyAmount || 0}
                     
                     </span>
                   </div>
@@ -328,3 +334,4 @@ console.log("NAN", InitialToken.currencyAmount)
 };
 
 export default InitialLiquidity;
+
