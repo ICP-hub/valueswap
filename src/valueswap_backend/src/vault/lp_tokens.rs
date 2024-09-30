@@ -95,7 +95,7 @@ fn get_users_lp(user_id: Principal) -> Option<f64> {
     })
 }
 
-#[update]
-fn burn_lp_tokens(){
+// #[update]
+// fn burn_lp_tokens(){
 
-}
+// }
