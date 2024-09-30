@@ -1,4 +1,4 @@
-use candid::{CandidType, Deserialize, Nat, Principal};
+use candid::{CandidType, Deserialize};
 use serde::{Deserialize as SerdeDeserialize, Serialize};
 use std::fmt;
 

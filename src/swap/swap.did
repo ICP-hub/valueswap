@@ -1,0 +1,15 @@
+type CreatePoolParams = record {
+  weight : float64;
+  balance : nat64;
+  value : nat64;
+  token_name : text;
+};
+type Pool_Data = record {
+  pool_data : vec CreatePoolParams;
+  swap_fee : float64;
+};
+type Result = variant { Ok; Err : text };
+service : {
+  add_liquidity_to_pool : (principal, Pool_Data) -> (Result);
+  store_pool_data : (principal, Pool_Data) -> (Result);
+}

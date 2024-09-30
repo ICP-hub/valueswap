@@ -143,8 +143,10 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
               const ImagePath = token.image?.large || token.image || token.thumb || token.large || '';
               const marketPrice = token.current_price || token.market_data?.current_price?.usd || '-';
 
-              // Find corresponding metadata if available
-              const CanisterId = canisterIdToken? token.contract_address : null;
+              // Find corresponding metadata if available(mainnet)
+              // const CanisterId = canisterIdToken? token.contract_address : null;
+              const CanisterId = ShortForm == "cketh" ? "a4tbr-q4aaa-aaaaa-qaafq-cai": "a3shf-5eaaa-aaaaa-qaafa-cai";
+
 
               // Find the amount based on CanisterId
               const findAmount = Tokens?.find((t) => t?.CanisterId === CanisterId);
@@ -167,7 +169,8 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
                         Name: TokenName,
                         ImagePath: ImagePath,
                         ShortForm: ShortForm,
-                        CanisterId: CanisterId,
+                        // CanisterId: CanisterId,
+                        CanisterId: ShortForm == "cketh" ? "a4tbr-q4aaa-aaaaa-qaafq-cai": "a3shf-5eaaa-aaaaa-qaafa-cai",
                         marketPrice: marketPrice,
                         currencyAmount: marketPrice * TokenAmount,
                       };
