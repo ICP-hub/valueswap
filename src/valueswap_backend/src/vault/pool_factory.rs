@@ -46,7 +46,8 @@ fn prevent_anonymous() -> Result<(), String> {
 #[update(guard = prevent_anonymous)]
 async fn create_pools(params: Pool_Data) -> Result<(), String> {
     let principal_id = api::caller();
-
+    ic_cdk::println!("params hai{:}", params.clone());
+    // ic_cdk::println!("params hai 2{:}", Pool_Data.clone());
     let pool_name = params
         .pool_data
         .iter() 
@@ -69,7 +70,11 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
         increase_lp_tokens(params.clone());
         for amount in params.pool_data.iter() {
             // Deposit tokens to the newly created canister
-            ic_cdk::println!("canister_id.principal{:}",canister_id.principal);
+            // ic_cdk::println!("canister_id.principal{:}",canister_id.principal);
+            ic_cdk::println!("amount {:}", amount.token_name.clone());
+            ic_cdk::println!("amount {:}", amount.token_name.clone());
+            ic_cdk::println!("amount {:}", amount.token_name.clone());
+            ic_cdk::println!("amount {:}", amount.token_name.clone());
             deposit_tokens(amount.balance.clone(), amount.ledger_canister_id.clone(), canister_id.principal).await?;
             // Deposit tokens when testing with static canister id
             // deposit_tokens(amount.balance.clone(), canister_id).await?;

@@ -122,22 +122,24 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
     });
 
     // Wait for all token processing to complete
-    let validPoolData = [];
+  
     return Promise.allSettled(pool_data)
-      .then((results) => {
-        results.map((data, i) => setPoolData((prevPoolData) => [
+      .then(async(results) => {
+        let validPoolData = [];
+        results.map((data, i) => 
           validPoolData.push({ weight: data.value.weight, balance: data.value.balance, value: data.value.value, image: data.value.image, token_name: data.value.token_name, ledger_canister_id: data.value.ledger_canister_id})
-        ]))
-        console.log("Pool data after processing tokens:", results);
+        )
+        console.log("Pool data after processing tokens:", results.length);
 
 
         console.log("Valid pool data:", validPoolData);
 
-        // if (validPoolData?.length !== Tokens?.length) {
-        //   const errorMsg = "Error processing tokens. Aborting pool creation.";
-        //   console.error(errorMsg);
-        //   return Promise.reject(new Error(errorMsg));
-        // }
+        if (validPoolData?.length !==  results.length) {
+          const errorMsg = "Error processing tokens. Aborting pool creation.";
+          console.log(validPoolData?.length, results.length)
+          console.error(errorMsg);
+          return Promise.reject(new Error(errorMsg));
+        }
 
         if (FeeShare === undefined || FeeShare === null) {
           const errorMsg = "FeeShare is undefined or null";
@@ -168,7 +170,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
         }
 
         // Call the backend to create the pool
-        return backendActor.create_pools(poolDetails)
+         return backendActor.create_pools(poolDetails)
           .then((result) => {
             console.log("Backend response:", result);
 
