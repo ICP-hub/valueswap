@@ -14,7 +14,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
   const [poolCreated, setPoolCreated] = useState(false);
   const [final, setFinal] = useState(false);
   const [selectedTokenDetails, setSelectedTokenDetails] = useState();
-
+  const [poolData, setPoolData] = useState(null)
   useEffect(() => {
     if (confirmPool && poolCreated) {
       setFinal(true);
@@ -26,144 +26,221 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
 
   const { backendActor, isAuthenticated } = useAuth();
 
-  const createPoolHandler = async () => {
+
+  const createPoolHandler = () => {
     console.log("You clicked to create pool");
 
     // Check if Tokens array is valid
     if (!Tokens || Tokens.length === 0) {
-      console.error("No tokens available to create a pool");
-      return;
+      const errorMsg = "No tokens available to create a pool";
+      console.error(errorMsg);
+      return Promise.reject(new Error(errorMsg));
     }
 
-    // Map tokens data into the required format for pool_data
+    // Process each token and map to pool_data
     const pool_data = Tokens.map((token, index) => {
-      console.log(`Processing token at index ${index}:`, token);
+      return new Promise((resolve) => {
+        console.log(`Processing token at index ${index}:`, token);
 
-      // Check if token properties exist
-      if (
-        token.weights === undefined ||
-        token.Amount === undefined ||
-        token.currencyAmount === undefined ||
-        token.CanisterId === undefined
-      ) {
-        console.error(`Missing data for token ${token.ShortForm}`);
-        return null;
-      }
+        // Check if token properties exist
+        if (
+          token.weights === undefined ||
+          token.Amount === undefined ||
+          token.currencyAmount === undefined ||
+          token.CanisterId === undefined
+        ) {
+          const errorMsg = `Missing data for token ${token.ShortForm}`;
+          console.error(errorMsg);
+          return resolve(null); // Resolve with null to indicate invalid token
+        }
 
-      // Validate and parse weight
-      const weightStr = token.weights.toString().replace(/[^0-9.-]+/g, "");
-      const weight = parseFloat(weightStr);
-      console.log(`Token ${token.ShortForm} weightStr:`, weightStr);
-      console.log(`Token ${token.ShortForm} parsed weight:`, weight);
+        // Validate and parse weight
+        const weightStr = token.weights.toString().replace(/[^0-9.-]+/g, "");
+        const weight = parseFloat(weightStr);
+        console.log(`Token ${token.ShortForm} weightStr:`, weightStr);
+        console.log(`Token ${token.ShortForm} parsed weight:`, weight);
 
-      if (!Number.isFinite(weight)) {
-        console.error(`Invalid weight value for token ${token.ShortForm}: ${token.weights}`);
-        return null;
-      }
-      const normalizedWeight = weight / 100;
-      console.log(`Token ${token.ShortForm} normalized weight:`, normalizedWeight);
+        if (!Number.isFinite(weight)) {
+          const errorMsg = `Invalid weight value for token ${token.ShortForm}: ${token.weights}`;
+          console.error(errorMsg);
+          return resolve(null);
+        }
+        const normalizedWeight = weight / 100;
+        console.log(`Token ${token.ShortForm} normalized weight:`, normalizedWeight);
 
-      // Validate and parse amount
-      const amountStr = token.Amount.toString().replace(/[^0-9.-]+/g, "");
-      const amount = parseFloat(amountStr);
-      console.log(`Token ${token.ShortForm} amountStr:`, amountStr);
-      console.log(`Token ${token.ShortForm} parsed amount:`, amount);
+        // Validate and parse amount
+        const amountStr = token.Amount.toString().replace(/[^0-9.-]+/g, "");
+        const amount = parseFloat(amountStr);
+        console.log(`Token ${token.ShortForm} amountStr:`, amountStr);
+        console.log(`Token ${token.ShortForm} parsed amount:`, amount);
 
-      if (!Number.isFinite(amount)) {
-        console.error(`Invalid amount value for token ${token.ShortForm}: ${token.Amount}`);
-        return null;
-      }
-      const balance = BigInt(Math.round(amount));
-      console.log(`Token ${token.ShortForm} balance (BigInt):`, balance);
+        if (!Number.isFinite(amount)) {
+          const errorMsg = `Invalid amount value for token ${token.ShortForm}: ${token.Amount}`;
+          console.error(errorMsg);
+          return resolve(null);
+        }
+        const balance = BigInt(Math.round(amount));
+        console.log(`Token ${token.ShortForm} balance (BigInt):`, balance);
 
-      // Validate and parse currency amount
-      const currencyAmountStr = token.currencyAmount.toString().replace(/[^0-9.-]+/g, "");
-      const currencyAmount = parseFloat(currencyAmountStr);
-      console.log(`Token ${token.ShortForm} currencyAmountStr:`, currencyAmountStr);
-      console.log(`Token ${token.ShortForm} parsed currencyAmount:`, currencyAmount);
+        // Validate and parse currency amount
+        const currencyAmountStr = token.currencyAmount.toString().replace(/[^0-9.-]+/g, "");
+        const currencyAmount = parseFloat(currencyAmountStr);
+        console.log(`Token ${token.ShortForm} currencyAmountStr:`, currencyAmountStr);
+        console.log(`Token ${token.ShortForm} parsed currencyAmount:`, currencyAmount);
 
-      if (!Number.isFinite(currencyAmount)) {
-        console.error(`Invalid currency amount for token ${token.ShortForm}: ${token.currencyAmount}`);
-        return null;
-      }
-      const value = BigInt(Math.round(currencyAmount));
-      console.log(`Token ${token.ShortForm} value (BigInt):`, value);
+        if (!Number.isFinite(currencyAmount)) {
+          const errorMsg = `Invalid currency amount for token ${token.ShortForm}: ${token.currencyAmount}`;
+          console.error(errorMsg);
+          return resolve(null);
+        }
+        const value = BigInt(Math.round(currencyAmount));
+        console.log(`Token ${token.ShortForm} value (BigInt):`, value);
 
-      // Convert CanisterId to Principal
-      let CanisterId;
-      try {
-        CanisterId = Principal.fromText(token.CanisterId);
-        console.log(`Token ${token.ShortForm} CanisterId (Principal):`, CanisterId.toText());
-      } catch (error) {
-        console.error(`Invalid Canister ID for token ${token.ShortForm}: ${token.CanisterId}`);
-        return null;
-      }
+        // Convert CanisterId to Principal
+        let CanisterId;
+        try {
+          CanisterId = Principal.fromText(token.CanisterId);
+          console.log(`Token ${token.ShortForm} CanisterId (Principal):`, CanisterId.toText());
+        } catch (error) {
+          const errorMsg = `Invalid Canister ID for token ${token.ShortForm}: ${token.CanisterId}`;
+          console.error(errorMsg);
+          return resolve(null);
+        }
 
-      return {
-        weight: normalizedWeight,
-        balance: balance,
-        value: value,
-        image: token.ImagePath || "",
-        token_name: token.ShortForm || "Unnamed Token",
-        ledger_canister_id: CanisterId,
-      };
+        // Construct the pool data object
+        const poolData = {
+          weight: normalizedWeight,
+          balance: balance,
+          value: value,
+          image: token.ImagePath || "",
+          token_name: token.ShortForm || "Unnamed Token",
+          ledger_canister_id: CanisterId,
+        };
+
+        resolve(poolData);
+      });
     });
 
-    console.log("Pool data after processing tokens:", pool_data);
+    // Wait for all token processing to complete
+    let validPoolData = [];
+    return Promise.allSettled(pool_data)
+      .then((results) => {
+        results.map((data, i) => setPoolData((prevPoolData) => [
+          validPoolData.push({ weight: data.value.weight, balance: data.value.balance, value: data.value.value, image: data.value.image, token_name: data.value.token_name, ledger_canister_id: data.value.ledger_canister_id})
+        ]))
+        console.log("Pool data after processing tokens:", results);
 
-    // Filter out any null entries due to errors
-    const validPoolData = pool_data.filter((data) => data !== null);
-    console.log("Valid pool data:", validPoolData);
 
-    if (validPoolData.length !== Tokens.length) {
-      console.error("Error processing tokens. Aborting pool creation.");
-      return;
-    }
+        console.log("Valid pool data:", validPoolData);
 
-    // Ensure swap fee is valid and convert it
-    if (FeeShare === undefined || FeeShare === null) {
-      console.error("FeeShare is undefined or null");
-      return;
-    }
-    const feeShareStr = FeeShare.toString().replace(/[^0-9.-]+/g, "");
-    const swap_fee = parseFloat(feeShareStr);
-    console.log("FeeShare string:", feeShareStr);
-    console.log("Parsed swap_fee:", swap_fee);
+        // if (validPoolData?.length !== Tokens?.length) {
+        //   const errorMsg = "Error processing tokens. Aborting pool creation.";
+        //   console.error(errorMsg);
+        //   return Promise.reject(new Error(errorMsg));
+        // }
 
-    if (!Number.isFinite(swap_fee)) {
-      console.error("Invalid swap fee:", FeeShare);
-      return;
-    }
+        if (FeeShare === undefined || FeeShare === null) {
+          const errorMsg = "FeeShare is undefined or null";
+          console.error(errorMsg);
+          return Promise.reject(new Error(errorMsg));
+        }
+        const feeShareStr = FeeShare.toString().replace(/[^0-9.-]+/g, "");
+        const swap_fee = parseFloat(feeShareStr);
+        console.log("FeeShare string:", feeShareStr);
+        console.log("Parsed swap_fee:", swap_fee);
 
-    // Combine pool_data and swap_fee into the expected structure
-    const poolDetails = { pool_data: validPoolData, swap_fee };
-    setSelectedTokenDetails(validPoolData); // Update state with the pool data
-    console.log("Final poolDetails to be sent to backend:", poolDetails);
+        if (!Number.isFinite(swap_fee)) {
+          const errorMsg = `Invalid swap fee: ${FeeShare}`;
+          console.error(errorMsg);
+          return Promise.reject(new Error(errorMsg));
+        }
 
-    try {
-      if (!backendActor || !backendActor.create_pools) {
-        console.error("Backend actor is not available or create_pools method is missing");
-        return;
-      }
+        // Combine pool_data and swap_fee into the expected structure
+        const poolDetails = { pool_data: validPoolData, swap_fee };
+        setSelectedTokenDetails(validPoolData); // Update state with the pool data
+        console.log("Final poolDetails to be sent to backend:", poolDetails);
 
-      // Call the backend to create the pool
-      const result = await backendActor.create_pools(poolDetails);
-      console.log("Backend response:", result);
+        // Check backendActor and create_pools method
+        if (!backendActor || !backendActor.create_pools) {
+          const errorMsg = "Backend actor is not available or create_pools method is missing";
+          console.error(errorMsg);
+          return Promise.reject(new Error(errorMsg));
+        }
 
-      if (result && result.Ok) {
-        console.log("Pool created successfully");
-        setPoolCreated(true); // Update state on success
-      } else if (result && result.Err) {
-        console.error("Error creating pool:", result.Err); // Log the error message from the backend
-      } else {
-        console.error("Unexpected response from backend:", result); // Log any unexpected response
-      }
-    } catch (error) {
-      console.error("Error while creating pool", error);
-    }
+        // Call the backend to create the pool
+        return backendActor.create_pools(poolDetails)
+          .then((result) => {
+            console.log("Backend response:", result);
+
+            if (result && 'Ok' in result) {
+              // Treat any presence of "Ok" as success, even if it's null
+              console.log("Pool created successfully");
+              setPoolCreated(true); // Update state on success
+              return Promise.resolve(result);
+            } else if (result && result.Err) {
+              console.error("Error creating pool:", result.Err); // Log the error message from the backend
+              return Promise.reject(new Error(result.Err));
+            } else {
+              const errorMsg = `Unexpected response from backend: ${JSON.stringify(result)}`;
+              console.error(errorMsg); // Log any unexpected response
+              return Promise.reject(new Error(errorMsg));
+            }
+          });
+      })
+      .catch((error) => {
+        console.error("Error while creating pool:", error);
+        return Promise.reject(error);
+      });
   };
 
-  console.log("isAuthenticated", isAuthenticated);
+
+
+  const finalPoolCreationghanlder = () => {
+    const backendCanisterID = process.env.CANISTER_ID_VALUESWAP_BACKEND;
+    console.log("Backend Canister ID:", backendCanisterID);
+
+    console.log("Starting handleCreatePoolClick");
+
+    handleCreatePoolClick(backendCanisterID)
+      .then(poolClickResult => {
+        console.log("handleCreatePoolClick(approval) result:", poolClickResult);
+
+        if (poolClickResult.success) {
+          console.log("Starting createPoolHandler");
+
+          // Call createPoolHandler and chain the Promise
+          return createPoolHandler()
+            .then(createPoolResult => {
+              console.log("createPoolHandler result:", createPoolResult);
+
+              if (createPoolResult || createPoolResult.Ok) {
+                setConfirmPool(true);
+                console.log("Pool creation confirmed");
+              } else {
+                console.error("createPoolHandler failed:", createPoolResult.error);
+                // Optionally, you can reject the Promise to handle it in the catch block
+                return Promise.reject(new Error(createPoolResult.error));
+              }
+            });
+        } else {
+          console.error("handleCreatePoolClick indicated failure:", poolClickResult.error);
+          // Optionally, handle partial failures
+          if (poolClickResult.details) {
+            poolClickResult.details.forEach(detail => {
+              console.error(`Token ${detail.token.CanisterId} failed: ${detail.error}`);
+            });
+          }
+          // Reject the Promise to skip createPoolHandler
+          return Promise.reject(new Error(poolClickResult.error));
+        }
+      })
+      .catch(error => {
+        console.error("handleCreatePoolClick failed:", error);
+        // Optionally, you can handle the error here (e.g., show a notification to the user)
+        // Example using a toast notification:
+        // toast.error(`Pool creation failed: ${error.message}`);
+      });
+  }
 
   return (
     <div className="flex z-50 justify-center fixed inset-0 bg-opacity-50 backdrop-blur-sm py-10 overflow-y-scroll">
@@ -271,19 +348,16 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
         <div className={`mx-10 mb-4`}>
           <div
             className={`${confirmPool ? 'hidden' : 'block'}`}
-            onClick={async () => {
-              setConfirmPool(true);
-              handleCreatePoolClick("ctiya-peaaa-aaaaa-qaaja-cai");
-              await createPoolHandler();
-            }}
+            onClick={finalPoolCreationghanlder}
+
+
           >
             <GradientButton CustomCss={` w-full md:w-full`}>Confirm and Create Pool</GradientButton>
           </div>
 
           <div
-            className={`${confirmPool ? 'block enabled' : 'hidden disabled'} ${
-              poolCreated ? 'hidden disabled' : 'block '
-            }`}
+            className={`${confirmPool ? 'block enabled' : 'hidden disabled'} ${poolCreated ? 'hidden disabled' : 'block '
+              }`}
             onClick={() => {
               setPoolCreated(true);
               console.log("Tokens in the pool Data:->", Tokens);

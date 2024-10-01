@@ -69,7 +69,8 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
         increase_lp_tokens(params.clone());
         for amount in params.pool_data.iter() {
             // Deposit tokens to the newly created canister
-            deposit_tokens(amount.balance.clone(), canister_id.principal , amount.ledger_canister_id.clone()).await?;
+            ic_cdk::println!("canister_id.principal{:}",canister_id.principal);
+            deposit_tokens(amount.balance.clone(), amount.ledger_canister_id.clone(), canister_id.principal).await?;
             // Deposit tokens when testing with static canister id
             // deposit_tokens(amount.balance.clone(), canister_id).await?;
         }
@@ -93,7 +94,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
 
                 for amount in params.pool_data.iter() {
                     // Deposit tokens to the newly created canister
-                    deposit_tokens(amount.balance.clone(), canister_id , amount.ledger_canister_id.clone() ).await?;
+                    deposit_tokens(amount.balance.clone(), amount.ledger_canister_id.clone(), canister_id ).await?;
                     // Deposit tokens when testing with static canister id
                     // deposit_tokens(amount.balance.clone(), canister_id).await?;
                 }
