@@ -12,10 +12,7 @@ const SearchTokenShowData = ({ token, index, HandleSelectCheck }) => {
     const [searchToken, setSearchToken] = useState(false);
     const { CoinCount } = useSelector(state => state.pool);
 
-
-    useEffect(() => {                   
-        // console.log("index of the coin",index)
-    }, [])
+console.log("searchToken", searchToken)
 
     const HandleData = (index, TokenData) => {
         if (TokenData.Name) {
@@ -117,7 +114,7 @@ const SearchTokenShowData = ({ token, index, HandleSelectCheck }) => {
                                 )}
                             </div>
                             <div className=''>
-                                {searchToken && <SearchToken setSearchToken={setSearchToken} setTokenData={setTokenData} set id={3} />}
+                                {searchToken && <SearchToken setSearchToken={setSearchToken} searchToken={searchToken} setTokenData={setTokenData} set id={3} />}
                             </div>
                             <div className='hidden'>
                                 {HandleData(index, TokenData)}
@@ -126,16 +123,19 @@ const SearchTokenShowData = ({ token, index, HandleSelectCheck }) => {
                         </div>
                     </div>
                 ) : (
-                    <div onClick={() => {
-                        setSearchToken(!searchToken);
+                    <div>
+                        <div onClick={() => {
+                        setSearchToken(true);
                     }}>
-                        <BlueGradientButton customCss={'py-2 px-2 lg:px-4 lg:py-3 font-cabin font-light'} >
+
+                        <BlueGradientButton customCss={'py-2 px-2 lg:px-4 lg:py-3 font-cabin font-light'}  >
                             <div className='flex items-center gap-1 text-xs sm:text-sm'
                                 >
                                 Select a Token
                                 <span className='cursor-pointer' ><ChevronDown size={18} /></span>
                             </div>
                         </BlueGradientButton>
+                        </div>
                         {searchToken && <SearchToken setSearchToken={setSearchToken} setTokenData={setTokenData} set id={3} />}
                         {/* {console.log("index of the selected", index)} */}
                         {HandleData(index, TokenData)}

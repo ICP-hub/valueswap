@@ -7,7 +7,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import { fetchCoinGeckoData, searchCoinGeckoById } from '../components/utils/fetchCoinGeckoData';
 import Skeleton from 'react-loading-skeleton';
 
-const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenData }) => {
+const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id, setTokenData }) => {
   const { createTokenActor } = useAuth();
   const { Tokens } = useSelector((state) => state.pool);
 
@@ -144,8 +144,8 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
               const marketPrice = token.current_price || token.market_data?.current_price?.usd || '-';
 
               // Find corresponding metadata if available(mainnet)
-              // const CanisterId = canisterIdToken? token.contract_address : null;
-              const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER;
+              const CanisterId = canisterIdToken? token.contract_address : null;
+              // const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER;
 
 
               // Find the amount based on CanisterId
@@ -169,8 +169,8 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
                         Name: TokenName,
                         ImagePath: ImagePath,
                         ShortForm: ShortForm,
-                        // CanisterId: CanisterId,
-                        CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER,
+                        CanisterId: CanisterId,
+                        // CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER,
                         marketPrice: marketPrice,
                         currencyAmount: marketPrice * TokenAmount,
                       };

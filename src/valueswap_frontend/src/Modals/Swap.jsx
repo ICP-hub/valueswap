@@ -85,11 +85,15 @@ const Swap = () => {
         setSettings((prev) => !prev);
     };
 
-    const swapHandler = () => {
+    const swapHandler =  async() => {
         console.log("click on swap", CoinAmount, PayCoin, RecieveCoin)
         try {
             let amount = BigInt(CoinAmount);
-            backendActor.pre_compute_swap({ token_amount: amount, token2_name: PayCoin.ShortForm, token1_name: RecieveCoin.ShortForm }).then(res => console.log(res))
+            const res = await backendActor.compute_swap({ token_amount: amount, token2_name: PayCoin.ShortForm, token1_name: RecieveCoin.ShortForm })
+            console.log("res of swap", res)
+            if(res.Ok) {
+                navigate('/dex-swap/transaction-successfull');
+            }
         } catch (error) {
             console.log("Error while calling swap function")
         }
@@ -349,7 +353,7 @@ const Swap = () => {
                                         {ClickedSwap ? (
                                             <div onClick={() => {
                                                 swapHandler()
-                                                navigate('/dex-swap/transaction-successfull');
+                                              
                                             }}>
                                                 <GradientButton CustomCss={'w-full md:w-full font-extrabold text-3xl'} >
                                                     {SwapModalData.MainButtonsText.ConfirmSwapping}

@@ -135,8 +135,8 @@ const InitialLiquidity = () => {
   const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
     try {
       const metaData = await tokenActor.icrc1_metadata();
-      const decimals = Number(metaData[0]?.[1]?.Nat);
-      const fee = Number(metaData[3]?.[1]?.Nat);
+      const decimals = Number(metaData[1]?.[1]?.Nat);
+      const fee = Number(metaData[4]?.[1]?.Nat);
       const amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
       const balance = await getBalance(canisterId);
   
