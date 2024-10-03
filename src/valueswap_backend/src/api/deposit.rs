@@ -17,6 +17,7 @@ pub async fn deposit_tokens(amount: u64, ledger_canister_id: Principal , target_
     ic_cdk::println!("Target canister principal for deposit {}", target_canister);
 
     let amount_nat = Nat::from(amount);
+    ic_cdk::println!("The token amount is {:}", amount_nat.clone());
     transfer_from(
         ledger_canister_id,
         user_principal,
@@ -71,35 +72,7 @@ pub async fn get_exchange_rates() -> Result<(f64, u64), String>  {
             return Err(format!("Could not get USD/ICP Rate - {:?} - {}", error.0, error.1));
         },
     }
-    // let result = call_with_payment(
-    //     Principal::from_text(crate::constants::asset_address::CANISTER_ID_XRC).unwrap(),
-    //     "get_exchange_rate",
-    //     (payload,),
-    //     1000000000,
-    // )
-    // .await.unwrap().0;
 
-    // match result {
-    //     GetExchangeRateResult::Ok(exchange_rate) => {
-    //         Ok(exchange_rate.rate as f64 / 10u64.pow(exchange_rate.metadata.decimals as u32) as f64)
-    //     },
-    //     GetExchangeRateResult::Err(_) => {
-    //         Err("failed ".to_string())
-    //     }
-    // }
-// x
-
-    // Ok("()".to_string())
-
-//     let res_xrc =
-//     call(Principal::from_text(crate::constants::asset_address::CANISTER_ID_XRC).unwrap(), "get_exchange_rate", (payload,)).await;
-// ic_cdk::println!("{:?}", res_xrc);
-// match res_xrc {
-//     Ok((xr,)) => Ok(xr),
-//     Err((code, msg)) => Err(format!(
-//         "Error while calling XRC canister ({}): {:?}",
-//     )),
-// }
 }
 
 // Static caniste id for testing purpose only
