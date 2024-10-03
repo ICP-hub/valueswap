@@ -426,6 +426,17 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<()
     Ok(())
 }
 
+#[query]
+fn get_pool_canister_id(token1 : String , token2 : String) -> Option<Principal>{
+    let mut pool_name =format!("{}{}",token1,token2);
+    let canister_id = with_state(|pool| {
+        let mut pool_borrowed = &mut pool.TOKEN_POOLS;
+        // Extract the principal if available
+        pool_borrowed.get(&pool_name).map(|user_principal| user_principal.principal)
+    });
+    canister_id
+}
+
 #[update]
 async fn compute_swap(params: SwapParams) -> Result<(), String> {
     let (pool_name, _) = pre_compute_swap(params.clone());
@@ -447,7 +458,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
         Some(id) => id,
         None => return Err("No canister ID found for the pool".to_string()),
     };
-
+    ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
     // Proceed with the call using the extracted principal
     let result: Result<(), String> = call(
         canister_id,
