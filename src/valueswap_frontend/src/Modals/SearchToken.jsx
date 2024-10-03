@@ -7,7 +7,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import { fetchCoinGeckoData, searchCoinGeckoById } from '../components/utils/fetchCoinGeckoData';
 import Skeleton from 'react-loading-skeleton';
 
-const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenData }) => {
+const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id, setTokenData }) => {
   const { createTokenActor } = useAuth();
   const { Tokens } = useSelector((state) => state.pool);
 

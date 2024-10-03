@@ -15,8 +15,9 @@ pub async fn deposit_tokens(amount: u64, ledger_canister_id: Principal , target_
     // Use the dynamically passed target canister principal
     let target_canister = target_canister_id;
     ic_cdk::println!("Target canister principal for deposit {}", target_canister);
-
-    let amount_nat = Nat::from(amount);
+    ic_cdk::println!("amount{:}", amount.clone());
+    let amount_nat = Nat::from(amount * 100000000);
+    ic_cdk::println!("amount_nat{:}", amount_nat.clone());
     transfer_from(
         ledger_canister_id,
         user_principal,
