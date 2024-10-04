@@ -130,7 +130,14 @@ const InitialLiquidity = () => {
   const RestTokens = Tokens.slice(1);
 
 
-
+  function getValueByName(name) {
+    for (const item of metaData) {
+      if (item[0] === name) {
+        return item[1];
+      }
+    }
+    return null; // Return null if not found
+  }
   // token Approval function
   const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
     try {
@@ -139,17 +146,16 @@ const InitialLiquidity = () => {
       let amount = null;
       let balance = null;
       const metaData = await tokenActor.icrc1_metadata();
-      if(metaData.length == 6){
-         decimals = Number(metaData[1]?.[1]?.Nat);
-         fee = Number(metaData[4]?.[1]?.Nat);
-         amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
-         balance = await getBalance(canisterId);
-      }else{
-        decimals = Number(metaData[0]?.[1]?.Nat);
-        fee = Number(metaData[3]?.[1]?.Nat);
-        amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
-        balance = await getBalance(canisterId);
+      for (const item of metaData) {
+        if (item[0] === 'icrc1:decimals') {
+          decimals = Number(item[1].Nat); // Assuming decimals is stored as a Nat (BigInt)
+        } else if (item[0] === 'icrc1:fee') {
+          fee = Number(item[1].Nat); // Assuming fee is stored as a Nat (BigInt)
+        }
       }
+      amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
+      balance = await getBalance(canisterId);
+     
       
   
       console.log("init metaData", metaData);

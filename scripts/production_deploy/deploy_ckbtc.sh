@@ -61,10 +61,10 @@ echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
-# ./deploy_cketh.sh
-# dfx deploy --network ic
-dfx deploy valueswap_frontend --network ic
-dfx deploy valueswap_backend --network ic
+./deploy_cketh.sh
+dfx deploy --network ic
+# dfx deploy valueswap_frontend --network ic
+# dfx deploy valueswap_backend --network ic
 echo "ckBTC got deployed"
 
 # Check the balance of the default identity
