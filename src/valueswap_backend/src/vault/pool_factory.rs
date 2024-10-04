@@ -3,6 +3,7 @@ use candid::{CandidType, Nat, Principal};
 use ic_cdk::api::management_canister::bitcoin::BitcoinNetwork;
 use ic_cdk_macros::*;
 use serde::de::value;
+use core::panic;
 use std::cell::RefCell;
 use std::cmp;
 use std::collections::{BTreeMap, HashMap};
@@ -112,7 +113,7 @@ async fn create_canister(arg: CreateCanisterArgument) -> CallResult<(CanisterIdR
         settings: arg.settings,
         sender_canister_version: Some(canister_version()),
     };
-    let cycles: u128 = 100_000_000_000;
+    let cycles: u128 = 200_000_000_000;
 
     call_with_payment128(
         Principal::management_canister(),
@@ -180,15 +181,16 @@ pub async fn create() -> Result<String, String> {
     let arg1 = InstallCodeArgument {
         mode: CanisterInstallMode::Install,
         canister_id,
-        wasm_module: vec![], // Placeholder, should be the actual WASM module bytes if needed
+        wasm_module: vec![],
         arg: Vec::new(),
     };
 
     let _install_code: Result<(), String> = match install_code(arg1).await {
         Ok(_) => Ok(()),
         Err((_, err_string)) => {
-            ic_cdk::println!("Error in installing code: {}", err_string);
-            return Err(format!("Error: {}", err_string));
+            // ic_cdk::println!("Error in installing code: {}", err_string);
+            panic!("Not able to install code");
+            // return Err(format!("Error: {}", err_string));
         }
     };
 
@@ -426,6 +428,17 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<()
     Ok(())
 }
 
+#[query]
+fn get_pool_canister_id(token1 : String , token2 : String) -> Option<Principal>{
+    let mut pool_name =format!("{}{}",token1,token2);
+    let canister_id = with_state(|pool| {
+        let mut pool_borrowed = &mut pool.TOKEN_POOLS;
+        // Extract the principal if available
+        pool_borrowed.get(&pool_name).map(|user_principal| user_principal.principal)
+    });
+    canister_id
+}
+
 #[update]
 async fn compute_swap(params: SwapParams) -> Result<(), String> {
     let (pool_name, _) = pre_compute_swap(params.clone());
@@ -447,7 +460,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
         Some(id) => id,
         None => return Err("No canister ID found for the pool".to_string()),
     };
-
+    ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
     // Proceed with the call using the extracted principal
     let result: Result<(), String> = call(
         canister_id,

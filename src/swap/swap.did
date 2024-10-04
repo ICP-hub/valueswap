@@ -18,6 +18,7 @@ type SwapParams = record {
 };
 service : {
   add_liquidity_to_pool : (principal, Pool_Data) -> (Result);
+  function : () -> (text) query;
   icrc1_transfer : (principal, principal, nat) -> (Result);
   store_pool_data : (principal, Pool_Data) -> (Result);
   swap : (SwapParams, principal, float64) -> (Result);

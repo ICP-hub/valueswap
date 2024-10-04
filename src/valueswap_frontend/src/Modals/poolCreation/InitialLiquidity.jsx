@@ -134,11 +134,23 @@ const InitialLiquidity = () => {
   // token Approval function
   const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
     try {
+      let decimals = null;
+      let fee = null;
+      let amount = null;
+      let balance = null;
       const metaData = await tokenActor.icrc1_metadata();
-      const decimals = Number(metaData[1]?.[1]?.Nat);
-      const fee = Number(metaData[4]?.[1]?.Nat);
-      const amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
-      const balance = await getBalance(canisterId);
+      if(metaData.length == 6){
+         decimals = Number(metaData[1]?.[1]?.Nat);
+         fee = Number(metaData[4]?.[1]?.Nat);
+         amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
+         balance = await getBalance(canisterId);
+      }else{
+        decimals = Number(metaData[0]?.[1]?.Nat);
+        fee = Number(metaData[3]?.[1]?.Nat);
+        amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
+        balance = await getBalance(canisterId);
+      }
+      
   
       console.log("init metaData", metaData);
       console.log("init decimals", decimals);
@@ -194,18 +206,22 @@ const InitialLiquidity = () => {
         return { success: false, error: "No tokens to process" };
       }
   
-      const approvalPromises = Tokens.map(async (tokenData, index) => {
-        console.log(`Processing token ${index + 1} / ${Tokens.length}:`, tokenData);
+      const approvalResults = [];
   
-        if (!tokenData.CanisterId || !tokenData.Amount) {
-          const errorMsg = `Invalid token data at index ${index}: ${JSON.stringify(tokenData)}`;
-          console.error(errorMsg);
-          return { success: false, error: errorMsg, token: tokenData };
-        }
+      await Tokens.reduce((promiseChain, tokenData, index) => {
+        return promiseChain.then(async () => {
+          console.log(`Processing token ${index + 1} / ${Tokens.length}:`, tokenData);
   
-        try {
+          if (!tokenData.CanisterId || !tokenData.Amount) {
+            const errorMsg = `Invalid token data at index ${index}: ${JSON.stringify(tokenData)}`;
+            console.error(errorMsg);
+            approvalResults.push({ success: false, error: errorMsg, token: tokenData });
+            // Decide whether to continue or reject the chain
+            // return Promise.resolve(); // To continue
+            return Promise.reject({ success: false, error: errorMsg, token: tokenData }); // To exit on error
+          }
+  
           const tokenActors = await createTokenActor(tokenData.CanisterId);
-          console.log("Created token actor for CanisterId:", tokenData.CanisterId);
   
           const approvalResult = await transferApprove(
             tokenData.Amount,
@@ -216,17 +232,16 @@ const InitialLiquidity = () => {
   
           if (!approvalResult.success) {
             console.error(`Approval failed for token: ${tokenData.CanisterId}`, approvalResult.error);
-            return { success: false, error: approvalResult.error, token: tokenData };
+            approvalResults.push({ success: false, error: approvalResult.error, token: tokenData });
+            // Decide whether to continue or reject the chain
+            // return Promise.resolve(); // To continue
+            return Promise.reject({ success: false, error: approvalResult.error, token: tokenData }); // To exit on error
+          } else {
+            console.log(`Approval successful for token: ${tokenData.CanisterId}`);
+            approvalResults.push({ success: true, data: approvalResult.data, token: tokenData });
           }
-  
-          return { success: true, data: approvalResult.data, token: tokenData };
-        } catch (tokenError) {
-          console.error(`Error processing token ${tokenData.CanisterId}:`, tokenError);
-          return { success: false, error: tokenError.message, token: tokenData };
-        }
-      });
-  
-      const approvalResults = await Promise.all(approvalPromises);
+        });
+      }, Promise.resolve());
   
       const failedApprovals = approvalResults.filter(result => !result.success);
   
@@ -239,9 +254,11 @@ const InitialLiquidity = () => {
       return { success: true };
     } catch (error) {
       console.error("Error in handleCreatePoolClick:", error);
-      return { success: false, error: error.message };
+      // The error object might be our custom error from reject
+      return error.success !== undefined ? error : { success: false, error: error.message };
     }
   };
+  
   
   
 

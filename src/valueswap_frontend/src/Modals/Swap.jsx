@@ -89,9 +89,9 @@ const Swap = () => {
         console.log("click on swap", CoinAmount, PayCoin, RecieveCoin)
         try {
             let amount = BigInt(CoinAmount);
-            const res = await backendActor.compute_swap({ token_amount: amount, token2_name: PayCoin.ShortForm, token1_name: RecieveCoin.ShortForm })
+            const res = await backendActor.compute_swap({ token_amount: amount, token2_name: RecieveCoin.ShortForm, token1_name: PayCoin.ShortForm })
             console.log("res of swap", res)
-            if(res.Ok) {
+            if(res.Ok) { 
                 navigate('/dex-swap/transaction-successfull');
             }
         } catch (error) {

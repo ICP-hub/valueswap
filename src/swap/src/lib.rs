@@ -210,4 +210,9 @@ async fn swap(params: SwapParams , user_principal : Principal , amount : f64) ->
 //     }
 // }
 
+#[query]
+fn function() -> String{
+    "hello".to_string()
+}
+
 export_candid!();
