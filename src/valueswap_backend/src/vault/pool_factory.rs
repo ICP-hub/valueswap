@@ -3,6 +3,7 @@ use candid::{CandidType, Nat, Principal};
 use ic_cdk::api::management_canister::bitcoin::BitcoinNetwork;
 use ic_cdk_macros::*;
 use serde::de::value;
+use core::panic;
 use std::cell::RefCell;
 use std::cmp;
 use std::collections::{BTreeMap, HashMap};
@@ -112,7 +113,7 @@ async fn create_canister(arg: CreateCanisterArgument) -> CallResult<(CanisterIdR
         settings: arg.settings,
         sender_canister_version: Some(canister_version()),
     };
-    let cycles: u128 = 100_000_000_000;
+    let cycles: u128 = 200_000_000_000;
 
     call_with_payment128(
         Principal::management_canister(),
@@ -180,15 +181,16 @@ pub async fn create() -> Result<String, String> {
     let arg1 = InstallCodeArgument {
         mode: CanisterInstallMode::Install,
         canister_id,
-        wasm_module: vec![], // Placeholder, should be the actual WASM module bytes if needed
+        wasm_module: vec![],
         arg: Vec::new(),
     };
 
     let _install_code: Result<(), String> = match install_code(arg1).await {
         Ok(_) => Ok(()),
         Err((_, err_string)) => {
-            ic_cdk::println!("Error in installing code: {}", err_string);
-            return Err(format!("Error: {}", err_string));
+            // ic_cdk::println!("Error in installing code: {}", err_string);
+            panic!("Not able to install code");
+            // return Err(format!("Error: {}", err_string));
         }
     };
 
