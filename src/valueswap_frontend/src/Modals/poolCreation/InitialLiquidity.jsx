@@ -130,14 +130,6 @@ const InitialLiquidity = () => {
   const RestTokens = Tokens.slice(1);
 
 
-  function getValueByName(name) {
-    for (const item of metaData) {
-      if (item[0] === name) {
-        return item[1];
-      }
-    }
-    return null; // Return null if not found
-  }
   // token Approval function
   const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
     try {
@@ -201,8 +193,6 @@ const InitialLiquidity = () => {
   };
   
   
-
-
 
   // handleCreatePoolClick Function
   const handleCreatePoolClick = async (backendCanisterID) => {
