@@ -35,7 +35,7 @@ type RejectionCode = variant {
   CanisterReject;
 };
 type Result = variant { Ok; Err : text };
-type Result_1 = variant { Ok : text; Err : text };
+type Result_1 = variant { Ok : principal; Err : text };
 type Result_2 = variant {
   Ok : record { CanisterIdRecord };
   Err : record { RejectionCode; text };
@@ -67,6 +67,7 @@ service : () -> {
   get_total_lp : () -> (float64) query;
   get_users_lp : (principal) -> (opt float64) query;
   increase_lp_tokens : (Pool_Data) -> (vec record { text; float64 });
+  install_wasm_on_new_canister : (principal) -> (Result);
   pre_compute_swap : (SwapParams) -> (text, float64) query;
   search_swap_pool : (SwapParams) -> (Result_6);
   store_pool_data : (Pool_Data, principal) -> (Result);
