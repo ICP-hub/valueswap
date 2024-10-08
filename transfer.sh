@@ -1,43 +1,24 @@
+#!/bin/bash
 set -e
 
-dfx identity use default
-DEFAULT=$(dfx --identity default identity get-principal)
-USER=$(dfx --identity testing identity get-principal)
-MINTER=$(dfx --identity minter identity get-principal)
-RECIEVER="bkyz2-fmaaa-aaaaa-qaaaq-cai"
-CANISTER=$(dfx canister id valueswap_backend)
-echo "DEFAULT: $DEFAULT"
-echo "USER: $USER"
-echo "MINTER: $MINTER"
-echo "RECIEVER: $RECIEVER"
+# Define the canister IDs and user principal
+CANISTER_ID_CKBTC_LEDGER="bd3sg-teaaa-aaaaa-qaaba-cai"  # Ledger canister ID
+USER_PRINCIPAL="um2uc-3w7jg-5lycg-pmjio-is7ms-jjzwo-kvwfa-xdeus-ur2tx-4sbzd-cae"  # Harshit's user principal
+CANISTER_ID_SWAP="bw4dl-smaaa-aaaaa-qaacq-cai"  # Swap canister ID (target canister)
+CANISTER_ID_VALUESWAP_BACKEND="br5f7-7uaaa-aaaaa-qaaca-cai"  # Valueswap backend canister ID
+APPROVAL_AMOUNT=10000  # Amount to approve and transfer
 
-echo $CANISTER
+# Step 1: Approve the valueswap_backend canister to transfer tokens on behalf of Harshit
+echo "Approving valueswap_backend canister to transfer $APPROVAL_AMOUNT tokens on behalf of Harshit..."
+APPROVE_RESULT=$(dfx canister call "$CANISTER_ID_CKBTC_LEDGER" icrc2_approve "(record { amount = $APPROVAL_AMOUNT:nat; spender = record { owner = principal \"$CANISTER_ID_VALUESWAP_BACKEND\"} })")
+echo "Approval result: $APPROVE_RESULT"
 
-function debug_print() {
-    echo "State at checkpoint $1"
-    # echo "Balance of minter: $(dfx canister call icrc1_ledger_canister icrc1_balance_of "(record {owner = principal \"$MINTER\"})")"
-    echo "Balance of default: $(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner = principal \"$DEFAULT\"})")"
-    echo "Balance of user: $(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner = principal \"$USER\"})")"
-    echo "Balance of reciever: $(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner = principal \"$RECIEVER\"})")"
-}
+# Step 2: Call the deposit_tokens function to perform the transfer (ensure the amount is nat64)
+echo "Transferring $APPROVAL_AMOUNT tokens from Harshit to the swap canister ($CANISTER_ID_SWAP)..."
+TRANSFER_RESULT=$(dfx canister call "$CANISTER_ID_VALUESWAP_BACKEND" deposit_tokens "($APPROVAL_AMOUNT:nat, principal \"$USER_PRINCIPAL\", principal \"$CANISTER_ID_SWAP\")")
+echo "Transfer result: $TRANSFER_RESULT"
 
-# # # TRANSFER
-TRANSFER=$(
-dfx --identity default canister call ckbtc_ledger icrc1_transfer "(record { to = record { owner = principal \"$USER\" }; amount = 100000 })")
-echo $TRANSFER
-
-
-# # to approve 
-APPROVE=$(dfx --identity testing canister call ckbtc_ledger icrc2_approve "(record { amount = 1000000; spender = record { owner = principal \"$CANISTER\"} })")
-echo $APPROVE
-
-echo $(dfx --identity testing canister call ckbtc_ledger icrc2_allowance "(record { account = record { owner = principal \"$USER\"}; spender = record { owner = principal \"$CANISTER\"} })")
-
-
-
-# TRANSFER TO USER
-USER_TRANSFER=$(dfx canister call valueswap_backend deposit_ckbtc "(100000)" --identity testing)
-echo $USER_TRANSFER
-
-debug_print 1
-# debug_print 2
+# Step 3: Check the balance of the swap canister
+echo "Checking the balance of the swap canister ($CANISTER_ID_SWAP)..."
+RECIEVER_BALANCE=$(dfx canister call "$CANISTER_ID_CKBTC_LEDGER" icrc1_balance_of "(record {owner = principal \"$CANISTER_ID_SWAP\"})")
+echo "Swap canister's balance: $RECIEVER_BALANCE"

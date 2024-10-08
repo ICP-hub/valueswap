@@ -1,27 +1,88 @@
 use ic_cdk::api::call::call;
-use candid::{Nat, Principal};
+use candid::{CandidType, Deserialize, Nat, Principal};
 use ic_cdk_macros::update;
 
-#[update]
-pub async fn icrc1_transfer(canister_id: Principal, user_principal: Principal, amount: Nat) -> Result<(), String> {
-    // Define the parameters for the ICRC1 transfer call
-    let args = (
-        user_principal,  // The recipient of the transfer
-        amount.clone(),          // The amount of tokens to transfer
-    );
+#[derive(CandidType, Deserialize)]
+struct Account {
+    pub owner: Principal,
+    pub subaccount: Option<Vec<u8>>,
+}
 
-    // Make the call to the ICRC1 token canister
-    let result: Result<(Nat,), String> = call(
-        canister_id,     // The canister ID of the token ledger (ICRC1)
-        "icrc1_transfer", // The method to call
-        (user_principal, amount), // The transfer arguments
+#[derive(CandidType, Deserialize)]
+struct TransferArg {
+    from_subaccount: Option<Vec<u8>>,
+    to: Account,
+    amount: Nat,
+    fee: Option<u64>,
+    memo: Option<Vec<u8>>,
+    created_at_time: Option<u64>,
+}
+
+#[derive(CandidType, Deserialize)]
+enum TransferResult {
+    Ok(Nat),
+    Err(String),
+}
+
+// #[update]
+// pub async fn transfer_tokens(
+//     cansiter_id: Principal, 
+//     user_principal: Principal, 
+//     amount: Nat,
+// ) -> Result<Nat, String> {
+//     // Define the transfer arguments
+//     let args = TransferArg {
+//         from_subaccount: None,   // Specify subaccount if required
+//         to: Account {
+//             owner: user_principal,
+//             subaccount: None,
+//         },
+//         amount,
+//         fee: None,               // Specify a fee if needed
+//         memo: None,              // Optional transaction memo
+//         created_at_time: None,   // Optional timestamp
+//     };
+
+//     // Call the token ledger's transfer function
+//     let (result,): (TransferResult,) = call(cansiter_id, "icrc1_transfer", (args,))
+//         .await
+//         .map_err(|e| format!("Transfer call failed: {:?}", e))?;
+
+//     // Handle the result
+//     match result {
+//         TransferResult::Ok(balance) => Ok(balance),
+//         TransferResult::Err(err) => Err(format!("Transfer failed: {:?}", err)),
+//     }
+// }
+
+
+#[update]
+pub async fn icrc1_transfer(canister_id: Principal, user_principal: Principal, amount: Nat) -> Result<Nat, String> {
+    // Define the parameters for the ICRC2 transfer call
+    let args = TransferArg {
+        from_subaccount: None,          // Optionally specify a subaccount if needed
+        to: Account {
+            owner: user_principal,      // The recipient of the transfer
+            subaccount: None,
+        },
+        amount: amount.clone(),         // The amount of tokens to transfer
+        fee: None,                      // Specify a fee if required
+        memo: None,                     // Optional memo for the transfer
+        created_at_time: None,          // Optional timestamp
+    };
+
+    // Make the call to the ICRC2 token canister with the transfer arguments
+    let (result,): (TransferResult,) = call(
+        canister_id,               // The canister ID of the token ledger (ICRC2)
+        "icrc1_transfer",          // The method to call
+        (args,)                    // Transfer arguments
     )
     .await
-    .map_err(|e| format!("Transfer failed: {:?}", e));
+    .map_err(|e| format!("Transfer failed: {:?}", e))?;
 
     // Check if the call was successful
     match result {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e),
+        TransferResult::Ok(balance) => Ok(balance),
+        TransferResult::Err(err) => Err(format!("Transfer failed: {:?}", err)),
     }
 }
