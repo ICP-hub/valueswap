@@ -47,6 +47,7 @@ type Result_6 = variant { Ok : vec text; Err : text };
 type SwapParams = record {
   token_amount : nat64;
   token2_name : text;
+  ledger_canister_id : principal;
   token1_name : text;
 };
 service : () -> {
