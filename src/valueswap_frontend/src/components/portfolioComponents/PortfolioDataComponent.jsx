@@ -91,7 +91,7 @@ const PortfolioDataComponent = () => {
                     <div
                         className='mr-4'
                         onClick={() => {
-                            navigate('/dex-swap/pool/create-pool');
+                            navigate('/valueswap/pool/create-pool');
                         }}>
                         <GradientButton CustomCss={`hover:opacity-75 text-xs md:text-base lg:text-base h-[45px] w-[120px] py-2 lg:py-4`}>
                             Create Pool
@@ -140,7 +140,7 @@ const PortfolioDataComponent = () => {
                                                 : allDataInPool.TableData.slice(0, displayCount).map((pool, index) => (
                                                     <tr key={index} className='hover:bg-[#546093] rounded-xl cursor-pointer'
                                                         onClick={() => {
-                                                            navigate(`/dex-swap/portfolio/pool-info/${index}`);
+                                                            navigate(`/valueswap/portfolio/pool-info/${index}`);
                                                         }}>
                                                         <td className='min-w-80 whitespace-nowrap my-4 text-sm md:text-base font-medium text-white flex items-center gap-5 justify-start ml-8'>
                                                             <span className='flex gap-2'>
