@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { poolsSvg } from './PoolPageComponentsSvg';
 import GradientButton from '../../buttons/GradientButton';
-import { useNavigate } from 'react-router-dom';
+import {useNavigate } from 'react-router-dom';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
@@ -26,6 +26,7 @@ const ShowAllPools = () => {
     const fetchPoolData = async () => {
       try {
         const AllPoolsData = await valueswap_backend.get_pool_data();
+        console.log("pooldata", AllPoolsData)
         setAllDataInPool(AllPoolsData); // Set the fetched data
         setFilteredPools(AllPoolsData); // Initially set filteredPools to all data
       } catch (error) {
@@ -148,7 +149,7 @@ const ShowAllPools = () => {
           <div className='flex items-center justify-between gap-4 mx-8 md:gap-16 '>
             <span className='font-medium text-white font-cabin md:text-3xl'>Liquidity Pools</span>
           </div>
-          <div className='mr-4' onClick={() => navigate('/dex-swap/pool/create-pool')}>
+          <div className='mr-4' onClick={() => navigate('/valueswap/pool/create-pool')}>
             <GradientButton CustomCss={`hover:opacity-75 text-xs md:text-base lg:text-base h-[45px] w-[120px] py-2 lg:py-4`}>
               Create Pool
             </GradientButton>
@@ -202,11 +203,11 @@ const ShowAllPools = () => {
                           </tr>
                         ))
                         : filteredPools?.slice(0, displayCount).map((pool, index) => (
-                          <tr key={index} className='min-w-[1000px] '>
+                          <tr key={index} className='min-w-[1000px] ' onClick={() => navigate(`/valueswap/pool/addLiquidity/${pool[0]}`)}>
                             <td className='flex items-center  pl-10 pr-3 gap-2 md:gap-5 my-4 text-sm font-medium text-white min-w-52 whitespace-nowrap md:text-base'>
                               <span className='flex items-center gap-x-2 flex-wrap gap-y-2'>
                                 {pool[1][0]?.pool_data?.map((token) => (
-                                  <div className='flex items-center gap-x-1 border-2 rounded-2xl py-1 px-2 ' key={token.token_name}>
+                                  <div className='flex items-center gap-x-1 cursor-pointer border-2 rounded-2xl py-1 px-2 ' key={token.token_name}>
                                     <img className='w-6 h-6' src={token.image} alt="" />
                                     <span>{token.token_name}</span>
                                     <span>{token.weight * 100}%</span>

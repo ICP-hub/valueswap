@@ -13,7 +13,7 @@ const CreatePools = () => {
         <div className='flex justify-between items-center'>
           <span className='font-cabin font-medium text-2xl leading-7'>{CreatePoolsData.HeadingText}</span>
           <div onClick={() => {
-            navigate('/dex-swap/pool/create-pool/steps')
+            navigate('/valueswap/pool/create-pool/steps')
           }}>
             <GradientButton>
               {CreatePoolsData.HeadingButtonText}
