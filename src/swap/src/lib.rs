@@ -130,6 +130,15 @@ async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -
      return Err("Token transfer failed.".to_string());
     }   
 
+    let token_amount_as_u64 = params.token_amount.clone();
+    let token_amount_nat = Nat::from(token_amount_as_u64);
+
+    // let transfer_result2 = icrc1_transfer(user_principal, token_canister_id, token_amount_nat);
+    // if let Err(e) = transfer_result {
+    //     ic_cdk::println!("Transfer failed : {:?}", e);
+    //     return Err("Token transfer failed to pool canister".to_string());
+    // }
+
     // Fetch user pool data
     let pool_data = POOL_DATA.with(|pool_data| {
         pool_data.borrow().get(&user_principal).cloned()
@@ -141,7 +150,7 @@ async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -
 
     let mut user_pool_data = pool_data.unwrap();
 
-    // Check if user has enough balance and liquidity
+    // Check if user has enough balance and liquidity  
     let mut has_sufficient_balance = false;
     let mut has_sufficient_liquidity = false;
 
