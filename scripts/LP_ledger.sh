@@ -6,6 +6,9 @@ set -e
 dfx identity new DevJourney || true
 dfx identity use DevJourney
 
+export MINTER="bw4dl-smaaa-aaaaa-qaacq-cai"
+echo "MINTER principal (backend canister): $MINTER"
+
 # Get the principal ID for the minter account
 export MINTER=$(dfx identity get-principal)
 echo "MINTER principal: $MINTER"
