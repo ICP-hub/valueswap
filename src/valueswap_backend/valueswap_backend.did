@@ -46,6 +46,7 @@ type Result_5 = variant { Ok : vec Pool_Data; Err : text };
 type Result_6 = variant { Ok : vec text; Err : text };
 type SwapParams = record {
   token_amount : nat64;
+  ledger_canister_id2 : principal;
   token2_name : text;
   ledger_canister_id : principal;
   token1_name : text;
@@ -68,6 +69,7 @@ service : () -> {
   get_total_lp : () -> (float64) query;
   get_users_lp : (principal) -> (opt float64) query;
   increase_lp_tokens : (Pool_Data) -> (vec record { text; float64 });
+  install_wasm_on_new_canister : (principal) -> (Result);
   pre_compute_swap : (SwapParams) -> (text, float64) query;
   search_swap_pool : (SwapParams) -> (Result_6);
   store_pool_data : (Pool_Data, principal) -> (Result);

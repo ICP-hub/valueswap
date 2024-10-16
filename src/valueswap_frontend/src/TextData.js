@@ -23,12 +23,12 @@ export const LandingPageNavbarData = {
         {
             LinkName: 'Swap',
             LinkId: 'swap',
-            LinkPath: '/dex-swap',
+            LinkPath: '/valueswap',
         },
         {
             LinkName: 'Pool',
             LinkId: 'pool',
-            LinkPath: '/dex-swap/pool',
+            LinkPath: '/valueswap/pool',
         },
         {
             LinkName: 'Staking',
@@ -55,17 +55,17 @@ export const CommonNavbarData = {
         {
             LinkName: 'Swap',
             LinkId: 'swap',
-            LinkPath: '/dex-swap',
+            LinkPath: '/valueswap',
         },
         {
             LinkName: 'Pool',
-            LinkPath: "/dex-swap/pool/",
-            InnerLinkPath: "/dex-swap/pool/create-pool",
+            LinkPath: "/valueswap/pool/",
+            InnerLinkPath: "/valueswap/pool/create-pool",
             LinkId: 'pool',
         },
         {
             LinkName: 'Portfolio',
-            LinkPath: '/dex-swap/portfolio',
+            LinkPath: '/valueswap/portfolio',
             LinkId: 'staking',
         },
         {

@@ -114,7 +114,7 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
 async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -> Result<(), String> {
     // pool canister id
     // let token_canister_id = ic_cdk::api::id();
-
+    ic_cdk::println!("just call the swap");
         // Convert f64 to u64
         let amount_as_u64 = amount as u64;
 
@@ -122,12 +122,24 @@ async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -
         // let amount_nat = Nat::from(amount_as_u64);
 
     // Example usage within your swap function
-    let transfer_result = icrc1_transfer(params.ledger_canister_id, user_principal, amount_as_u64.clone()).await;
+
+    ic_cdk::println!("just call transfer");
+    let transfer_result =
+     icrc1_transfer(params.ledger_canister_id2.clone(), user_principal, amount_as_u64).await;
 
     if let Err(e) = transfer_result {
      ic_cdk::println!("Transfer failed: {:?}", e);
      return Err("Token transfer failed.".to_string());
     }   
+
+    let token_amount_as_u64 = params.token_amount.clone();
+    let token_amount_nat = Nat::from(token_amount_as_u64);
+
+    // let transfer_result2 = icrc1_transfer(user_principal, token_canister_id, token_amount_nat);
+    // if let Err(e) = transfer_result {
+    //     ic_cdk::println!("Transfer failed : {:?}", e);
+    //     return Err("Token transfer failed to pool canister".to_string());
+    // }
 
     // Fetch user pool data
     let pool_data = POOL_DATA.with(|pool_data| {
@@ -140,7 +152,7 @@ async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -
 
     let mut user_pool_data = pool_data.unwrap();
 
-    // Check if user has enough balance and liquidity
+    // Check if user has enough balance and liquidity  
     let mut has_sufficient_balance = false;
     let mut has_sufficient_liquidity = false;
 
@@ -169,6 +181,7 @@ async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -
     POOL_DATA.with(|pool_data| {
         pool_data.borrow_mut().insert(user_principal, user_pool_data);
     });
+
 
     Ok(()) 
 }

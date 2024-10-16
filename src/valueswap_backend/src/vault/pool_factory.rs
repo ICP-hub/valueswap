@@ -78,7 +78,8 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
         Ok(())
     } else {
         match create().await {
-            Ok((canister_id_record)) => {
+
+            Ok(canister_id_record) => {
                 let canister_id = canister_id_record;
                 with_state(|pool| {
                     pool.TOKEN_POOLS.insert(
@@ -91,18 +92,20 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
 
                 store_pool_data_curr(params.clone());
                 store_pool_data(params.clone(), canister_id_record).await?;
-                increase_pool_lp_tokens(params.clone());
+
+                increase_lp_tokens(params.clone());
 
                 for amount in params.pool_data.iter() {
                     // Deposit tokens to the newly created canister
-                    deposit_tokens(amount.balance.clone(), amount.ledger_canister_id.clone(), canister_id ).await?;
+                    deposit_tokens(amount.balance.clone() , amount.ledger_canister_id.clone() , canister_id ).await?;
+
                     // Deposit tokens when testing with static canister id
                     // deposit_tokens(amount.balance.clone(), canister_id).await?;
                 }
 
                 Ok(())
             }
-            Err((err_string)) => Err(format!("Error creating canister: {}", err_string)),
+            Err(( err_string)) => Err(format!("Error creating canister: {}", err_string)),
         }
     }
 }
@@ -171,6 +174,7 @@ pub async fn create() -> Result<Principal, String> {
     let canister_id = canister_id_record.canister_id;
 
     let _add_cycles: Result<(), String> =
+
         match deposit_cycles(canister_id_record, 200_000_000_000).await {
             Ok(_) => Ok(()),
             Err((_, err_string)) => {
@@ -197,6 +201,26 @@ pub async fn create() -> Result<Principal, String> {
 
     ic_cdk::println!("Canister ID: {:?}", canister_id.to_string());
     Ok(canister_id)
+}
+
+
+
+#[update]
+async fn install_wasm_on_new_canister(canister_id: Principal) -> Result<(), String> {
+    let install_code_args = InstallCodeArgument {
+        mode: CanisterInstallMode::Install,
+        canister_id: canister_id,
+        wasm_module: include_bytes!("../../../../.dfx/ic/canisters/swap/swap.wasm").to_vec(),
+        arg: vec![],  // Optional: Arguments for the canister init method
+    };
+
+    let result: Result<(), (ic_cdk::api::call::RejectionCode, String)> =
+        call(Principal::management_canister(), "install_code", (install_code_args,)).await;
+
+    match result {
+        Ok(_) => Ok(()),
+        Err((_, err_msg)) => Err(err_msg),
+    }
 }
 
 // update to store all pool data
@@ -461,17 +485,22 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
         Some(id) => id,
         None => return Err("No canister ID found for the pool".to_string()),
     };
+  
+    ic_cdk::println!("swap pool canister's canister_id {:}",canister_id.clone());
 
-    // let user_principal = api::caller();
+    // let amount_as_u64 = amount as u64;
+    // deposit_tokens(amount_as_u64.clone(), ledger_canister_id, canister_id.clone());
 
-    deposit_tokens(params.token_amount, params.ledger_canister_id.clone(), canister_id.clone()).await?;
+    // let user_principal_id = api::caller();
+
+    deposit_tokens(params.token_amount.clone(), params.ledger_canister_id.clone(), canister_id.clone()).await?;
 
     // ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
     // Proceed with the call using the extracted principal
     let result: Result<(), String> = call(
         canister_id,
         "swap",
-        (api::caller(),params , amount),
+        (api::caller(),params.clone() , amount),
     )
     .await
     .map_err(|e| format!("Failed to perform swap: {:?}", e));
@@ -480,6 +509,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
         return Err(e);
     }
 
+    // deposit_tokens(params.token_amount.clone(), params.ledger_canister_id2.clone(), canister_id.clone()).await?;
     Ok(())
 }
 
@@ -490,3 +520,4 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
 // if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
 //     continue;
 // }
+

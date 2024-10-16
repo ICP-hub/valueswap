@@ -188,9 +188,9 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
                   }}
                 >
                   <div className='rounded-lg bg-[#3D3F47] p-2'>
-                    <img src={ImagePath} alt='' className='h-6 w-6 transform scale-150' />
+                    <img src={ImagePath} alt='' className='h-5 w-5 md:h-6 md:w-6 transform scale-150' />
                   </div>
-                  <div className='font-normal text-xl font-cabin text-start'>
+                  <div className='font-normal text-base md:text-xl font-cabin text-start'>
                     {TokenName} ({ShortForm})
                   </div>
                 </div>

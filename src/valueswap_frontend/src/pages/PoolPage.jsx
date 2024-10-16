@@ -5,6 +5,7 @@ import ShowAllPools from '../components/poolPageComponent/ShowAllPools'
 import CreatePools from '../components/poolPageComponent/CreatePools'
 import CreatePoolStepsPage from './CreatePoolStepsPage'
 import { useLocation } from 'react-router-dom'
+import AddLiquidity from '../components/poolPageComponent/AddLiquidity'
 
 const PoolPage = () => {
     const location = useLocation();
@@ -12,7 +13,7 @@ const PoolPage = () => {
 
 
     useEffect(() => {
-        if (location.pathname.includes("/dex-swap/pool/create-pool")) {
+        if (location.pathname.includes("/valueswap/pool/create-pool")) {
             setBoxText('Create Pool');
         } else {
             setBoxText('Pool Overview');
@@ -22,7 +23,7 @@ const PoolPage = () => {
         <div className=' bg-[#000711] '>
             <div className='items-center'>
                 {
-                    location.pathname != '/dex-swap/pool/create-pool/steps' ? (
+                    location.pathname != '/valueswap/pool/create-pool/steps' ? (
                         <img src={PoolPageBackGround} alt="" className='-z-0 h-96 w-full absolute top-0' />
                     ) : (
                         <div>
@@ -31,7 +32,7 @@ const PoolPage = () => {
                     )
                 }
                 {
-                    location.pathname != '/dex-swap/pool/create-pool/steps' ? (
+                    location.pathname != '/valueswap/pool/create-pool/steps' ? (
                         <div className='flex justify-center'>
                             {
                                 boxText == 'Create Pool' ? (
@@ -62,6 +63,7 @@ const PoolPage = () => {
 
             <Routes>
                 <Route path='/' element={<ShowAllPools />} />
+                <Route path='/addLiquidity/:id' element={<AddLiquidity/>}/>
                 <Route path='/create-pool' element={<CreatePools />} />
                 <Route path='/create-pool/steps' element={<CreatePoolStepsPage />} />
             </Routes>

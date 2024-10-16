@@ -168,7 +168,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                             }
 
                                             if (NavbarData.ButtonText === 'Explore Pools') {
-                                                navigate('/dex-swap/pool')
+                                                navigate('/valueswap/pool')
                                             }
                                         }}>
                                         <GradientButton
@@ -182,7 +182,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                         </div>
 
                         {/* drop down Network*/}
-                        {/* {location.pathname === "/dex-swap" && <div className="relative inline-block ">
+                        {/* {location.pathname === "/valueswap" && <div className="relative inline-block ">
                             <div
                                 className="flex items-center p-2 rounded-md cursor-pointer  gap-x-2"
                                 onClick={() => document.getElementById('options-container').classList.toggle('hidden')}
@@ -237,7 +237,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                         <div className=''
 
                                             onClick={() => {
-                                                navigate('/dex-swap/pool')
+                                                navigate('/valueswap/pool')
                                             }}>
                                             {NavbarData.ButtonText}
                                         </div>

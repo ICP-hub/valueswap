@@ -11,8 +11,8 @@ export MINTER=$(dfx identity get-principal)
 echo "MINTER principal: $MINTER"
 
 # Set token details
-export TOKEN_NAME="ckETH"
-export TOKEN_SYMBOL="ckETH"
+export TOKEN_NAME="ckBTC"
+export TOKEN_SYMBOL="ckBTC"
 echo "Token Name: $TOKEN_NAME"
 echo "Token Symbol: $TOKEN_SYMBOL"
 
@@ -34,7 +34,7 @@ export NUM_OF_BLOCK_TO_ARCHIVE=1000
 export CYCLE_FOR_ARCHIVE_CREATION=10000000000000
 export FEATURE_FLAGS=true
 
-# Deploy the cketh_ledger canister with the specified initialization arguments
+# Deploy the ckbtc_ledger canister with the specified initialization arguments
 DEPLOY_ARGUMENTS="(variant {Init = record {
   token_symbol = \"${TOKEN_SYMBOL}\";
   token_name = \"${TOKEN_NAME}\";
@@ -66,4 +66,3 @@ echo "ckBTC got deployed"
 # Check the balance of the default identity
 balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
 echo "Balance of the DEFAULT account: $balance"
-
