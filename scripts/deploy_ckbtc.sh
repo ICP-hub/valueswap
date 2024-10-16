@@ -1,21 +1,18 @@
 #!/bin/bash
-dfx deploy swap
+
 set -e
 
 # Create and use the DevJourney identity
 dfx identity new DevJourney || true
 dfx identity use DevJourney
 
-# dfx canister create swap
-# dfx  build --all
-
 # Get the principal ID for the minter account
 export MINTER=$(dfx identity get-principal)
 echo "MINTER principal: $MINTER"
 
 # Set token details
-export TOKEN_NAME="ckBTC"
-export TOKEN_SYMBOL="ckBTC"
+export TOKEN_NAME="ckETH"
+export TOKEN_SYMBOL="ckETH"
 echo "Token Name: $TOKEN_NAME"
 echo "Token Symbol: $TOKEN_SYMBOL"
 
@@ -24,7 +21,7 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use default
+dfx identity use Harshit
 export DEFAULT=$(dfx identity get-principal)
 echo "DEFAULT principal: $DEFAULT"
 
@@ -37,7 +34,7 @@ export NUM_OF_BLOCK_TO_ARCHIVE=1000
 export CYCLE_FOR_ARCHIVE_CREATION=10000000000000
 export FEATURE_FLAGS=true
 
-# Deploy the ckbtc_ledger canister with the specified initialization arguments
+# Deploy the cketh_ledger canister with the specified initialization arguments
 DEPLOY_ARGUMENTS="(variant {Init = record {
   token_symbol = \"${TOKEN_SYMBOL}\";
   token_name = \"${TOKEN_NAME}\";
@@ -55,15 +52,15 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS"
+dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS"  --network ic
 
 
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
 ./deploy_cketh.sh
-dfx deploy
-dfx deploy valueswap_backend
+dfx deploy --network ic --mode reinstall
+# dfx deploy valueswap_backend --network ic
 echo "ckBTC got deployed"
 
 # Check the balance of the default identity

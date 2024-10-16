@@ -58,12 +58,12 @@ const PoolInfo = () => {
                 }
                 <span className='mx-1'>:  :</span>
 
-                <span>{TokenData?.PoolData[0].WeightedPercentage}</span>
+                <span>{TokenData?.PoolData[0].weights}</span>
                 {
                   TokenData?.PoolData.slice(1).map((token, index) => (
                     <div key={index} className=''>
                       <span className='mx-0.5'>/</span>
-                      {token.WeightedPercentage}
+                      {token.weights}
                     </div>
                   ))
                 }
@@ -114,7 +114,7 @@ const PoolInfo = () => {
                 <PoolInfoBox Heading={'Pool Value'} Data={`$ ${TokenData?.PoolMetaData.PoolValue.toLocaleString('en-US')}`} />
                 <PoolInfoBox Heading={'24H_Fees'} Data={`$ ${TokenData?.PoolMetaData.TwentyFourHourFees.toLocaleString('en-US')}`} />
               </div>
-              <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48'>
+              <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48 justify-center'>
                 <PoolInfoBox Heading={'24H_Pool Volume'} Data={`$ ${TokenData?.PoolMetaData.TwentyFourHourVolume.toLocaleString('en-US')}`} />
                 <PoolInfoBox Heading={'APR'} Data={`${TokenData?.PoolMetaData.APRstart}% - ${TokenData?.PoolMetaData.APRend}%`} />
               </div>
@@ -145,7 +145,7 @@ const PoolInfo = () => {
             </div>
           </div>
 
-          <div className='font-cabin font-medium text-base md:text-xl lg:text-2xl flex gap-3 md:gap-16 lg:gap-32 mx-8 lg:mx-10 mt-6'>
+          <div className='font-cabin font-medium text-base md:text-xl lg:text-2xl flex gap-3 md:gap-16 lg:gap-32 mx-4 lg:mx-10 mt-6'>
             {Heading.map((heading, index) => (
               <div className='flex flex-col justify-center text-center items-center gap-2 cursor-pointer' key={index}
                 onClick={() => {

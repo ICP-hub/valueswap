@@ -4,6 +4,6 @@ candid-extractor target/wasm32-unknown-unknown/release/valueswap_backend.wasm > 
 
 # dfx deploy
 
-# cargo build --release --target wasm32-unknown-unknown --package swap
+cargo build --release --target wasm32-unknown-unknown --package swap
 
-# candid-extractor target/wasm32-unknown-unknown/release/swap.wasm > src/swap/swap.did
+candid-extractor target/wasm32-unknown-unknown/release/swap.wasm > src/swap/swap.did

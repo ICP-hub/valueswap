@@ -10,6 +10,7 @@ import { showAlert, hideAlert } from '../reducer/Alert';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { useAuth } from '../components/utils/useAuthClient';
+import { toast } from 'react-toastify';
 
 
 
@@ -20,20 +21,17 @@ const ConnectWallet = ({ setClickConnectWallet, setWalletClicked }) => {
 
     const walletImage = [{ id: 1, url: "/image/dfinity.svg" }, { id: 2, url: "/image/Plug.png" }, { id: 3, url: "/image/astroxme.webp" }, { id: 4, url: "/image/bifinity.png" }, { id: 5, url: "/image/stoic.png" }, { id: 6, url: "/image/nfid.png" }, { id: 7, url: "/image/metamask.svg" }]
     const {login} = useAuth()
-  
+    const notify = () => toast.warn("Please Agree to Terms and Condition!", {
+        position: "top-center"
+      });
+
     async function handleWalletConnect(name) {
         if (TermsAndConditionsChecked) {
              login(name)
 
             setClickConnectWallet(false);
         } else {
-            dispatch(showAlert({
-                type: 'danger',
-                text: 'Please Agree to Terms and Condition'
-            }));
-            setTimeout(() => {
-                dispatch(hideAlert());
-            }, 3000);
+            notify()  
         }
     };
 
@@ -61,28 +59,35 @@ const ConnectWallet = ({ setClickConnectWallet, setWalletClicked }) => {
                             <div className='font-extralight text-lg font-cabin text-start'>{item?.name}</div>
                         </div>))} */}
                     <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
-                        onClick={() => handleWalletConnect('Identity')}>
+                        onClick={() => handleWalletConnect('ii')}>
                         <div className='rounded-lg bg-[#3D3F47]'>
                             <img src='/image/icp.svg' alt="" className='w-8 h-8' />
                         </div>
-                        <div className='font-normal text-lg font-cabin text-start'>NFID</div>
+                        <div className='font-normal text-lg font-cabin text-start'>Internet Identity</div>
                     </div>
                     <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
-                        onClick={() => handleWalletConnect('NFID')}>
+                        onClick={() => handleWalletConnect('nfid')}>
                         <div className='rounded-lg bg-[#3D3F47]'>
                             <img src='/image/nfid.png' alt="" className='w-8 h-8' />
                         </div>
-                        <div className='font-normal text-lg font-cabin text-start'>NFID</div>
+                        <div className='font-normal text-lg font-cabin text-start'>Nfid</div>
                     </div>
                     <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
-                        onClick={() => handleWalletConnect("Bitfinity")}>
+                        onClick={() => handleWalletConnect("bitfinityWallet")}>
                         <div className='rounded-lg bg-[#3D3F47]'>
                             <img src="/image/bifinity.png" alt="" className='w-8 h-8' />
                         </div>
                         <div className='font-normal text-lg font-cabin text-start'>Bifinity</div>
                     </div>
                     <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
-                        onClick={() => handleWalletConnect("Plug")}>
+                        onClick={() => handleWalletConnect("stoic")}>
+                        <div className='rounded-lg bg-[#3D3F47]'>
+                            <img src="/image/stoic.png" alt="" className='w-8 h-8' />
+                        </div>
+                        <div className='font-normal text-lg font-cabin text-start'>Stoic</div>
+                    </div>
+                    <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
+                        onClick={() => handleWalletConnect("plug")}>
                         <div className='rounded-lg bg-[#3D3F47]'>
                             <img src='/image/Plug.png' alt="" className='w-8 h-8' />
                         </div>
