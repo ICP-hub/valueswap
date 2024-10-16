@@ -9,7 +9,6 @@ use crate::constants::asset_address::LP_LEDGER_ADDRESS;
 // use crate::utils::maths::*;
 use crate::utils::types::*;
 use crate::with_state;
-// use crate::vault::vault_pool::VAULT;
 
 thread_local! {
     static TOTAL_LP_SUPPLY : RefCell<f64> = RefCell::new(0.0);
