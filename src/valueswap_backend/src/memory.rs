@@ -28,6 +28,12 @@ pub fn get_stable_btree_memory() -> Memory {
 
 const POOL_DATA: MemoryId = MemoryId::new(0);
 
+const USERS_POOL : MemoryId = MemoryId::new(1);
+
 pub fn get_pool_data() -> Memory {
     MEMORY_MANAGER.with(|m| m.borrow().get(POOL_DATA))
+}
+
+pub fn get_user_token_memory() -> Memory{
+    MEMORY_MANAGER.with(|m| m.borrow().get(USERS_POOL))
 }

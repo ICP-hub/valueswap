@@ -17,7 +17,6 @@ pub use api::transfer::*;
 thread_local! {
     pub static POOL_DATA: RefCell<BTreeMap<Principal, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
     pub static LP_SHARE : RefCell<BTreeMap<Principal , f64>> = RefCell::new(BTreeMap::new());
-    pub static TOTAL_LP : RefCell<f64> = RefCell::new(0.0);
 }
 
 // #[update]
@@ -123,6 +122,7 @@ async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -
         // let amount_nat = Nat::from(amount_as_u64);
 
     // Example usage within your swap function
+
     ic_cdk::println!("just call transfer");
     let transfer_result =
      icrc1_transfer(params.ledger_canister_id2.clone(), user_principal, amount_as_u64).await;
