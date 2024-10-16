@@ -114,16 +114,18 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
 #[update]
 async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -> Result<(), String> {
     // pool canister id
-    let token_canister_id = ic_cdk::api::id();
-
+    // let token_canister_id = ic_cdk::api::id();
+    ic_cdk::println!("just call the swap");
         // Convert f64 to u64
         let amount_as_u64 = amount as u64;
 
         // Convert u64 to Nat
-        let amount_nat = Nat::from(amount_as_u64);
+        // let amount_nat = Nat::from(amount_as_u64);
 
     // Example usage within your swap function
-    let transfer_result = icrc1_transfer(token_canister_id, user_principal, amount_nat).await;
+    ic_cdk::println!("just call transfer");
+    let transfer_result =
+     icrc1_transfer(params.ledger_canister_id2.clone(), user_principal, amount_as_u64).await;
 
     if let Err(e) = transfer_result {
      ic_cdk::println!("Transfer failed: {:?}", e);
@@ -179,6 +181,7 @@ async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -
     POOL_DATA.with(|pool_data| {
         pool_data.borrow_mut().insert(user_principal, user_pool_data);
     });
+
 
     Ok(()) 
 }

@@ -11,7 +11,7 @@ const PortfolioDataComponent = () => {
 
         <div className='mr-4'
           onClick={() => {
-            navigate('/dex-swap/pool/create-pool');
+            navigate('/valueswap/pool/create-pool');
           }}>
           <GradientButton>
             Create Pool
@@ -52,7 +52,7 @@ const PortfolioDataComponent = () => {
                   portfolioSampleData.Pools.map((pool, index) => (
                     <div key={index} className='my-5 hover:bg-[#546093] rounded-lg cursor-pointer'
                       onClick={() => {
-                        navigate(`/dex-swap/portfolio/pool-info/${index}`)
+                        navigate(`/valueswap/portfolio/pool-info/${index}`)
                       }}
                       >
                       <div className='grid grid-cols-2 md:grid-cols-6  p-4 font-cabin text-base font-medium items-center'>

@@ -3,23 +3,19 @@ import { Bolt, ChevronDown, ChevronUp, Dot, Info } from 'lucide-react';
 import BlueGradientButton from '../buttons/BlueGradientButton';
 import GradientButton from '../buttons/GradientButton';
 import ImpactButton from '../buttons/ImpactButton';
-import BorderGradientButton from '../buttons/BorderGradientButton';
 import SearchToken from './SearchToken';
-import DialogBox from './Dialouge';
 import { SwapModalData } from '../TextData';
 import { useNavigate } from 'react-router-dom';
 import SwapSetting from './SwapSetting';
 import { useAuth } from '../components/utils/useAuthClient';
-import Approval from './poolCreation/Approval';
-import { useSelector } from 'react-redux';
 import { Principal } from '@dfinity/principal';
-
+import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined';
+import CircularProgress from '@mui/material/CircularProgress';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 const Swap = () => {
     const navigate = useNavigate();
-    const [Message, setMessage] = useState('');
-    const [show1, setShow1] = useState(false);
-    const [show2, setShow2] = useState(false);
-    const [show3, setShow3] = useState(false);
     const [PayCoin, setPayCoin] = useState(null);
     const [RecieveCoin, setRecieveCoin] = useState(null);
     const [changePayCoin, setChangePayCoin] = useState("M5 13.5L9 9.5M5 13.5L1 9.5M5 13.5V1");
@@ -35,8 +31,14 @@ const Swap = () => {
     const [payCoinBalance, setPayCoinBalance] = useState(null); // New state for PayCoin balance
     const [recieveCoinBalance, setRecieveCoinBalance] = useState(null); // New state for RecieveCoin balance
     const { backendActor, principal, getBalance, isAuthenticated, createTokenActor } = useAuth();
+    const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
+    const [modalSteps, setModalSteps] = useState([]);
+    const [approvalSuccess, setApprovalSuccess] = useState(false);
+    const [swapSuccess, setSwapSuccess] = useState(false);
+    const [subModel, setSubModel] = useState(0)
+    // const { Tokens, Confirmation, TotalAmount, FeeShare } = useSelector((state) => state.pool);
 
-    const { Tokens, Confirmation, TotalAmount, FeeShare } = useSelector((state) => state.pool);
+
     useEffect(() => {
         if (PayCoin && RecieveCoin) {
             setBothCoins(true);
@@ -77,7 +79,7 @@ const Swap = () => {
 
     const handleChangeAmount = (e) => {
         let number = e.target.value;
-        if (!isNaN(number) &&  Number(number) >= 0) {
+        if (!isNaN(number) && Number(number) >= 0) {
             setCoinAmount(number);
         } else {
             setCoinAmount(0);
@@ -88,20 +90,6 @@ const Swap = () => {
         setSettings((prev) => !prev);
     };
 
-    const swapHandler =  async() => {
-        console.log("click on swap", CoinAmount, PayCoin, RecieveCoin)
-        try {
-            let amount = BigInt(CoinAmount);
-            const res = await backendActor.compute_swap({ token_amount: amount, token2_name: RecieveCoin.ShortForm, token1_name: PayCoin.ShortForm })
-            console.log("res of swap", res)
-            if(res.Ok) { 
-                navigate('/dex-swap/transaction-successfull');
-            }
-        } catch (error) {
-            console.log("Error while calling swap function")
-        }
-    }
-
 
 
 
@@ -109,109 +97,185 @@ const Swap = () => {
 
     const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
         try {
-          let decimals = null;
-          let fee = null;
-          let amount = null;
-          let balance = null;
-          const metaData = await tokenActor.icrc1_metadata();
-          for (const item of metaData) {
-            if (item[0] === 'icrc1:decimals') {
-              decimals = Number(item[1].Nat); // Assuming decimals is stored as a Nat (BigInt)
-            } else if (item[0] === 'icrc1:fee') {
-              fee = Number(item[1].Nat); // Assuming fee is stored as a Nat (BigInt)
+            let decimals = null;
+            let fee = null;
+            let amount = null;
+            let balance = null;
+            const metaData = await tokenActor.icrc1_metadata();
+            for (const item of metaData) {
+                if (item[0] === 'icrc1:decimals') {
+                    decimals = Number(item[1].Nat); // Assuming decimals is stored as a Nat (BigInt)
+                } else if (item[0] === 'icrc1:fee') {
+                    fee = Number(item[1].Nat); // Assuming fee is stored as a Nat (BigInt)
+                }
             }
-          }
-          amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
-          balance = await getBalance(canisterId);
-         
-          
-      
-          console.log("init metaData", metaData);
-          console.log("init decimals", decimals);
-          console.log("init fee", fee);
-          console.log("init amount", amount);
-          console.log("init balance", balance);
-      
-          if (balance >= amount + fee) {
-            const transaction = {
-              amount: amount + fee,  // Approving amount (including fee)
-              from_subaccount: [],  // Optional subaccount
-              spender: {
-                owner: Principal.fromText(backendCanisterID),
-                subaccount: [],  // Optional subaccount for the spender
-              },
-              fee: [],  // Fee is optional, applied during the transfer
-              memo: [],  // Optional memo
-              created_at_time: [],  // Optional timestamp
-              expected_allowance: [],  // Optional expected allowance
-              expires_at: [],  // Optional expiration time
-            };
-      
-            // console.log("transaction", transaction);
-      
-            const response = await tokenActor.icrc2_approve(transaction);
-            
-            if (response?.Err) {
-              console.error("Approval error:", response.Err);
-              return { success: false, error: response.Err };
-            } else {
-              console.log("Approval successful:", response);
-              return { success: true, data: response.Ok };
-            }
-          } else {
-            console.error("Insufficient balance:", balance, "required:", amount + fee);
-            return { success: false, error: "Insufficient balance" };
-          }
-        } catch (error) {
-          console.error("Error in transferApprove:", error);
-          return { success: false, error: error.message };
-        }
-      };
-      
-      
-    
-      // handleCreatePoolClick Function
-      const backendCanisterID = process.env.CANISTER_ID_VALUESWAP_BACKEND;
-      const handleSwapApproval = async (PayCoin, backendCanisterID) => {
-        try {
-          if (!PayCoin) {
-            // console.error("Token data is undefined");
-            return { success: false, error: "No token to process" };
-          }
-      
-          console.log('CanisterId:', PayCoin);
-      
-          if (!PayCoin.CanisterId || !CoinAmount) {
-            const errorMsg = `Invalid token data: ${JSON.stringify(PayCoin)}`;
-            console.error(errorMsg);
-            return { success: false, error: errorMsg, token: PayCoin };
-          }
-      
-          const tokenActor = await createTokenActor(PayCoin.CanisterId);
-        console.log("tokenActor", tokenActor)
-          const approvalResult = await transferApprove(
-            CoinAmount,
-            PayCoin.CanisterId,
-            backendCanisterID,
-            tokenActor
-          );
-      
-          if (!approvalResult.success) {
-            console.error(`Approval failed for token: ${PayCoin.CanisterId}`, approvalResult.error);
-            return { success: false, error: approvalResult.error, token: PayCoin };
-          } else {
-            console.log(`Approval successful for token: ${PayCoin.CanisterId}`);
-            return { success: true, data: approvalResult.data, token: PayCoin };
-          }
-      
-        } catch (error) {
-          console.error("Error in handleCreatePoolClick:", error);
-          // The error object might be our custom error from reject
-          return error.success !== undefined ? error : { success: false, error: error.message };
-        }
-      };
-      
+            amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
+            balance = await getBalance(canisterId);
 
+
+
+            console.log("init metaData", metaData);
+            console.log("init decimals", decimals);
+            console.log("init fee", fee);
+            console.log("init amount", amount);
+            console.log("init balance", balance);
+
+            if (balance >= amount + fee) {
+                const transaction = {
+                    amount: amount + fee,  // Approving amount (including fee)
+                    from_subaccount: [],  // Optional subaccount
+                    spender: {
+                        owner: Principal.fromText(backendCanisterID),
+                        subaccount: [],  // Optional subaccount for the spender
+                    },
+                    fee: [],  // Fee is optional, applied during the transfer
+                    memo: [],  // Optional memo
+                    created_at_time: [],  // Optional timestamp
+                    expected_allowance: [],  // Optional expected allowance
+                    expires_at: [],  // Optional expiration time
+                };
+
+                // console.log("transaction", transaction);
+
+                const response = await tokenActor.icrc2_approve(transaction);
+
+                if (response?.Err) {
+                    console.error("Approval error:", response.Err);
+                    return { success: false, error: response.Err };
+                } else {
+                    console.log("Approval successful:", response);
+                    return { success: true, data: response.Ok };
+                }
+            } else {
+                console.error("Insufficient balance:", balance, "required:", amount + fee);
+                return { success: false, error: "Insufficient balance" };
+            }
+        } catch (error) {
+            console.error("Error in transferApprove:", error);
+            return { success: false, error: error.message };
+        }
+    };
+
+
+
+    // handleCreatePoolClick Function
+    const backendCanisterID = process.env.CANISTER_ID_VALUESWAP_BACKEND;
+    const handleSwapApproval = async (PayCoin, backendCanisterID) => {
+        return new Promise((resolve, reject) => {
+            if (!PayCoin) {
+                return resolve({ success: false, error: "No token to process" })
+            }
+
+            if (!PayCoin.CanisterId || !CoinAmount) {
+                const errorMsg = `Invalid token data: ${JSON.stringify(PayCoin)}`;
+                console.log(errorMsg);
+                return resolve({ success: false, error: errorMsg, token: PayCoin })
+            }
+
+            createTokenActor(PayCoin.CanisterId).then((tokenActor) => {
+                console.log("tokenActor", tokenActor);
+                return transferApprove(
+                    CoinAmount,
+                    PayCoin.CanisterId,
+                    backendCanisterID,
+                    tokenActor
+                )
+            })
+                .then((approvalResult) => {
+                    if (!approvalResult.success) {
+                        console.error(`Approval failed for token: ${PayCoin.CanisterId}`, approvalResult.error);
+                        return resolve({ success: false, error: approvalResult.error, token: PayCoin });
+                    } else {
+                        console.log(`Approval successful for token: ${PayCoin.CanisterId}`);
+                        setApprovalSuccess(true)
+                        return resolve({ success: true, data: approvalResult.data, token: PayCoin })
+                    }
+                }).catch((error) => {
+                    console.error("Error in handleSwapApproval:", error);
+                    return resolve({ success: false, error: error.message })
+                })
+        })
+    };
+
+
+
+
+    const swapHandler = async () => {
+        console.log("Click on swap", { CoinAmount, PayCoin, RecieveCoin });
+
+        if (CoinAmount === undefined || CoinAmount === null) {
+            console.error("CoinAmount is undefined or null");
+            return error;
+        }
+        let amount;
+        try {
+            amount = BigInt(CoinAmount);
+        } catch (error) {
+            console.error("Invalid CoinAmount:", CoinAmount, error);
+            return error;
+        }
+        if (!PayCoin || !PayCoin.ShortForm) {
+            console.error("PayCoin is invalid:", PayCoin);
+            return error;
+        }
+        if (!RecieveCoin || !RecieveCoin.ShortForm) {
+            console.error("RecieveCoin is invalid:", RecieveCoin);
+            return error;
+        }
+        if (!backendActor || !backendActor.compute_swap) {
+            console.error("backendActor is not available or compute_swap method is missing");
+            return error;
+        }
+
+        try {
+            console.log("Calling backendActor.compute_swap with:", {
+                token_amount: amount,
+                token1_name: PayCoin.ShortForm,
+                token2_name: RecieveCoin.ShortForm,
+                ledger_canister_id: PayCoin.CanisterId,
+                ledger_canister_id2: RecieveCoin.CanisterId
+            });
+            const res = await backendActor.compute_swap({
+                token_amount: amount,
+                token1_name: PayCoin.ShortForm,
+                token2_name: RecieveCoin.ShortForm,
+                ledger_canister_id: Principal.fromText(PayCoin.CanisterId),
+                ledger_canister_id2: Principal.fromText(RecieveCoin.CanisterId)
+            });
+
+            console.log("Response from compute_swap:", res);
+
+            if (res && res.Ok) {
+                console.log("Swap successful");
+                // setSwapSuccess(true)
+                navigate('/valueswap/transaction-successfull');
+                return res;
+            } else if (res && res.Err) {
+                console.error("Swap failed with error:", res.Err, res);
+                return res;
+            } else {
+                console.error("Unexpected response from compute_swap:", res);
+                return res;
+            }
+        } catch (error) {
+            console.error("Error while calling swap function:", error);
+            return res;
+
+        }
+    };
+
+    const openModalWithSteps = async () => {
+        // Define steps for the modal
+        // const steps = [
+        //     { title: 'Approve Swap', completed: approvalSuccess },
+        //     { title: 'Deposit', completed: approvalSuccess },
+        //     { title: 'Compute Swap', completed: swapSuccess },
+        // ];
+
+        // Set modal steps and open the modal
+        // setModalSteps(steps);
+        setIsModalOpen(true);
+    };
     return (
         <div className='px-4 md:px-0'>
             <div className='flex justify-center my-auto flex-col'>
@@ -457,18 +521,25 @@ const Swap = () => {
                             </div>
 
                             {isAuthenticated ? <div className='w-full'>
-                                {(payCoinBalance <=0 && recieveCoinBalance <=0) || CoinAmount > payCoinBalance ? (
+                                {(payCoinBalance <= 0 && recieveCoinBalance <= 0) || CoinAmount > payCoinBalance ? (
                                     <GradientButton CustomCss={'w-full md:w-full cursor-auto disabled opacity-75 font-extrabold text-3xl'}>
                                         {SwapModalData.MainButtonsText.InsufficientBalance}
                                     </GradientButton>
                                 ) : (
                                     <div className='w-full'>
                                         {ClickedSwap ? (
-                                            <div onClick={async() => {
-                                              const res = await handleSwapApproval(PayCoin, backendCanisterID)
-                                              if(res.success == true) swapHandler();
-                                                
-                                              
+                                            <div onClick={async () => {
+                                                setApprovalSuccess()
+                                                setSwapSuccess()
+                                                openModalWithSteps()
+                                                const res = await handleSwapApproval(PayCoin, backendCanisterID)
+                                                setApprovalSuccess(res);
+                                                if (res.success == true) {
+                                                    const res = await swapHandler();
+                                                    setSwapSuccess(res);
+                                                }
+
+
                                             }}>
                                                 {/* <Approval buttonText={'Confirm Swapping'}/> */}
                                                 <GradientButton CustomCss={'w-full md:w-full font-extrabold text-3xl'} >
@@ -486,9 +557,9 @@ const Swap = () => {
                                         )}
                                     </div>
                                 )}
-                            </div> :  <GradientButton CustomCss={'w-full md:w-full cursor-auto disabled opacity-75 font-extrabold text-3xl'}>
-                                        Connect wallet
-                                    </GradientButton>}
+                            </div> : <GradientButton CustomCss={'w-full md:w-full cursor-auto disabled opacity-75 font-extrabold text-3xl'}>
+                                Connect wallet
+                            </GradientButton>}
                         </div>
                     )}
                 </div>
@@ -576,6 +647,136 @@ const Swap = () => {
                         <BorderGradientButton customCss={`w-full bg-[#000711] z-10`}>{SwapModalData.MainButtonsText.AnalysePair}</BorderGradientButton>
                     </div>
                 )} */}
+                {isModalOpen ? <div className="fixed inset-0  bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="p-6 pb-16 w-11/12 sm:max-w-[40rem] bg-gray-800 mt-10 rounded-lg shadow-lg text-white  mx-auto relative">
+                        <button
+                            className="absolute top-5 right-10 text-gray-400 hover:text-gray-300"
+                            onClick={() => setIsModalOpen(false)}
+                        >
+                            &times;
+                        </button>
+
+                        <h2 className="text-xl font-semibold mb-4">Swap Details</h2>
+                        <p className="text-gray-400 mb-6">
+                            You can swap directly without depositing, because you have sufficient balance in the Swap pool.
+                        </p>
+
+                        <div className='flex flex-col gap-y-6'>
+                            <div className='flex gap-x-4 '>
+                                <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+                                <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900  w-full'>
+                                    <div className='flex justify-between  w-full'>
+                                        <div className='flex gap-x-4'>
+                                            <span>1.</span>
+                                            <span>Approve <span>{PayCoin.ShortForm}</span></span>
+                                        </div>
+                                        <div onClick={() => setSubModel(1)}>
+                                            {subModel == 1 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                                        </div>
+                                    </div>
+                                    <div className={` ${subModel == 1 ? "flex flex-col" : 'hidden'}`} >
+                                        <hr className=' border-gray-500' />
+                                        <div className='flex gap-x-2 justify-between w-full font-extralight text-sm pr-2'>
+                                            <span>Amount</span>
+                                            <span>{CoinAmount}</span>
+                                        </div>
+                                        <div className='flex justify-between w-full font-extralight text-sm'>
+                                            <span >canisterId</span>
+                                            <span>{PayCoin.CanisterId}</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div className='flex gap-x-4 '>
+                                <div className='flex justify-center items-center'>{ approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+                                <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900  w-full'>
+                                    <div className='flex justify-between  w-full'>
+                                        <div className='flex gap-x-4'>
+                                            <span>2.</span>
+                                            <span>Deposite <span>{PayCoin.ShortForm}</span></span>
+                                        </div>
+                                        <div onClick={() => setSubModel(2)}>
+                                            {subModel == 2 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                                        </div>
+                                    </div>
+                                    <div className={` ${subModel == 2 ? "flex flex-col" : 'hidden'}`}>
+                                        <hr className=' border-gray-500' />
+                                        <div className='flex gap-x-2 justify-between w-full font-extralight text-sm pr-2'>
+                                            <span>Amount</span>
+                                            <span>{CoinAmount}</span>
+                                        </div>
+                                        <div className='flex justify-between w-full font-extralight text-sm'>
+                                            <span >canisterId</span>
+                                            <span>{PayCoin.CanisterId}</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <div className='flex gap-x-4 '>
+                                <div className='flex justify-center items-center'>{swapSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+                                <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900 w-full'>
+                                    <div className='flex justify-between  w-full'>
+                                        <div className='flex gap-x-4'>
+                                            <span>3.</span>
+                                            <span>swap <span>{PayCoin.ShortForm}</span> to <span>{RecieveCoin.ShortForm}</span></span>
+                                        </div>
+                                        <div onClick={() => setSubModel(3)}>
+                                            {subModel == 3 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                                        </div>
+                                    </div>
+                                    <div className={` ${subModel == 3 ? "flex flex-col" : 'hidden'}`}>
+                                        <hr className=' border-gray-500' />
+                                        <div className='flex gap-x-2 justify-between w-full font-extralight text-sm pr-2'>
+                                            <span>{PayCoin.ShortForm}</span>
+                                            <span className='flex gap-x-2 justify-center items-center'><img src={PayCoin.ImagePath} alt="" className='w-4 h-4' /> {CoinAmount}</span>
+                                        </div>
+                                        <div className='flex justify-between w-full font-extralight text-sm'>
+                                            <span >{RecieveCoin.ShortForm}</span>
+                                            <span className='flex gap-x-2 justify-center items-center'><img src={RecieveCoin.ImagePath} alt="" className='w-4 h-4' /> 44</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            {/* withdraw */}
+                            <div className='flex gap-x-4 '>
+                                <div className='flex justify-center items-center'>{swapSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+                                <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600  bg-gray-900 w-full'>
+                                    <div className='flex justify-between  w-full'>
+                                        <div className='flex gap-x-4'>
+                                            <span>3.</span>
+                                            <span>withdraw  <span>{RecieveCoin.ShortForm}</span></span>
+                                        </div>
+                                        <div onClick={() => setSubModel(3)}>
+                                            {subModel == 3 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                                        </div>
+                                    </div>
+                                    <div className={` ${subModel == 3 ? "flex flex-col" : 'hidden'}`}>
+                                        <hr className=' border-gray-500' />
+
+                                        <div className='flex justify-between w-full font-extralight text-sm'>
+                                            <span >{RecieveCoin.ShortForm}</span>
+                                            <span className='flex gap-x-2 justify-center items-center'><img src={RecieveCoin.ImagePath} alt="" className='w-4 h-4' /> 44</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+
+
+
+                    </div>
+                </div> : ""}
             </div>
         </div>
     );

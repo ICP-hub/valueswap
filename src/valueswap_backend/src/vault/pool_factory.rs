@@ -496,7 +496,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
     let result: Result<(), String> = call(
         canister_id,
         "swap",
-        (api::caller(),params , amount),
+        (api::caller(),params.clone() , amount),
     )
     .await
     .map_err(|e| format!("Failed to perform swap: {:?}", e));
@@ -505,6 +505,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
         return Err(e);
     }
 
+    // deposit_tokens(params.token_amount.clone(), params.ledger_canister_id2.clone(), canister_id.clone()).await?;
     Ok(())
 }
 

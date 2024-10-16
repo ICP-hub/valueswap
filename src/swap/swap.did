@@ -11,15 +11,18 @@ type Pool_Data = record {
   swap_fee : float64;
 };
 type Result = variant { Ok; Err : text };
+type Result_1 = variant { Ok : nat; Err : text };
 type SwapParams = record {
   token_amount : nat64;
+  ledger_canister_id2 : principal;
   token2_name : text;
+  ledger_canister_id : principal;
   token1_name : text;
 };
 service : {
   add_liquidity_to_pool : (principal, Pool_Data) -> (Result);
   function : () -> (text) query;
-  icrc1_transfer : (principal, principal, nat) -> (Result);
+  icrc1_transfer : (principal, principal, nat64) -> (Result_1);
   store_pool_data : (principal, Pool_Data) -> (Result);
-  swap : (SwapParams, principal, float64) -> (Result);
+  swap : (principal, SwapParams, float64) -> (Result);
 }
