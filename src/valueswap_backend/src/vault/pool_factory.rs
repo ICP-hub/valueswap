@@ -94,13 +94,15 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
 
                 for amount in params.pool_data.iter() {
                     // Deposit tokens to the newly created canister
-                    deposit_tokens(amount.balance.clone(), amount.ledger_canister_id.clone(), canister_id ).await?;
+                    deposit_tokens(amount.balance.clone() , amount.ledger_canister_id.clone() , canister_id ).await?;
+
                     // Deposit tokens when testing with static canister id
                     // deposit_tokens(amount.balance.clone(), canister_id).await?;
                 }
 
                 Ok(())
             }
+
             Err(( err_string)) => Err(format!("Error creating canister: {}", err_string)),
         }
     }
@@ -170,6 +172,7 @@ pub async fn create() -> Result<Principal, String> {
     let canister_id = canister_id_record.canister_id;
 
     let _add_cycles: Result<(), String> =
+
         match deposit_cycles(canister_id_record, 200_000_000_000).await {
             Ok(_) => Ok(()),
             Err((_, err_string)) => {
@@ -480,6 +483,10 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
         Some(id) => id,
         None => return Err("No canister ID found for the pool".to_string()),
     };
+    ic_cdk::println!("swap pool canister's canister_id {:}",canister_id.clone());
+
+    // let amount_as_u64 = amount as u64;
+    // deposit_tokens(amount_as_u64.clone(), ledger_canister_id, canister_id.clone());
 
     // let user_principal_id = api::caller();
 

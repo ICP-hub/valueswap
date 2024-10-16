@@ -132,46 +132,56 @@ async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -
      return Err("Token transfer failed.".to_string());
     }   
 
+    let token_amount_as_u64 = params.token_amount.clone();
+    let token_amount_nat = Nat::from(token_amount_as_u64);
+
+    // let transfer_result2 = icrc1_transfer(user_principal, token_canister_id, token_amount_nat);
+    // if let Err(e) = transfer_result {
+    //     ic_cdk::println!("Transfer failed : {:?}", e);
+    //     return Err("Token transfer failed to pool canister".to_string());
+    // }
+
     // Fetch user pool data
-    // let pool_data = POOL_DATA.with(|pool_data| {
-    //     pool_data.borrow().get(&user_principal).cloned()
-    // });
+    let pool_data = POOL_DATA.with(|pool_data| {
+        pool_data.borrow().get(&user_principal).cloned()
+    });
 
-    // if pool_data.is_none() {
-    //     return Err("User has no pool data".to_string());
-    // }
+    if pool_data.is_none() {
+        return Err("User has no pool data".to_string());
+    }
 
-    // let mut user_pool_data = pool_data.unwrap();
+    let mut user_pool_data = pool_data.unwrap();
 
-    // // Check if user has enough balance and liquidity
-    // let mut has_sufficient_balance = false;
-    // let mut has_sufficient_liquidity = false;
+    // Check if user has enough balance and liquidity  
+    let mut has_sufficient_balance = false;
+    let mut has_sufficient_liquidity = false;
 
-    // for pool in &mut user_pool_data {
-    //     for token in &mut pool.pool_data {
-    //         if token.token_name == params.token1_name && token.balance >= params.token_amount {
-    //             has_sufficient_balance = true;
-    //             token.balance -= params.token_amount;
-    //         }
-    //         if token.token_name == params.token2_name {
-    //             has_sufficient_liquidity = true;
-    //             token.balance += params.token_amount;
-    //         }
-    //     }
-    // }
+    for pool in &mut user_pool_data {
+        for token in &mut pool.pool_data {
+            if token.token_name == params.token1_name && token.balance >= params.token_amount {
+                has_sufficient_balance = true;
+                token.balance -= params.token_amount;
+            }
+            if token.token_name == params.token2_name {
+                has_sufficient_liquidity = true;
+                token.balance += params.token_amount;
+            }
+        }
+    }
 
-    // if !has_sufficient_balance {
-    //     return Err("Insufficient balance".to_string());
-    // }
+    if !has_sufficient_balance {
+        return Err("Insufficient balance".to_string());
+    }
 
-    // if !has_sufficient_liquidity {
-    //     return Err("Insufficient liquidity".to_string());
-    // }
+    if !has_sufficient_liquidity {
+        return Err("Insufficient liquidity".to_string());
+    }
 
-    // // Update the pool data
-    // POOL_DATA.with(|pool_data| {
-    //     pool_data.borrow_mut().insert(user_principal, user_pool_data);
-    // });
+    // Update the pool data
+    POOL_DATA.with(|pool_data| {
+        pool_data.borrow_mut().insert(user_principal, user_pool_data);
+    });
+
 
     Ok(()) 
 }
