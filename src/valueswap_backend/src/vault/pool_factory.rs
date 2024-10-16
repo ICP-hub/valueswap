@@ -3,6 +3,7 @@ use candid::{CandidType, Nat, Principal};
 use ic_cdk::api::management_canister::bitcoin::BitcoinNetwork;
 use ic_cdk_macros::*;
 use serde::de::value;
+use core::panic;
 use std::cell::RefCell;
 use std::cmp;
 use std::collections::{BTreeMap, HashMap};
@@ -46,7 +47,6 @@ fn prevent_anonymous() -> Result<(), String> {
 #[update(guard = prevent_anonymous)]
 async fn create_pools(params: Pool_Data) -> Result<(), String> {
     let principal_id = api::caller();
-
     let pool_name = params
         .pool_data
         .iter() 
@@ -69,15 +69,16 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
         increase_lp_tokens(params.clone());
         for amount in params.pool_data.iter() {
             // Deposit tokens to the newly created canister
-            deposit_tokens(amount.balance.clone(), canister_id.principal , amount.ledger_canister_id.clone()).await?;
+            // ic_cdk::println!("canister_id.principal{:}",canister_id.principal);
+            deposit_tokens(amount.balance.clone(), amount.ledger_canister_id.clone(), canister_id.principal).await?;
             // Deposit tokens when testing with static canister id
             // deposit_tokens(amount.balance.clone(), canister_id).await?;
         }
         Ok(())
     } else {
-        match create_canister(CreateCanisterArgument { settings: None }).await {
-            Ok((canister_id_record,)) => {
-                let canister_id = canister_id_record.canister_id;
+        match create().await {
+            Ok(canister_id_record) => {
+                let canister_id = canister_id_record;
                 with_state(|pool| {
                     pool.TOKEN_POOLS.insert(
                         pool_name.clone(),
@@ -88,19 +89,21 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
                 });
 
                 store_pool_data_curr(params.clone());
-                store_pool_data(params.clone(), canister_id_record.canister_id).await?;
+                store_pool_data(params.clone(), canister_id_record).await?;
                 increase_lp_tokens(params.clone());
 
                 for amount in params.pool_data.iter() {
                     // Deposit tokens to the newly created canister
                     deposit_tokens(amount.balance.clone() , amount.ledger_canister_id.clone() , canister_id ).await?;
+
                     // Deposit tokens when testing with static canister id
                     // deposit_tokens(amount.balance.clone(), canister_id).await?;
                 }
 
                 Ok(())
             }
-            Err((_, err_string)) => Err(format!("Error creating canister: {}", err_string)), 
+
+            Err(( err_string)) => Err(format!("Error creating canister: {}", err_string)),
         }
     }
 }
@@ -112,7 +115,7 @@ async fn create_canister(arg: CreateCanisterArgument) -> CallResult<(CanisterIdR
         settings: arg.settings,
         sender_canister_version: Some(canister_version()),
     };
-    let cycles: u128 = 100_000_000_000;
+    let cycles: u128 = 200_000_000_000;
 
     call_with_payment128(
         Principal::management_canister(),
@@ -155,7 +158,7 @@ async fn install_code(arg: InstallCodeArgument) -> CallResult<()> {
 }
 
 #[update]
-pub async fn create() -> Result<String, String> {
+pub async fn create() -> Result<Principal, String> {
     let arg = CreateCanisterArgument { settings: None };
 
     let (canister_id_record,) = match create_canister(arg).await {
@@ -169,7 +172,8 @@ pub async fn create() -> Result<String, String> {
     let canister_id = canister_id_record.canister_id;
 
     let _add_cycles: Result<(), String> =
-        match deposit_cycles(canister_id_record, 2_000_000_000).await {
+
+        match deposit_cycles(canister_id_record, 200_000_000_000).await {
             Ok(_) => Ok(()),
             Err((_, err_string)) => {
                 ic_cdk::println!("Error in depositing cycles: {}", err_string);
@@ -180,20 +184,41 @@ pub async fn create() -> Result<String, String> {
     let arg1 = InstallCodeArgument {
         mode: CanisterInstallMode::Install,
         canister_id,
-        wasm_module: vec![], // Placeholder, should be the actual WASM module bytes if needed
+        wasm_module: vec![],
         arg: Vec::new(),
     };
 
     let _install_code: Result<(), String> = match install_code(arg1).await {
         Ok(_) => Ok(()),
         Err((_, err_string)) => {
-            ic_cdk::println!("Error in installing code: {}", err_string);
-            return Err(format!("Error: {}", err_string));
+            // ic_cdk::println!("Error in installing code: {}", err_string);
+            panic!("Not able to install code");
+            // return Err(format!("Error: {}", err_string));
         }
     };
 
     ic_cdk::println!("Canister ID: {:?}", canister_id.to_string());
-    Ok(format!("Canister ID: {}", canister_id.to_string()))
+    Ok(canister_id)
+}
+
+
+
+#[update]
+async fn install_wasm_on_new_canister(canister_id: Principal) -> Result<(), String> {
+    let install_code_args = InstallCodeArgument {
+        mode: CanisterInstallMode::Install,
+        canister_id: canister_id,
+        wasm_module: include_bytes!("../../../../.dfx/ic/canisters/swap/swap.wasm").to_vec(),
+        arg: vec![],  // Optional: Arguments for the canister init method
+    };
+
+    let result: Result<(), (ic_cdk::api::call::RejectionCode, String)> =
+        call(Principal::management_canister(), "install_code", (install_code_args,)).await;
+
+    match result {
+        Ok(_) => Ok(()),
+        Err((_, err_msg)) => Err(err_msg),
+    }
 }
 
 // update to store all pool data
@@ -426,6 +451,17 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<()
     Ok(())
 }
 
+#[query]
+fn get_pool_canister_id(token1 : String , token2 : String) -> Option<Principal>{
+    let mut pool_name =format!("{}{}",token1,token2);
+    let canister_id = with_state(|pool| {
+        let mut pool_borrowed = &mut pool.TOKEN_POOLS;
+        // Extract the principal if available
+        pool_borrowed.get(&pool_name).map(|user_principal| user_principal.principal)
+    });
+    canister_id
+}
+
 #[update]
 async fn compute_swap(params: SwapParams) -> Result<(), String> {
     let (pool_name, _) = pre_compute_swap(params.clone());
@@ -452,6 +488,10 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
     // let amount_as_u64 = amount as u64;
     // deposit_tokens(amount_as_u64.clone(), ledger_canister_id, canister_id.clone());
 
+    // let user_principal_id = api::caller();
+
+    deposit_tokens(params.token_amount.clone(), params.ledger_canister_id.clone(), canister_id.clone()).await?;
+    // ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
     // Proceed with the call using the extracted principal
     let result: Result<(), String> = call(
         canister_id,
@@ -475,3 +515,4 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
 // if (data.swap_fee - params.swap_fee).abs() > f64::EPSILON {
 //     continue;
 // }
+

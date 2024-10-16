@@ -236,9 +236,12 @@ pub(crate) struct CreateCanisterArgumentExtended {
 // }
 
 
-#[derive(CandidType,Serialize, Deserialize ,Clone)]
+
+#[derive(CandidType, Deserialize ,Serialize, Clone)]
+
 pub struct SwapParams {
     pub token1_name : String,
     pub token_amount : u64,
     pub token2_name : String,
+    pub ledger_canister_id : Principal
 }

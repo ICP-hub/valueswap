@@ -16,8 +16,9 @@ pub async fn deposit_tokens(amount: u64, ledger_canister_id: Principal , target_
     let target_canister = target_canister_id;
     ic_cdk::println!("Target canister principal for deposit {}", target_canister);
 
-    let amount_nat = Nat::from(amount);
-    ic_cdk::println!("The token amount is {:}", amount_nat.clone());
+//     ic_cdk::println!("amount{:}", amount.clone());
+    let amount_nat = Nat::from(amount * 100000000);
+//     ic_cdk::println!("amount_nat{:}", amount_nat.clone());
     transfer_from(
         ledger_canister_id,
         user_principal,
@@ -26,6 +27,7 @@ pub async fn deposit_tokens(amount: u64, ledger_canister_id: Principal , target_
     )
     .await
 }
+
 
 // to get exchange rates
 #[ic_cdk::update]
@@ -96,6 +98,7 @@ pub async fn get_exchange_rates() -> Result<(f64, u64), String>  {
 //     )
 //     .await
 // }
+
 
 // the function above is just an sample function, deposit function will use validation logic, reserve logic and other checks according to aave
 pub async fn transfer_from(

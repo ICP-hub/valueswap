@@ -10,7 +10,7 @@ const Hero = ({ setClickConnectWallet }) => {
 
     const navigate = useNavigate();
     // const {isConnected} = useSelector(state => state.wallet)
-    const {isAuthenticated}   = useAuth()
+    const {isAuthenticated, logout}   = useAuth()
 
     return (
 
@@ -39,7 +39,7 @@ const Hero = ({ setClickConnectWallet }) => {
                         </GradientButton>
                     </div>
                     <div onClick={() => {
-                        setClickConnectWallet(true)
+                     isAuthenticated ? logout() : setClickConnectWallet(true)
                     }}>
                         <BorderGradientButton customCss={`bg-[#000711] z-10`}>
                             {isAuthenticated ? (

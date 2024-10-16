@@ -112,7 +112,7 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
 
 
 #[update]
-async fn swap(params: SwapParams , user_principal : Principal , amount : f64) -> Result<(), String> {
+async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -> Result<(), String> {
     // pool canister id
     let token_canister_id = ic_cdk::api::id();
 
@@ -218,5 +218,10 @@ async fn swap(params: SwapParams , user_principal : Principal , amount : f64) ->
 //         return Ok(swap_amount);
 //     }
 // }
+
+#[query]
+fn function() -> String{
+    "hello".to_string()
+}
 
 export_candid!();

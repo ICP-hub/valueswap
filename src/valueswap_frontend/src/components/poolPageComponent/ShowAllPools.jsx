@@ -126,7 +126,7 @@ const ShowAllPools = () => {
     <div className='max-w-[1200px] mx-auto h-screen relative'>
       {/* search box */}
       <div className="flex justify-end items-center">
-        <div className="relative w-full max-w-lg">
+        <div className="relative w-full max-w-[17rem]">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 104 10.5a6.5 6.5 0 0013 0z"></path>
@@ -136,7 +136,7 @@ const ShowAllPools = () => {
           <input
             type="text"
             placeholder="Search..."
-            className="w-full py-3 pl-10 pr-4 bg-transparent rounded-lg shadow-inner  text-gray-400 placeholder-gray-400 border border-transparent border-blue-300 hover:border-blue-400 focus:ring-2 transition duration-200 ease-in-out"
+            className="w-full py-2 pl-10 pr-4 bg-transparent rounded-lg shadow-inner  text-gray-400 placeholder-gray-400 border border-transparent border-blue-300  ring-2 transition duration-200 ease-in-out"
             value={filterData}
             onChange={(e) => setFilterData(e.target.value)}
           />

@@ -21,33 +21,31 @@ const InitialLiquidity = () => {
   const [ButtonActive, SetButtonActive] = useState(false);
   const [AmountSelectCheck, setAmountSelectCheck] = useState(false);
   const [tokenApiDetails, setTokenApiDetails] = useState()
- 
-  const { Tokens, Confirmation } = useSelector((state) => state.pool);
 
+  const { Tokens, Confirmation } = useSelector((state) => state.pool);
+  const { backendActor, isAuthenticated } = useAuth();
   const initialTokenRef = useRef(null);
   const restTokensRefs = useRef([]);
- 
+
   useEffect(() => {
-    if(Tokens.length <= 0){
-        return;
+    if (Tokens.length <= 0) {
+      return;
     }
     const fetchSelectedToken = async () => {
-        const fetchedSelectedToken = await Promise.all(
-            Tokens?.map(async (list, index) => {
-              let name = list.id.toLowerCase()
-              const tokenDetail = await searchCoinGeckoById(name)
-              console.log("get val", tokenDetail)
+      const fetchedSelectedToken = await Promise.all(
+        Tokens?.map(async (list, index) => {
+          let name = list.id.toLowerCase()
+          const tokenDetail = await searchCoinGeckoById(name)
 
-                return {
-                    tokenDetail
-                }
-            })
-        )
-        setTokenApiDetails(fetchedSelectedToken)
+          return {
+            tokenDetail
+          }
+        })
+      )
+      setTokenApiDetails(fetchedSelectedToken)
     }
     fetchSelectedToken()
-}, [])
-console.log("tokenApiDetails", tokenApiDetails)
+  }, [])
 
 
   useEffect(() => {
@@ -75,7 +73,7 @@ console.log("tokenApiDetails", tokenApiDetails)
     const fetchInitialTokenBalance = async () => {
       if (tokenActor && principal) {
         const balance = await tokenActor.icrc1_balance_of({ owner: principal, subaccount: [] });
-        setInitialTokenBalance(parseFloat(Number(balance)/100000000));
+        setInitialTokenBalance(parseFloat(Number(balance) / 100000000));
       }
     };
     fetchInitialTokenBalance();
@@ -85,9 +83,9 @@ console.log("tokenApiDetails", tokenApiDetails)
     if (Tokens.length > 1) {
       const balances = await Promise.all(
         Tokens.slice(1).map(async (token) => {
-           const balance = await getBalance(token.CanisterId)
-       
-          return parseFloat(Number(balance)/ 100000000);
+          const balance = await getBalance(token.CanisterId)
+
+          return parseFloat(Number(balance) / 100000000);
         })
       );
       setRestTokensBalances(balances);
@@ -132,63 +130,134 @@ console.log("tokenApiDetails", tokenApiDetails)
   const RestTokens = Tokens.slice(1);
 
 
-
-// token Approval function
-const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
-  try {
-    const metaData = await tokenActor.icrc1_metadata();
-    const decimals = Number(metaData[0]?.[1].Nat);
-    const fee = Number(metaData[3]?.[1].Nat);
-    const amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
-    const balance = await getBalance(canisterId);
-
-    if (balance >= amount + fee) {
-      const transaction = {
-        amount: amount,  // Amount to approve (not including fee)
-        from_subaccount: [],  // Optional, if you're using subaccounts
-        spender: {
-          owner: Principal.fromText(backendCanisterID),  // Canister actor's principal
-          subaccount: [],  // Optional subaccount for the spender, if any
-        },
-        fee: [],  // Fee is optional here because it's applied during the transfer, not approval
-        memo: [],  // Optional memo
-        created_at_time: [],  // Optional timestamp
-        expected_allowance: [],  // Optional expected allowance
-        expires_at: [],  // Optional expiration time for the approval
-      };
-
-      const response = await tokenActor.icrc2_approve(transaction);
-
-      if (response?.Err) {
-        console.error("Approval error:", response.Err);
-        return;
-      } else {
-        console.log("Approval successful:", response.Ok);
-        // After approval, you can proceed with the transfer flow if needed.
-      }
-    } else {
-      console.error("Insufficient balance:", balance, "required:", amount + fee);
-    }
-  } catch (error) {
-    console.error("Error in transferApprove:", error);
-  }
-};
-
-
-
-  const handleCreatePoolClick = async (backendCanisterID) => {
+  // token Approval function
+  const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
     try {
-      for (let i = 0; i < Tokens.length; i++) {
-        const tokenActors = await createTokenActor(Tokens[i].CanisterId)
-        await transferApprove(Tokens[i].Amount, Tokens[i].CanisterId, backendCanisterID, tokenActors);
+      let decimals = null;
+      let fee = null;
+      let amount = null;
+      let balance = null;
+      const metaData = await tokenActor.icrc1_metadata();
+      for (const item of metaData) {
+        if (item[0] === 'icrc1:decimals') {
+          decimals = Number(item[1].Nat); // Assuming decimals is stored as a Nat (BigInt)
+        } else if (item[0] === 'icrc1:fee') {
+          fee = Number(item[1].Nat); // Assuming fee is stored as a Nat (BigInt)
+        }
+      }
+      amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
+      balance = await getBalance(canisterId);
+     
+      
+  
+      console.log("init metaData", metaData);
+      console.log("init decimals", decimals);
+      console.log("init fee", fee);
+      console.log("init amount", amount);
+      console.log("init balance", balance);
+  
+      if (balance >= amount + fee) {
+        const transaction = {
+          amount: amount + fee,  // Approving amount (including fee)
+          from_subaccount: [],  // Optional subaccount
+          spender: {
+            owner: Principal.fromText(backendCanisterID),
+            subaccount: [],  // Optional subaccount for the spender
+          },
+          fee: [],  // Fee is optional, applied during the transfer
+          memo: [],  // Optional memo
+          created_at_time: [],  // Optional timestamp
+          expected_allowance: [],  // Optional expected allowance
+          expires_at: [],  // Optional expiration time
+        };
+  
+        console.log("transaction", transaction);
+  
+        const response = await tokenActor.icrc2_approve(transaction);
+        
+        if (response?.Err) {
+          console.error("Approval error:", response.Err);
+          return { success: false, error: response.Err };
+        } else {
+          console.log("Approval successful:", response);
+          return { success: true, data: response.Ok };
+        }
+      } else {
+        console.error("Insufficient balance:", balance, "required:", amount + fee);
+        return { success: false, error: "Insufficient balance" };
       }
     } catch (error) {
-      console.error("Error creating pool:", error);
+      console.error("Error in transferApprove:", error);
+      return { success: false, error: error.message };
     }
   };
+  
+  
 
+  // handleCreatePoolClick Function
+  const handleCreatePoolClick = async (backendCanisterID) => {
+    try {
+      if (!Tokens || Tokens.length === 0) {
+        console.error("Tokens array is empty or undefined");
+        return { success: false, error: "No tokens to process" };
+      }
+  
+      const approvalResults = [];
+  
+      await Tokens.reduce((promiseChain, tokenData, index) => {
+        return promiseChain.then(async () => {
+          console.log(`Processing token ${index + 1} / ${Tokens.length}:`, tokenData);
+  
+          if (!tokenData.CanisterId || !tokenData.Amount) {
+            const errorMsg = `Invalid token data at index ${index}: ${JSON.stringify(tokenData)}`;
+            console.error(errorMsg);
+            approvalResults.push({ success: false, error: errorMsg, token: tokenData });
+            // Decide whether to continue or reject the chain
+            // return Promise.resolve(); // To continue
+            return Promise.reject({ success: false, error: errorMsg, token: tokenData }); // To exit on error
+          }
+  
+          const tokenActors = await createTokenActor(tokenData.CanisterId);
+  
+          const approvalResult = await transferApprove(
+            tokenData.Amount,
+            tokenData.CanisterId,
+            backendCanisterID,
+            tokenActors
+          );
+  
+          if (!approvalResult.success) {
+            console.error(`Approval failed for token: ${tokenData.CanisterId}`, approvalResult.error);
+            approvalResults.push({ success: false, error: approvalResult.error, token: tokenData });
+            // Decide whether to continue or reject the chain
+            // return Promise.resolve(); // To continue
+            return Promise.reject({ success: false, error: approvalResult.error, token: tokenData }); // To exit on error
+          } else {
+            console.log(`Approval successful for token: ${tokenData.CanisterId}`);
+            approvalResults.push({ success: true, data: approvalResult.data, token: tokenData });
+          }
+        });
+      }, Promise.resolve());
+  
+      const failedApprovals = approvalResults.filter(result => !result.success);
+  
+      if (failedApprovals.length > 0) {
+        console.error("Some token approvals failed:", failedApprovals);
+        return { success: false, error: "Some token approvals failed", details: failedApprovals };
+      }
+  
+      console.log("All tokens approved successfully");
+      return { success: true };
+    } catch (error) {
+      console.error("Error in handleCreatePoolClick:", error);
+      // The error object might be our custom error from reject
+      return error.success !== undefined ? error : { success: false, error: error.message };
+    }
+  };
+  
+  
+  
 
-console.log("NAN", InitialToken.currencyAmount)
 
   return (
     <div className=''>
@@ -238,7 +307,7 @@ console.log("NAN", InitialToken.currencyAmount)
               </span>
             </div>
             <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-             $ {InitialToken.currencyAmount}
+              $ {InitialToken.currencyAmount || 0}
             </span>
           </div>
         </div>
@@ -262,7 +331,7 @@ console.log("NAN", InitialToken.currencyAmount)
                       />
                     </div>
                     <span className='text-sm sm:text-base font-normal'>
-                      Balance: {balance }
+                      Balance: {balance}
                     </span>
                   </div>
                   <div className='flex flex-col justify-center'>
@@ -278,8 +347,8 @@ console.log("NAN", InitialToken.currencyAmount)
                       </span>
                     </div>
                     <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-                    $ {token.currencyAmount}
-                    
+                      $ {token.currencyAmount || 0}
+
                     </span>
                   </div>
                 </div>
@@ -292,7 +361,15 @@ console.log("NAN", InitialToken.currencyAmount)
         <div
           className={`font-cabin text-base font-medium`}
           onClick={() => {
-            if (!ButtonActive) {
+            if(!isAuthenticated){
+              dispatch(showAlert({
+                type: 'danger',
+                text: 'Please login first'
+              }));
+              setTimeout(() => {
+                dispatch(hideAlert());
+              }, [3000]);
+            }else if (!ButtonActive) {
               dispatch(showAlert({
                 type: 'danger',
                 text: 'Please select all the coins'
@@ -328,3 +405,4 @@ console.log("NAN", InitialToken.currencyAmount)
 };
 
 export default InitialLiquidity;
+

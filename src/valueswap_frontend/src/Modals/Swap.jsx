@@ -10,6 +10,9 @@ import { SwapModalData } from '../TextData';
 import { useNavigate } from 'react-router-dom';
 import SwapSetting from './SwapSetting';
 import { useAuth } from '../components/utils/useAuthClient';
+import Approval from './poolCreation/Approval';
+import { useSelector } from 'react-redux';
+import { Principal } from '@dfinity/principal';
 
 const Swap = () => {
     const navigate = useNavigate();
@@ -31,9 +34,9 @@ const Swap = () => {
     const [ClickedSwap, setClickSwap] = useState(false);
     const [payCoinBalance, setPayCoinBalance] = useState(null); // New state for PayCoin balance
     const [recieveCoinBalance, setRecieveCoinBalance] = useState(null); // New state for RecieveCoin balance
-    const { backendActor, principal, getBalance } = useAuth();
+    const { backendActor, principal, getBalance, isAuthenticated, createTokenActor } = useAuth();
 
-
+    const { Tokens, Confirmation, TotalAmount, FeeShare } = useSelector((state) => state.pool);
     useEffect(() => {
         if (PayCoin && RecieveCoin) {
             setBothCoins(true);
@@ -42,12 +45,12 @@ const Swap = () => {
         }
     }, [PayCoin, RecieveCoin]);
 
-
+    console.log("recive coin", RecieveCoin)
     useEffect(() => {
         if (PayCoin) {
             getBalance(PayCoin.CanisterId)
                 .then(balance => {
-                    setPayCoinBalance(Number(balance)/ 100000000);
+                    setPayCoinBalance(Number(balance) / 100000000);
                 })
                 .catch((err) => console.log(err));
             console.log("Balance", payCoinBalance);
@@ -57,8 +60,8 @@ const Swap = () => {
 
     useEffect(() => {
         if (RecieveCoin) {
-            getBalance(RecieveCoin.CanisterId).then(balance => {
-                setRecieveCoinBalance(Number(balance)/ 100000000);
+            getBalance(RecieveCoin?.CanisterId).then(balance => {
+                setRecieveCoinBalance(Number(balance) / 100000000);
             }).catch((err) => console.log(err));;
         }
     }, [RecieveCoin, getBalance]);
@@ -74,10 +77,10 @@ const Swap = () => {
 
     const handleChangeAmount = (e) => {
         let number = e.target.value;
-        if (isNaN(number)) {
-            setCoinAmount(0);
-        } else {
+        if (!isNaN(number) &&  Number(number) >= 0) {
             setCoinAmount(number);
+        } else {
+            setCoinAmount(0);
         }
     };
 
@@ -85,14 +88,129 @@ const Swap = () => {
         setSettings((prev) => !prev);
     };
 
-    const swapHandler = () => {
-        console.log("click on swap", payCoinBalance, PayCoin, RecieveCoin)
+    const swapHandler =  async() => {
+        console.log("click on swap", CoinAmount, PayCoin, RecieveCoin)
         try {
-            backendActor.pre_compute_swap({ token_amount: payCoinBalance, token2_name: PayCoin.ShortForm, token1_name: RecieveCoin.ShortForm }).then(res => console.log(res))
+            let amount = BigInt(CoinAmount);
+            const res = await backendActor.compute_swap({ token_amount: amount, token2_name: RecieveCoin.ShortForm, token1_name: PayCoin.ShortForm })
+            console.log("res of swap", res)
+            if(res.Ok) { 
+                navigate('/dex-swap/transaction-successfull');
+            }
         } catch (error) {
             console.log("Error while calling swap function")
         }
     }
+
+
+
+
+    //approval foe swaping
+
+    const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
+        try {
+          let decimals = null;
+          let fee = null;
+          let amount = null;
+          let balance = null;
+          const metaData = await tokenActor.icrc1_metadata();
+          for (const item of metaData) {
+            if (item[0] === 'icrc1:decimals') {
+              decimals = Number(item[1].Nat); // Assuming decimals is stored as a Nat (BigInt)
+            } else if (item[0] === 'icrc1:fee') {
+              fee = Number(item[1].Nat); // Assuming fee is stored as a Nat (BigInt)
+            }
+          }
+          amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
+          balance = await getBalance(canisterId);
+         
+          
+      
+          console.log("init metaData", metaData);
+          console.log("init decimals", decimals);
+          console.log("init fee", fee);
+          console.log("init amount", amount);
+          console.log("init balance", balance);
+      
+          if (balance >= amount + fee) {
+            const transaction = {
+              amount: amount + fee,  // Approving amount (including fee)
+              from_subaccount: [],  // Optional subaccount
+              spender: {
+                owner: Principal.fromText(backendCanisterID),
+                subaccount: [],  // Optional subaccount for the spender
+              },
+              fee: [],  // Fee is optional, applied during the transfer
+              memo: [],  // Optional memo
+              created_at_time: [],  // Optional timestamp
+              expected_allowance: [],  // Optional expected allowance
+              expires_at: [],  // Optional expiration time
+            };
+      
+            // console.log("transaction", transaction);
+      
+            const response = await tokenActor.icrc2_approve(transaction);
+            
+            if (response?.Err) {
+              console.error("Approval error:", response.Err);
+              return { success: false, error: response.Err };
+            } else {
+              console.log("Approval successful:", response);
+              return { success: true, data: response.Ok };
+            }
+          } else {
+            console.error("Insufficient balance:", balance, "required:", amount + fee);
+            return { success: false, error: "Insufficient balance" };
+          }
+        } catch (error) {
+          console.error("Error in transferApprove:", error);
+          return { success: false, error: error.message };
+        }
+      };
+      
+      
+    
+      // handleCreatePoolClick Function
+      const backendCanisterID = process.env.CANISTER_ID_VALUESWAP_BACKEND;
+      const handleSwapApproval = async (PayCoin, backendCanisterID) => {
+        try {
+          if (!PayCoin) {
+            // console.error("Token data is undefined");
+            return { success: false, error: "No token to process" };
+          }
+      
+          console.log('CanisterId:', PayCoin);
+      
+          if (!PayCoin.CanisterId || !CoinAmount) {
+            const errorMsg = `Invalid token data: ${JSON.stringify(PayCoin)}`;
+            console.error(errorMsg);
+            return { success: false, error: errorMsg, token: PayCoin };
+          }
+      
+          const tokenActor = await createTokenActor(PayCoin.CanisterId);
+        console.log("tokenActor", tokenActor)
+          const approvalResult = await transferApprove(
+            CoinAmount,
+            PayCoin.CanisterId,
+            backendCanisterID,
+            tokenActor
+          );
+      
+          if (!approvalResult.success) {
+            console.error(`Approval failed for token: ${PayCoin.CanisterId}`, approvalResult.error);
+            return { success: false, error: approvalResult.error, token: PayCoin };
+          } else {
+            console.log(`Approval successful for token: ${PayCoin.CanisterId}`);
+            return { success: true, data: approvalResult.data, token: PayCoin };
+          }
+      
+        } catch (error) {
+          console.error("Error in handleCreatePoolClick:", error);
+          // The error object might be our custom error from reject
+          return error.success !== undefined ? error : { success: false, error: error.message };
+        }
+      };
+      
 
     return (
         <div className='px-4 md:px-0'>
@@ -110,14 +228,14 @@ const Swap = () => {
                             </div>
                         </>
                     )}
-                    <div className='mx-auto sm:mx-8 w-full flex justify-between items-center'>
+                    <div className='mx-auto sm:mx-4 w-full flex justify-between items-center'>
                         {PayCoin ? (
                             <div className='flex flex-col font-cabin font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.PaySection.Heading}</span>
                                 <span className='text-3xl md:text-4xl'>
                                     <input
                                         type="number"
-                                        className='bg-transparent w-64 outline-none hide-arrows'
+                                        className='bg-transparent w-64 outline-none hide-arrows w-full'
                                         placeholder='0.0'
                                         value={CoinAmount}
                                         onChange={handleChangeAmount}
@@ -145,12 +263,12 @@ const Swap = () => {
                         <div>
                             {!PayCoin ? (
                                 <div>
-                                    <div className='flex sm:mr-12 items-center gap-2' >
+                                    <div className='flex sm:mr-12 items-center gap-2' onClick={() => {
+                                        setId(1);
+                                        setSearchToken1(!searchToken1);
+                                    }}>
                                         <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
-                                            <div className='flex text-sm sm:text-base items-center gap-1' onClick={() => {
-                                                setId(1);
-                                                setSearchToken1(!searchToken1);
-                                            }}>
+                                            <div className='flex text-sm sm:text-base items-center gap-1' >
                                                 {SwapModalData.PaySection.TokenSelectButtonText}
                                                 <span className='cursor-pointer' >
                                                     <ChevronDown />
@@ -190,7 +308,7 @@ const Swap = () => {
                                         {searchToken1 && <SearchToken setSearchToken={setSearchToken1} setPayToken={setPayCoin} setRecToken={setRecieveCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${CoinAmount ? PayCoin.marketPrice * CoinAmount : 0}
+                                        ${CoinAmount ? (PayCoin.marketPrice * CoinAmount).toFixed(4) : 0}
                                     </span>
                                 </div>
                             )}
@@ -209,11 +327,11 @@ const Swap = () => {
                         </div>
                     </div>
 
-                    <div className='mx-auto sm:mx-8 w-full flex justify-between items-center'>
+                    <div className='mx-auto sm:mx-4 w-full flex justify-between items-center'>
                         {RecieveCoin ? (
                             <div className='flex flex-col font-cabin font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.RecieveSection.Heading}</span>
-                                <span className='text-3xl md:text-4xl'>{CoinAmount ? ((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice).toFixed(4) : 0}</span>
+                                <span className='text-3xl md:text-4xl'>{CoinAmount ? ((PayCoin.marketPrice * CoinAmount) / RecieveCoin?.marketPrice).toFixed(4) : 0}</span>
                                 <span className='text-sm sm:text-base font-normal'>
                                     {SwapModalData.RecieveSection.Balance}: {recieveCoinBalance !== null ? parseFloat(recieveCoinBalance) : 'Loading...'}
                                 </span>
@@ -228,30 +346,34 @@ const Swap = () => {
 
                         <div>
                             {!RecieveCoin ? (
-                                <div className='flex sm:mr-12 items-center place-self-end gap-2' onClick={() => {
-                                    setId(2);
-                                    setSearchToken2(!searchToken2);
-                                }}>
-                                    <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
-                                        <div className='flex text-sm sm:text-base items-center gap-1'
-                                        >
-                                            {SwapModalData.RecieveSection.TokenSelectButtonText}
-                                            <span className='cursor-pointer'>
-                                                <ChevronDown />
-                                            </span>
-                                            {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
-                                        </div>
-                                    </BlueGradientButton>
+                                <div>
+                                    <div className='flex sm:mr-12 items-center place-self-end gap-2' onClick={() => {
+                                        setId(2);
+                                        setSearchToken2(!searchToken2);
+                                    }}>
+                                        <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
+                                            <div className='flex text-sm sm:text-base items-center gap-1'
+                                            >
+                                                {SwapModalData.RecieveSection.TokenSelectButtonText}
+                                                <span className='cursor-pointer'>
+                                                    <ChevronDown />
+                                                </span>
+                                            </div>
+                                        </BlueGradientButton>
+                                    </div>
+                                    <div>
+                                        {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className='flex flex-col gap-1'>
                                     <div className='flex sm:mr-12 items-center place-self-end gap-2'>
                                         <BlueGradientButton customCss={'disabled px-2 py-2 normal-cursor'}>
-                                            <img src={RecieveCoin.ImagePath} alt="" className='h-6 w-6 transform scale-150' />
+                                            <img src={RecieveCoin?.ImagePath} alt="" className='h-6 w-6 transform scale-150' />
                                         </BlueGradientButton>
 
                                         <div className='font-cabin font-normal text-2xl'>
-                                            {RecieveCoin.ShortForm}
+                                            {RecieveCoin?.ShortForm}
                                         </div>
                                         {!searchToken2 ? (
                                             <span className='cursor-pointer' onClick={() => {
@@ -271,7 +393,7 @@ const Swap = () => {
                                         {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${CoinAmount ? ((PayCoin.marketPrice * CoinAmount) / RecieveCoin.marketPrice).toFixed(4) * RecieveCoin.marketPrice : 0}
+                                        ${CoinAmount ? (((PayCoin?.marketPrice * CoinAmount) / RecieveCoin?.marketPrice) * RecieveCoin?.marketPrice).toFixed(4) : 0}
                                     </span>
                                 </div>
                             )}
@@ -334,18 +456,21 @@ const Swap = () => {
                                 )}
                             </div>
 
-                            <div className='w-full'>
-                                {CoinAmount > payCoinBalance ? (
+                            {isAuthenticated ? <div className='w-full'>
+                                {(payCoinBalance <=0 && recieveCoinBalance <=0) || CoinAmount > payCoinBalance ? (
                                     <GradientButton CustomCss={'w-full md:w-full cursor-auto disabled opacity-75 font-extrabold text-3xl'}>
                                         {SwapModalData.MainButtonsText.InsufficientBalance}
                                     </GradientButton>
                                 ) : (
                                     <div className='w-full'>
                                         {ClickedSwap ? (
-                                            <div onClick={() => {
-                                                swapHandler()
-                                                navigate('/dex-swap/transaction-successfull');
+                                            <div onClick={async() => {
+                                              const res = await handleSwapApproval(PayCoin, backendCanisterID)
+                                              if(res.success == true) swapHandler();
+                                                
+                                              
                                             }}>
+                                                {/* <Approval buttonText={'Confirm Swapping'}/> */}
                                                 <GradientButton CustomCss={'w-full md:w-full font-extrabold text-3xl'} >
                                                     {SwapModalData.MainButtonsText.ConfirmSwapping}
                                                 </GradientButton>
@@ -361,12 +486,14 @@ const Swap = () => {
                                         )}
                                     </div>
                                 )}
-                            </div>
+                            </div> :  <GradientButton CustomCss={'w-full md:w-full cursor-auto disabled opacity-75 font-extrabold text-3xl'}>
+                                        Connect wallet
+                                    </GradientButton>}
                         </div>
                     )}
                 </div>
 
-                {bothCoins && !ClickedSwap && (
+                {/* {bothCoins && !ClickedSwap && (
                     <div className='lg:w-4/12 md:w-6/12 flex flex-col gap-4 p-4 mx-auto my-4 rounded-lg'>
                         <div className='flex justify-between'>
                             <div className='flex items-center gap-1 sm:gap-2'>
@@ -448,7 +575,7 @@ const Swap = () => {
 
                         <BorderGradientButton customCss={`w-full bg-[#000711] z-10`}>{SwapModalData.MainButtonsText.AnalysePair}</BorderGradientButton>
                     </div>
-                )}
+                )} */}
             </div>
         </div>
     );

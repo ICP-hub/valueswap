@@ -45,7 +45,8 @@
     "swap": {
       "candid": "src/swap/swap.did",
       "package": "swap",
-      "type": "rust"
+      "type": "rust",
+      "wasm" : "src/valueswap_backend/src/api/swap.wasm"
     },
     "valueswap_frontend": {
       "dependencies": ["valueswap_backend"],
