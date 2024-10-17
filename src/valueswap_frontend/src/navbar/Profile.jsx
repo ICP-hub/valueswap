@@ -7,6 +7,7 @@ import GradientButton from '../buttons/GradientButton';
 import DarkModeToggle from "./DarkModeToggle"
 import onClickOutside from 'react-onclickoutside';
 import { useAuth } from '../components/utils/useAuthClient';
+import { toast } from 'react-toastify';
 
 
 function Profile({ Principal, isAuthenticated, logout, principal }) {
@@ -14,7 +15,7 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
     const [copied, setCopied] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
     const dispatch = useDispatch()
-    const {balance} = useAuth()
+    const { balance } = useAuth()
 
 
 
@@ -29,34 +30,26 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
                 console.error('Unable to copy text to clipboard:', err);
             });
 
-        dispatch(showAlert({
-            type: 'success',
-            text: 'Copied to ClipBoard'
-        }))
-
-        setTimeout(() => {
-            dispatch(hideAlert());
-        }, [3000])
-
+        toast.success('Copied to ClipBoard',{ position: "top-center"})
         setCopied(true);
 
         setTimeout(() => {
             setCopied(false);
         }, 2000)
     };
-   
+
 
 
     Profile.handleClickOutside = () => {
         setShowProfile(false);
     };
 
-     console.log("principal, ", principal)
-   
+    console.log("principal, ", principal)
+
     return (
         <div className='relative '>
             <div className='flex gap-x-4 justify-center'>
-                    <p className='font-medium self-center'>{Principal}</p>
+                <p className='font-medium self-center'>{Principal}</p>
                 {/* <div>
                     <p className='bg-gradient-to-r from-[#F7931A] via-[#767DFF] to-[#00308E] bg-clip-text text-transparent'>2.2501 ETH</p>
                 </div> */}
@@ -126,7 +119,7 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
                 <hr />
                 <div className='flex justify-center gap-x-4'>
                     <img src="./image/disconnect.png" alt="disconnect logo" />
-                    <button className='text-base font-cabin font-medium' onClick={()=> logout()}>
+                    <button className='text-base font-cabin font-medium' onClick={() => logout()}>
                         Disconnect Wallet
                     </button>
                 </div>

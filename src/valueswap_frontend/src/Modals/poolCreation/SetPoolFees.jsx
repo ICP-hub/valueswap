@@ -6,6 +6,7 @@ import { showAlert, hideAlert } from '../../reducer/Alert';
 import { useDispatch } from 'react-redux';
 import { SetFeeShare } from '../../reducer/PoolCreation';
 import BorderGradientButton from '../../buttons/BorderGradientButton';
+import { toast } from 'react-toastify';
 
 const SetPoolFees = ({ handleNext, setFixedActiveSetp }) => {
 
@@ -87,6 +88,7 @@ const SetPoolFees = ({ handleNext, setFixedActiveSetp }) => {
                             </div>
                         );
                     })}
+                    
                 </div>
 
                 <div
@@ -94,14 +96,7 @@ const SetPoolFees = ({ handleNext, setFixedActiveSetp }) => {
                     onClick={() => {
 
                         if (!ButtonActive) {
-                            dispatch(showAlert({
-                                type: 'danger',
-                                text: 'Please select a fee tier.'
-                            }))
-
-                            setTimeout(() => {
-                                dispatch(hideAlert());
-                            }, [3000])
+                            toast.warn('Please select a fee tier.')
                         } else {
                             setFixedActiveSetp(2)
                             handleNext()

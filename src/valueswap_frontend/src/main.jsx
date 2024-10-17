@@ -16,7 +16,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <PrimeReactProvider>
     <AuthProvider>
       <App />
-     <ToastContainer/>
+     <ToastContainer hideProgressBar={true} stacked theme="dark"/>
     </AuthProvider>
   </PrimeReactProvider>
   </Provider>,

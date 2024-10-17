@@ -32,7 +32,6 @@ const Swap = () => {
     const [recieveCoinBalance, setRecieveCoinBalance] = useState(null); // New state for RecieveCoin balance
     const { backendActor, principal, getBalance, isAuthenticated, createTokenActor } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
-    const [modalSteps, setModalSteps] = useState([]);
     const [approvalSuccess, setApprovalSuccess] = useState(false);
     const [swapSuccess, setSwapSuccess] = useState(false);
     const [subModel, setSubModel] = useState(0)

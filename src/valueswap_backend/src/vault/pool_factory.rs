@@ -93,7 +93,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
                 store_pool_data_curr(params.clone());
                 store_pool_data(params.clone(), canister_id_record).await?;
 
-                increase_lp_tokens(params.clone());
+                increase_pool_lp_tokens(params.clone());
 
                 for amount in params.pool_data.iter() {
                     // Deposit tokens to the newly created canister

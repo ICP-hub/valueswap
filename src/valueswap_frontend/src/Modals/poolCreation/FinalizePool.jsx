@@ -6,7 +6,10 @@ import { toggleConfirm } from '../../reducer/PoolCreation';
 import GradientButton from '../../buttons/GradientButton';
 import { useAuth } from '../../components/utils/useAuthClient';
 import { Principal } from '@dfinity/principal';
-
+import CircularProgress from '@mui/material/CircularProgress';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 const FinalizePool = ({ handleCreatePoolClick }) => {
   const { Tokens, Confirmation, TotalAmount, FeeShare } = useSelector((state) => state.pool);
   const dispatch = useDispatch();
@@ -14,7 +17,10 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
   const [poolCreated, setPoolCreated] = useState(false);
   const [final, setFinal] = useState(false);
   const [selectedTokenDetails, setSelectedTokenDetails] = useState();
-  const [poolData, setPoolData] = useState(null)
+  // const [poolData, setPoolData] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [approvalSuccess, setApprovalSuccess] = useState(false);
+  const [subModel, setSubModel] = useState(0);
   useEffect(() => {
     if (confirmPool && poolCreated) {
       setFinal(true);
@@ -122,19 +128,19 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
     });
 
     // Wait for all token processing to complete
-  
+
     return Promise.allSettled(pool_data)
-      .then(async(results) => {
+      .then(async (results) => {
         let validPoolData = [];
-        results.map((data, i) => 
-          validPoolData.push({ weight: data.value.weight, balance: data.value.balance, value: data.value.value, image: data.value.image, token_name: data.value.token_name, ledger_canister_id: data.value.ledger_canister_id})
+        results.map((data, i) =>
+          validPoolData.push({ weight: data.value.weight, balance: data.value.balance, value: data.value.value, image: data.value.image, token_name: data.value.token_name, ledger_canister_id: data.value.ledger_canister_id })
         )
         console.log("Pool data after processing tokens:", results.length);
 
 
         console.log("Valid pool data:", validPoolData);
 
-        if (validPoolData?.length !==  results.length) {
+        if (validPoolData?.length !== results.length) {
           const errorMsg = "Error processing tokens. Aborting pool creation.";
           console.log(validPoolData?.length, results.length)
           console.error(errorMsg);
@@ -170,7 +176,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
         }
 
         // Call the backend to create the pool
-         return backendActor.create_pools(poolDetails)
+        return backendActor.create_pools(poolDetails)
           .then((result) => {
             console.log("Backend response:", result);
 
@@ -198,6 +204,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
 
 
   const finalPoolCreationghanlder = () => {
+    setIsModalOpen(true)
     const backendCanisterID = process.env.CANISTER_ID_VALUESWAP_BACKEND;
     console.log("Backend Canister ID:", backendCanisterID);
 
@@ -209,7 +216,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
 
         if (poolClickResult.success) {
           console.log("Starting createPoolHandler");
-
+          setApprovalSuccess(true)
           // Call createPoolHandler and chain the Promise
           return createPoolHandler()
             .then(createPoolResult => {
@@ -373,8 +380,101 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
           </div>
         </div>
       </div>
+
+      {/*steps confirmation model */}
+      {isModalOpen ? <div className="fixed inset-0  bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="p-6 pb-16  xl:w-5/12 lg:w-6/12 md:w-7/12 sm:w-8/12 w-11/12 bg-gray-800 mt-10 rounded-lg shadow-lg text-white  mx-auto relative">
+          <button
+            className="absolute top-5 right-10 text-gray-400 hover:text-gray-300"
+            onClick={() => setIsModalOpen(false)}
+          >
+            &times;
+          </button>
+
+          <h2 className="text-xl font-semibold mb-4">pool creation Details</h2>
+          {/* <p className="text-gray-400 mb-6">
+            You can swap directly without depositing, because you have sufficient balance in the Swap pool.
+          </p> */}
+
+          <div className='flex flex-col gap-y-6'>
+            <div className='flex gap-x-4 '>
+              <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+              <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900  w-full'>
+                <div className='flex justify-between  w-full'>
+                  <div className='flex gap-x-4'>
+                    <span>1.</span>
+                    <span>Approve</span>
+                  </div>
+                  <div onClick={() => setSubModel(1)}>
+                    {subModel == 1 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                  </div>
+                </div>
+                {Tokens.map((token) => <div className={` ${subModel == 1 ? "flex flex-col" : 'hidden'}`} >
+                  <hr className=' border-gray-500' />
+                  <div className='flex gap-x-2 justify-between w-full font-extralight text-sm pr-2'>
+                    <span>Amount</span>
+                    <span>{token.Amount}</span>
+                  </div>
+                  <div className='flex justify-between w-full font-extralight text-sm'>
+                    <span >canisterId</span>
+                    <span>{token.CanisterId}</span>
+                  </div>
+                </div>)}
+
+              </div>
+            </div>
+
+            <div className='flex gap-x-4 '>
+              <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+              <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900  w-full'>
+                <div className='flex justify-between  w-full'>
+                  <div className='flex gap-x-4'>
+                    <span>2.</span>
+                    <span>Deposite </span>
+                  </div>
+                  <div onClick={() => setSubModel(2)}>
+                    {subModel == 2 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                  </div>
+                </div>
+                {Tokens.map((token) => <div className={` ${subModel == 2 ? "flex flex-col" : 'hidden'}`} >
+                  <hr className=' border-gray-500' />
+                  <div className='flex gap-x-2 justify-between w-full font-extralight text-sm pr-2'>
+                    <span>Amount</span>
+                    <span>{token.Amount}</span>
+                  </div>
+                  <div className='flex justify-between w-full font-extralight text-sm'>
+                    <span >canisterId</span>
+                    <span>{token.CanisterId}</span>
+                  </div>
+                </div>)}
+
+              </div>
+            </div>
+            <div className='flex gap-x-4 '>
+              <div className='flex justify-center items-center'>{confirmPool ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+              <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900 w-full'>
+                <div className='flex justify-between  w-full'>
+                  <div className='flex gap-x-4'>
+                    <span>3.</span>
+                    <span>pool creation completed</span>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+
+
+
+
+          </div>
+        </div>
+      </div> : ""}
     </div>
   );
+
+
 };
 
 export default FinalizePool;

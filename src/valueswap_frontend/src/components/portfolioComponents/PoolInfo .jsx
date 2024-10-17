@@ -5,6 +5,7 @@ import PoolInfoBox from '../../displayBoxes/PoolInfoBox';
 import GradientButton from '../../buttons/GradientButton'
 import { PoolCompositions, Swapping, LiquidityOverview } from '../../tables'
 import Echarts from './Echarts';
+import WithdrawModel from '../../Modals/WithdrawModel';
 
 const PoolInfo = () => {
 
@@ -12,7 +13,7 @@ const PoolInfo = () => {
   const [currIndex, setCurrIndex] = useState(0)
   const [currentRang, setCurrentRange] = useState(0)
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
-
+ const [openWithdraw, setOpenWithdraw] = useState(false)
   useEffect(() => {
     console.log("pool id", id)
   }, [id])
@@ -126,7 +127,7 @@ const PoolInfo = () => {
             <span className='mx-3 text-2xl font-normal leading-6'>${TokenData?.PoolMetaData.PersonalPoolBalance.toLocaleString('en-US')}</span>
           </div>
 
-
+         
           <div className='flex gap-3 md:gap-6 my-4 mx-3 md:mx-10'>
             <div>
               <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
@@ -138,7 +139,7 @@ const PoolInfo = () => {
                 Add Liquidity
               </GradientButton>
             </div>
-            <div>
+            <div onClick={()=> setOpenWithdraw(true)}>
               <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
                 Withdraw
               </GradientButton>
@@ -169,6 +170,7 @@ const PoolInfo = () => {
         </div>
 
       </div>
+      {openWithdraw ? <WithdrawModel setOpenWithdraw={setOpenWithdraw} />: ""}
     </div>
   )
 }

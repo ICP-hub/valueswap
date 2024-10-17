@@ -9,6 +9,7 @@ import { UpdateAmount, toggleConfirm } from '../../reducer/PoolCreation';
 import { useAuth } from '../../components/utils/useAuthClient';
 import { Principal } from '@dfinity/principal';
 import { searchCoinGeckoById } from '../../components/utils/fetchCoinGeckoData';
+import { toast } from 'react-toastify';
 
 const InitialLiquidity = () => {
   const dispatch = useDispatch();
@@ -362,29 +363,11 @@ const InitialLiquidity = () => {
           className={`font-cabin text-base font-medium`}
           onClick={() => {
             if(!isAuthenticated){
-              dispatch(showAlert({
-                type: 'danger',
-                text: 'Please login first'
-              }));
-              setTimeout(() => {
-                dispatch(hideAlert());
-              }, [3000]);
+              toast.warn('Please login first')
             }else if (!ButtonActive) {
-              dispatch(showAlert({
-                type: 'danger',
-                text: 'Please select all the coins'
-              }));
-              setTimeout(() => {
-                dispatch(hideAlert());
-              }, [3000]);
+              toast.warn('Please select all the coins')
             } else if (!AmountSelectCheck) {
-              dispatch(showAlert({
-                type: 'danger',
-                text: 'You do not have enough tokens.'
-              }));
-              setTimeout(() => {
-                dispatch(hideAlert());
-              }, [3000]);
+              toast.warn('You do not have enough tokens.')
             } else {
               console.log("dispatched called");
               dispatch(toggleConfirm({

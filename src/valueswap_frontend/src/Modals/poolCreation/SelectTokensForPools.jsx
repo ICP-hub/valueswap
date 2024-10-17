@@ -6,6 +6,7 @@ import GradientButton from '../../buttons/GradientButton';
 import { showAlert, hideAlert } from '../../reducer/Alert';
 import { useDispatch, useSelector } from 'react-redux';
 import { AddCoin } from '../../reducer/PoolCreation';
+import { toast } from 'react-toastify';
 const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
     
     const dispatch = useDispatch();
@@ -57,17 +58,12 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                         if (CoinCount < 8) {
                             dispatch(AddCoin())
                         } else {
-                            dispatch(showAlert({
-                                type: 'danger',
-                                text: 'No More than 8 coins Allowed in the pool'
-                            }))
-
-                            setTimeout(() => {
-                                dispatch(hideAlert());
-                            }, [3000])
+                            
+                            toast.warn('No More than 8 coins Allowed in the pool')
                         }
                     }}
                 >
+                    
                     <BorderGradientButton customCss={`bg-[#182030] text-xs md:text-light lg:text-base h-[45px] w-[115px] md:w-[140px] `}>
                         Add Token
                     </BorderGradientButton>
@@ -78,14 +74,8 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                     onClick={() => {
 
                         if (!ButtonActive) {
-                            dispatch(showAlert({
-                                type: 'danger',
-                                text: 'Please select all the coins'
-                            }))
-
-                            setTimeout(() => {
-                                dispatch(hideAlert());
-                            }, [3000])
+                            
+                            toast.warn('Please select all the coins')
                         } else {
                             setFixedActiveSetp(1)
                             handleNext()
