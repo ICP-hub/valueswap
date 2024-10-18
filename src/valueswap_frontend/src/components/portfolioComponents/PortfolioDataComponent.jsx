@@ -1,34 +1,43 @@
 import React, { useEffect, useState } from 'react';
 import GradientButton from '../../buttons/GradientButton';
-import { portfolioSampleData } from '../../TextData';
+// import { AllPool } from '../../TextData';
 import { useNavigate } from 'react-router-dom';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import { useAuth } from '../utils/useAuthClient';
 
 const PortfolioDataComponent = () => {
-    const [allDataInPool, setAllDataInPool] = useState(null);
+    const [allDataInPool, setAllDataInPool] = useState([]);
     const [displayCount, setDisplayCount] = useState(0);
     const [buttonVisible, setButtonVisibility] = useState(true);
     const [activeSort, setActiveSort] = useState();
     const [isAscending, setIsAscending] = useState(true);
+    const { backendActor, principal } = useAuth()
 
+    //  const listOfPool = [];
     useEffect(() => {
-        // Simulate a data fetch with a timeout
-        setTimeout(() => {
-            setAllDataInPool(portfolioSampleData);
-            setDisplayCount(Math.min(5, portfolioSampleData.TableData.length));
-        }, 1000); // Simulate 1 second loading time
-    }, []);
-
+        const userPools = async () => {
+            const AllPool = await backendActor?.get_users_pool(principal)
+            console.log("AllPool", AllPool[0],)
+            for (let i = 0; i < AllPool.length; i++) {
+                const poolData = await backendActor?.get_specific_pool_data(AllPool[i][0])
+                let specificData = poolData.Ok[0]
+                setAllDataInPool((prev) => [...prev, specificData]);
+            }
+            setDisplayCount(Math.min(5, AllPool.length));
+        }
+        userPools();
+    }, [backendActor]);
+    console.log("allDataInPool", allDataInPool)
     useEffect(() => {
-        if (allDataInPool?.TableData.length < 6) {
+        if (allDataInPool?.length < 6) {
             setButtonVisibility(false);
         }
     }, [allDataInPool]);
 
     const sortBalance = () => {
-        const sortedTableData = [...allDataInPool.TableData].sort((a, b) => {
+        const sortedTableData = [...allDataInPool].sort((a, b) => {
             const aValue = typeof a.PoolMetaData.Balance === 'string' ? parseFloat(a.PoolMetaData.Balance.replace(/[\$,]/g, '')) : a.PoolMetaData.Balance;
             const bValue = typeof b.PoolMetaData.Balance === 'string' ? parseFloat(b.PoolMetaData.Balance.replace(/[\$,]/g, '')) : b.PoolMetaData.Balance;
             return isAscending ? bValue - aValue : aValue - bValue;
@@ -80,7 +89,7 @@ const PortfolioDataComponent = () => {
     };
 
     const navigate = useNavigate();
-
+    const Headings = ['Token', 'Weightage', 'Balance', 'Value']
     return (
         <div className='max-w-[1200px] mx-auto h-screen relative'>
             <div className='w-full h-screen text-white mt-12 px-8 mx-auto absolute'>
@@ -101,12 +110,12 @@ const PortfolioDataComponent = () => {
                 <div className='flex flex-col font-cabin bg-[#05071D]'>
                     <div className='-my-2 overflow-x-auto'>
                         <div className='inline-block min-w-full py-2 align-middle'>
-                            <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5'>
+                            {allDataInPool.Ok?.length <= 0 ? <div> No Pool found ! </div> : <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5'>
                                 <SkeletonTheme baseColor="#1f2029" highlightColor="#2b2b2b" borderRadius="0.5rem" duration={2}>
                                     <table className='min-w-full'>
                                         <thead>
                                             <tr>
-                                                {allDataInPool?.Headings.map((heading, index) => (
+                                                {Headings?.map((heading, index) => (
                                                     <th
                                                         scope='col'
                                                         key={index}
@@ -137,48 +146,52 @@ const PortfolioDataComponent = () => {
                                                         </td>
                                                     </tr>
                                                 ))
-                                                : allDataInPool.TableData.slice(0, displayCount).map((pool, index) => (
+                                                : allDataInPool?.map((Poolinfo, index) => (
                                                     <tr key={index} className='hover:bg-[#546093] rounded-xl cursor-pointer'
                                                         onClick={() => {
-                                                            navigate(`/valueswap/portfolio/pool-info/${index}`);
+                                                            navigate(`/valueswap/portfolio/pool-info/${pool}`);
                                                         }}>
+
                                                         <td className='min-w-80 whitespace-nowrap my-4 text-sm md:text-base font-medium text-white flex items-center gap-5 justify-start ml-8'>
-                                                            <span className='flex gap-2'>
-                                                                {pool.PoolData.map((token, index) => (
-                                                                    <span key={index} className='bg-[#3D3F47] p-2 rounded-xl'>
-                                                                        <img src={token.ImagePath} alt="" className='w-4 h-4 md:w-6 md:h-6' />
-                                                                    </span>
-                                                                ))}
-                                                            </span>
-                                                            <span className='flex items-center'>
-                                                                <span>{pool.PoolData[0].ShortForm}</span>
-                                                                <span>
-                                                                    {pool.PoolData.slice(1).map((token, index) => (
-                                                                        <span key={index}>/{token.ShortForm}</span>
-                                                                    ))}
+                                                            {Poolinfo?.pool_data.map((pool, indx) => (
+                                                                <span className='flex items-center gap-x-1 cursor-pointer border-2 rounded-2xl py-1 px-2 '>
+                                                                    {/* <span key={index} className='bg-[#3D3F47] p-2 rounded-xl'>
+                                                                    </span> */}
+                                                                        <img src={pool.image} alt="" className='w-6 h-6'  />
+                                                                    <span>{pool.token_name}</span>
+                                                                    <span>{pool.weight * 100} %</span>
                                                                 </span>
-                                                                <span>: :</span>
-                                                                <span>{pool.PoolData[0].weights}</span>
-                                                                <span>
-                                                                    {pool.PoolData.slice(1).map((token, index) => (
-                                                                        <span key={index}>/{token.weights}</span>
-                                                                    ))}
-                                                                </span>
-                                                            </span>
+                                                            ))}
+
                                                         </td>
                                                         <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
-                                                            $ {pool.PoolMetaData.Balance.toLocaleString('en-US')}
+                                                           
                                                         </td>
                                                         <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
-                                                            $ {pool.PoolMetaData.PoolValue.toLocaleString('en-US')}
+                                                            {/* $ {pool?.PoolMetaData?.PoolValue.toLocaleString('en-US')} */}
+                                                            {(() => {
+                                                                const totalBalance = Poolinfo?.pool_data?.reduce(
+                                                                    (sum, item) => sum + BigInt(item.balance),
+                                                                    BigInt(0)
+                                                                );
+                                                                return totalBalance?.toLocaleString('en-US');
+                                                            })()}
                                                         </td>
                                                         <td className='whitespace-nowrap py-4 pl-3 text-center text-sm md:text-base font-medium pr-6'>
-                                                            {pool.PoolMetaData.APRstart}% - {pool.PoolMetaData.APRend}%
+                                                            {/* {pool?.PoolMetaData?.APRstart}% - {pool?.PoolMetaData?.APRend}% */}
+                                                            ${(() => {
+                                                                const value = Poolinfo?.pool_data?.reduce(
+                                                                    (sum, item) => sum + BigInt(item.value),
+                                                                    BigInt(0)
+                                                                );
+                                                                return  value?.toLocaleString('en-US');
+                                                            })()}
                                                         </td>
                                                         <td className='whitespace-nowrap py-4 pl-3 text-center text-sm md:text-base font-medium pr-6'>
-                                                            {pool.PoolMetaData.Time.toLocaleString()}
+                                                            {/* {pool?.PoolMetaData?.Time.toLocaleString()} */}
                                                         </td>
                                                     </tr>
+
                                                 ))}
                                         </tbody>
                                     </table>
@@ -195,7 +208,7 @@ const PortfolioDataComponent = () => {
                                             )}
                                             {allDataInPool?.TableData?.length <= displayCount && (
                                                 <div className='text-center mt-4'>
-                                                    <button className='bg-gray-800 text-white px-4 py-2 rounded-md' onClick={() => setDisplayCount(Math.min(5, portfolioSampleData.TableData.length))}>
+                                                    <button className='bg-gray-800 text-white px-4 py-2 rounded-md' onClick={() => setDisplayCount(Math.min(5, AllPool.TableData.length))}>
                                                         {allDataInPool.SeeLessButtonText}
                                                     </button>
                                                 </div>
@@ -203,7 +216,7 @@ const PortfolioDataComponent = () => {
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            </div>}
                         </div>
                     </div>
                 </div>

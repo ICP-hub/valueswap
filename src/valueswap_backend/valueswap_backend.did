@@ -71,6 +71,7 @@ service : () -> {
   get_tokens : () -> (vec record { text; PoolShare }) query;
   get_total_lp : () -> (float64) query;
   get_users_lp : (principal) -> (opt float64) query;
+  get_users_pool : (principal) -> (opt vec text) query;
   icrc1_transfer : (principal, nat64) -> (Result_3);
   increase_pool_lp_tokens : (Pool_Data) -> (vec record { text; float64 });
   install_wasm_on_new_canister : (principal) -> (Result);
@@ -80,4 +81,5 @@ service : () -> {
   store_pool_data_curr : (Pool_Data) -> (Result);
   total_lp_tokens : () -> ();
   users_lp_share : (principal, Pool_Data) -> (Result);
+  users_pool : (Pool_Data) -> ();
 }

@@ -68,6 +68,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
         add_liquidity_curr(params.clone());
         add_liquidity(params.clone(), canister_id.principal);
         increase_pool_lp_tokens(params.clone());
+        users_pool(params.clone());
         for amount in params.pool_data.iter() {
             // Deposit tokens to the newly created canister
             // ic_cdk::println!("canister_id.principal{:}",canister_id.principal);
@@ -94,6 +95,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
                 store_pool_data(params.clone(), canister_id_record).await?;
 
                 increase_pool_lp_tokens(params.clone());
+                users_pool(params.clone());
 
                 for amount in params.pool_data.iter() {
                     // Deposit tokens to the newly created canister
