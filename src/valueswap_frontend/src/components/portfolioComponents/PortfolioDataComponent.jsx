@@ -14,13 +14,14 @@ const PortfolioDataComponent = () => {
     const [activeSort, setActiveSort] = useState();
     const [isAscending, setIsAscending] = useState(true);
     const { backendActor, principal } = useAuth()
-
+     const [poolName, setPoolName] = useState([])
     //  const listOfPool = [];
     useEffect(() => {
         const userPools = async () => {
             const AllPool = await backendActor?.get_users_pool(principal)
-            console.log("AllPool", AllPool[0],)
+            setPoolName(AllPool)
             for (let i = 0; i < AllPool.length; i++) {
+                console.log("AllPool", AllPool[i][0],)
                 const poolData = await backendActor?.get_specific_pool_data(AllPool[i][0])
                 let specificData = poolData.Ok[0]
                 setAllDataInPool((prev) => [...prev, specificData]);
@@ -149,7 +150,8 @@ const PortfolioDataComponent = () => {
                                                 : allDataInPool?.map((Poolinfo, index) => (
                                                     <tr key={index} className='hover:bg-[#546093] rounded-xl cursor-pointer'
                                                         onClick={() => {
-                                                            navigate(`/valueswap/portfolio/pool-info/${pool}`);
+                                                            // const poolName = AllPool[index][0]
+                                                            navigate(`/valueswap/portfolio/pool-info/${poolName[index][0]}`);
                                                         }}>
 
                                                         <td className='min-w-80 whitespace-nowrap my-4 text-sm md:text-base font-medium text-white flex items-center gap-5 justify-start ml-8'>

@@ -48,6 +48,7 @@ pub fn increase_pool_lp_tokens(params: Pool_Data) {
 });
 }
 
+#[update]
 pub fn users_pool(params : Pool_Data) { 
     let user = ic_cdk::caller();
 
@@ -70,6 +71,18 @@ USERS_POOL.with(|pool|{
         })
         .or_insert_with(|| vec![new_pool]);
 });
+}
+
+#[query]
+fn get_users_pool( user : Principal ) -> Option<Vec<String>> {
+    USERS_POOL.with(|pool|{
+        let borrowed_pool = pool.borrow();
+        if let Some(pool_name) = borrowed_pool.get(&user){
+            Some(pool_name.clone())
+        }else{
+            None
+        }
+    })
 }
 
 // To get all lp tokens

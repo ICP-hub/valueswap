@@ -54,7 +54,7 @@ type SwapParams = record {
 service : () -> {
   add_liquidity : (Pool_Data, principal) -> (Result);
   add_liquidity_curr : (Pool_Data) -> (Result);
-  burn_lp_tokens : (text, float64) -> ();
+  burn_lp_tokens : (Pool_Data, text, float64) -> (Result);
   compute_swap : (SwapParams) -> (Result);
   create : () -> (Result_1);
   create_canister : (CreateCanisterArgument) -> (Result_2);
@@ -73,7 +73,7 @@ service : () -> {
   get_users_lp : (principal) -> (opt float64) query;
   get_users_pool : (principal) -> (opt vec text) query;
   icrc1_transfer : (principal, nat64) -> (Result_3);
-  increase_pool_lp_tokens : (Pool_Data) -> (vec record { text; float64 });
+  increase_pool_lp_tokens : (Pool_Data) -> ();
   install_wasm_on_new_canister : (principal) -> (Result);
   pre_compute_swap : (SwapParams) -> (text, float64) query;
   search_swap_pool : (SwapParams) -> (Result_6);
