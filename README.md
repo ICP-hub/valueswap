@@ -16,7 +16,15 @@ To learn more before you start working with `valueswap`, see the following docum
 If you want to start working on your project right away, you might want to try the following commands:
 
 ```bash
+dfx start --clean
 cd valueswap/
+cd scripts
+
+# Deploys your canisters to the replica and generates your candid interface
+
+./LP_ledger.sh
+cd local_deploy
+./deploy_ckbtc.sh
 dfx help
 dfx canister --help
 ```
@@ -27,10 +35,18 @@ If you want to test your project locally, you can use the following commands:
 
 ```bash
 # Starts the replica, running in the background
+cd valueswap/
 dfx start --background
 
+cd scripts
+
 # Deploys your canisters to the replica and generates your candid interface
-dfx deploy
+
+./LP_ledger.sh
+cd local_deploy
+./deploy_ckbtc.sh
+dfx help
+dfx canister --help
 ```
 
 Once the job completes, your application will be available at `http://localhost:4943?canisterId={asset_canister_id}`.
