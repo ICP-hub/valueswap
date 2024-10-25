@@ -8,11 +8,11 @@ const AppRoutes = [
         page: <LandingPage />,
     },
     {
-        path: "/dex-swap",
+        path: "/valueswap",
         page: <HomePage />,
     },
     {
-        path: "/dex-swap/*",
+        path: "/valueswap/*",
         page: <HomePage />,
     },
 

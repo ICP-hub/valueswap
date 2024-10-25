@@ -1,6 +1,7 @@
-use candid::{CandidType, Deserialize, Nat, Principal};
+use candid::{CandidType, Deserialize};
 use serde::{Deserialize as SerdeDeserialize, Serialize};
 use std::fmt;
+use candid::{Nat, Principal};
 
 #[derive(CandidType, SerdeDeserialize, Serialize, Clone, Debug)]
 pub enum SwapError {
@@ -51,20 +52,24 @@ impl From<String> for SwapError {
 //     // }
 // }
 
-#[derive(CandidType, Deserialize, Clone)]
-pub struct CreatePoolParams {
-    pub token_name: String,
-    pub balance: u64,
-    pub weight: f64,
-    pub value: u64,
+#[derive(CandidType, Deserialize, Serialize, Clone, Debug)]
+pub struct CreatePoolParams{
+    pub token_name : String,
+    pub balance : u64,
+    pub weight : f64,
+    pub value : u64,
+    pub ledger_canister_id: Principal, // Ledger canister ID for the token (e.g., ckBTC, ckETH)
+    pub image : String
 }
 
-#[derive(CandidType, Deserialize ,Clone)]
+#[derive(CandidType, Deserialize ,Serialize, Clone)]
+
 pub struct SwapParams {
-    pub token1 : u64,
-    pub token2 : u64,
-    pub zero_for_one : bool,
-    swap_amount : u64
+    pub token1_name : String,
+    pub token_amount : u64,
+    pub token2_name : String,
+    pub ledger_canister_id : Principal,
+    pub  ledger_canister_id2 : Principal
 }
 
 #[derive(CandidType, Deserialize, Clone)]

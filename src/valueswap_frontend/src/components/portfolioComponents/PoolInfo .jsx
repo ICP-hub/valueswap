@@ -5,6 +5,8 @@ import PoolInfoBox from '../../displayBoxes/PoolInfoBox';
 import GradientButton from '../../buttons/GradientButton'
 import { PoolCompositions, Swapping, LiquidityOverview } from '../../tables'
 import Echarts from './Echarts';
+import WithdrawModel from '../../Modals/WithdrawModel';
+import { useAuth } from '../utils/useAuthClient';
 
 const PoolInfo = () => {
 
@@ -12,12 +14,20 @@ const PoolInfo = () => {
   const [currIndex, setCurrIndex] = useState(0)
   const [currentRang, setCurrentRange] = useState(0)
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
-
+ const [openWithdraw, setOpenWithdraw] = useState(false)
+ const [specificPool, setSpecificPool] = useState([])
+ const {backendActor} = useAuth()
   useEffect(() => {
     console.log("pool id", id)
+    const poolData = async () =>{
+     const pool = await backendActor.get_specific_pool_data(id)
+     const poolDataArray = pool.Ok[0].pool_data;
+     console.log("specific pool data array", poolDataArray);
+     setSpecificPool(poolDataArray);
+    }
+    poolData()
   }, [id])
 
-  let TokenData = portfolioSampleData.TableData[id]
 
   const selectRang = [
     "1D",
@@ -37,33 +47,33 @@ const PoolInfo = () => {
             <div className='font-cabin text-base md:text-3xl font-medium flex items-center gap-4'>
               <div className='flex gap-1 sm:gap-2'>
                 {
-                  TokenData?.PoolData.map((token, index) => (
+                  specificPool?.map((token, index) => (
                     <div key={index}>
                       <div className='bg-[#3D3F47] p-1 rounded-lg'>
-                        <img src={token.ImagePath} alt="" className='w-6 h-6 md:w-10 md:h-10' />
+                        <img src={token.image} alt="" className='w-6 h-6 md:w-10 md:h-10' />
                       </div>
                     </div>
                   ))
                 }
               </div>
               <div className='flex items-center'>
-                <span  >{TokenData?.PoolData[0].ShortForm}</span>
+                <span  >{specificPool?.[0]?.token_name}</span>
                 {
-                  TokenData?.PoolData.slice(1).map((token, index) => (
+                  specificPool?.slice(1).map((token, index) => (
                     <div key={index} className=''>
                       <span className='mx-0.5'>/</span>
-                      {token.ShortForm}
+                      {token.token_name}
                     </div>
                   ))
                 }
                 <span className='mx-1'>:  :</span>
 
-                <span>{TokenData?.PoolData[0].weights}</span>
+                <span>{specificPool?.[0]?.weight * 100}</span>
                 {
-                  TokenData?.PoolData.slice(1).map((token, index) => (
+                  specificPool?.slice(1).map((token, index) => (
                     <div key={index} className=''>
                       <span className='mx-0.5'>/</span>
-                      {token.weights}
+                      {token.weight *100}
                     </div>
                   ))
                 }
@@ -111,22 +121,22 @@ const PoolInfo = () => {
 
             <div className=' flex flex-col items-center gap-4 my-4 '>
               <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48 justify-center'>
-                <PoolInfoBox Heading={'Pool Value'} Data={`$ ${TokenData?.PoolMetaData.PoolValue.toLocaleString('en-US')}`} />
-                <PoolInfoBox Heading={'24H_Fees'} Data={`$ ${TokenData?.PoolMetaData.TwentyFourHourFees.toLocaleString('en-US')}`} />
+                <PoolInfoBox Heading={'Pool Value'} Data={`$ ${specificPool?.PoolMetaData?.PoolValue.toLocaleString('en-US')}`} />
+                <PoolInfoBox Heading={'24H_Fees'} Data={`$ ${specificPool?.PoolMetaData?.TwentyFourHourFees.toLocaleString('en-US')}`} />
               </div>
-              <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48'>
-                <PoolInfoBox Heading={'24H_Pool Volume'} Data={`$ ${TokenData?.PoolMetaData.TwentyFourHourVolume.toLocaleString('en-US')}`} />
-                <PoolInfoBox Heading={'APR'} Data={`${TokenData?.PoolMetaData.APRstart}% - ${TokenData?.PoolMetaData.APRend}%`} />
+              <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48 justify-center'>
+                <PoolInfoBox Heading={'24H_Pool Volume'} Data={`$ ${specificPool?.PoolMetaData?.TwentyFourHourVolume.toLocaleString('en-US')}`} />
+                <PoolInfoBox Heading={'APR'} Data={`${specificPool?.PoolMetaData?.APRstart}% - ${specificPool?.PoolMetaData?.APRend}%`} />
               </div>
             </div>
           </div>
 
           <div className='gap-2 pt-9 mx-10 font-cabin flex items-center'>
             <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:</span>
-            <span className='mx-3 text-2xl font-normal leading-6'>${TokenData?.PoolMetaData.PersonalPoolBalance.toLocaleString('en-US')}</span>
+            <span className='mx-3 text-2xl font-normal leading-6'>${specificPool?.PoolMetaData?.PersonalPoolBalance.toLocaleString('en-US')}</span>
           </div>
 
-
+         
           <div className='flex gap-3 md:gap-6 my-4 mx-3 md:mx-10'>
             <div>
               <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
@@ -138,14 +148,14 @@ const PoolInfo = () => {
                 Add Liquidity
               </GradientButton>
             </div>
-            <div>
+            <div onClick={()=> setOpenWithdraw(true)}>
               <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
                 Withdraw
               </GradientButton>
             </div>
           </div>
 
-          <div className='font-cabin font-medium text-base md:text-xl lg:text-2xl flex gap-3 md:gap-16 lg:gap-32 mx-8 lg:mx-10 mt-6'>
+          <div className='font-cabin font-medium text-base md:text-xl lg:text-2xl flex gap-3 md:gap-16 lg:gap-32 mx-4 lg:mx-10 mt-6'>
             {Heading.map((heading, index) => (
               <div className='flex flex-col justify-center text-center items-center gap-2 cursor-pointer' key={index}
                 onClick={() => {
@@ -159,7 +169,7 @@ const PoolInfo = () => {
 
 
           <div >
-            {currIndex === 0 && <PoolCompositions TableData={TokenData?.PoolData} />}
+            {currIndex === 0 && <PoolCompositions TableData={specificPool?.PoolData} />}
             {currIndex === 1 && <Swapping id={Number(id)} />}
             {currIndex === 2 && <LiquidityOverview id={id} />}
           </div>
@@ -169,6 +179,7 @@ const PoolInfo = () => {
         </div>
 
       </div>
+      {openWithdraw ? <WithdrawModel setOpenWithdraw={setOpenWithdraw} poolName={id}/> : ""}
     </div>
   )
 }

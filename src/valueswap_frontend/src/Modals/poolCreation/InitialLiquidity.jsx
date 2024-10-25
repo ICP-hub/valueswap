@@ -9,6 +9,8 @@ import { UpdateAmount, toggleConfirm } from '../../reducer/PoolCreation';
 import { useAuth } from '../../components/utils/useAuthClient';
 import { Principal } from '@dfinity/principal';
 import { searchCoinGeckoById } from '../../components/utils/fetchCoinGeckoData';
+import { toast } from 'react-toastify';
+import { idlFactory as tokenIdl } from '../../../../declarations/ckbtc_ledger';
 
 const InitialLiquidity = () => {
   const dispatch = useDispatch();
@@ -21,33 +23,31 @@ const InitialLiquidity = () => {
   const [ButtonActive, SetButtonActive] = useState(false);
   const [AmountSelectCheck, setAmountSelectCheck] = useState(false);
   const [tokenApiDetails, setTokenApiDetails] = useState()
- 
-  const { Tokens, Confirmation } = useSelector((state) => state.pool);
 
+  const { Tokens, Confirmation } = useSelector((state) => state.pool);
+  const { backendActor, isAuthenticated } = useAuth();
   const initialTokenRef = useRef(null);
   const restTokensRefs = useRef([]);
 
   useEffect(() => {
-    if(Tokens.length <= 0){
-        return;
+    if (Tokens.length <= 0) {
+      return;
     }
     const fetchSelectedToken = async () => {
-        const fetchedSelectedToken = await Promise.all(
-            Tokens?.map(async (list, index) => {
-              let name = list.id.toLowerCase()
-              const tokenDetail = await searchCoinGeckoById(name)
-              console.log("get val", tokenDetail)
+      const fetchedSelectedToken = await Promise.all(
+        Tokens?.map(async (list, index) => {
+          let name = list.id.toLowerCase()
+          const tokenDetail = await searchCoinGeckoById(name)
 
-                return {
-                    tokenDetail
-                }
-            })
-        )
-        setTokenApiDetails(fetchedSelectedToken)
+          return {
+            tokenDetail
+          }
+        })
+      )
+      setTokenApiDetails(fetchedSelectedToken)
     }
     fetchSelectedToken()
-}, [])
-console.log("tokenApiDetails", tokenApiDetails)
+  }, [])
 
 
   useEffect(() => {
@@ -75,7 +75,7 @@ console.log("tokenApiDetails", tokenApiDetails)
     const fetchInitialTokenBalance = async () => {
       if (tokenActor && principal) {
         const balance = await tokenActor.icrc1_balance_of({ owner: principal, subaccount: [] });
-        setInitialTokenBalance(parseFloat(balance));
+        setInitialTokenBalance(parseFloat(Number(balance) / 100000000));
       }
     };
     fetchInitialTokenBalance();
@@ -85,9 +85,9 @@ console.log("tokenApiDetails", tokenApiDetails)
     if (Tokens.length > 1) {
       const balances = await Promise.all(
         Tokens.slice(1).map(async (token) => {
-           const balance = await getBalance(principal, token.CanisterId)
-       
-          return parseFloat(balance);
+          const balance = await getBalance(token.CanisterId)
+
+          return parseFloat(Number(balance) / 100000000);
         })
       );
       setRestTokensBalances(balances);
@@ -132,62 +132,109 @@ console.log("tokenApiDetails", tokenApiDetails)
   const RestTokens = Tokens.slice(1);
 
 
-
-// token Approval function
-const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
-  try {
+  // token Approval function
+  const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
+    let decimals = null;
+    let fee = null;
+    let amount = null;
+    let balance = null;
     const metaData = await tokenActor.icrc1_metadata();
-    const decimals = Number(metaData[0]?.[1].Nat);
-    const fee = Number(metaData[3]?.[1].Nat);
-    const amount = parseInt(Number(sendAmount) * Math.pow(10, decimals));
-    const balance = await getBalance(principal, canisterId);
 
-    if (balance >= amount + fee) {
-      const transaction = {
-        amount: amount,  // Amount to approve (not including fee)
-        from_subaccount: [],  // Optional, if you're using subaccounts
-        spender: {
-          owner: Principal.fromText(backendCanisterID),  // Canister actor's principal
-          subaccount: [],  // Optional subaccount for the spender, if any
-        },
-        fee: [],  // Fee is optional here because it's applied during the transfer, not approval
-        memo: [],  // Optional memo
-        created_at_time: [],  // Optional timestamp
-        expected_allowance: [],  // Optional expected allowance
-        expires_at: [],  // Optional expiration time for the approval
-      };
-
-      const response = await tokenActor.icrc2_approve(transaction);
-
-      if (response?.Err) {
-        console.error("Approval error:", response.Err);
-        return;
-      } else {
-        console.log("Approval successful:", response.Ok);
-        // After approval, you can proceed with the transfer flow if needed.
+    for (const item of metaData) {
+      if (item[0] === 'icrc1:decimals') {
+        decimals = Number(item[1].Nat);
+      } else if (item[0] === 'icrc1:fee') {
+        fee = Number(item[1].Nat);
       }
-    } else {
-      console.error("Insufficient balance:", balance, "required:", amount + fee);
     }
-  } catch (error) {
-    console.error("Error in transferApprove:", error);
-  }
-};
 
+    amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
+    balance = await getBalance(canisterId);
 
+   if (balance >= amount + fee){
+    const transaction = {
+      idl: tokenIdl,
+      canisterId: canisterId,
+      methodName: 'icrc2_approve',
+      args: [
+        {
+          amount: BigInt(amount + fee),
+          from_subaccount: [],
+          spender: {
+            owner: Principal.fromText(backendCanisterID),
+            subaccount: [],
+          },
+          fee: [],
+          memo: [],
+          created_at_time: [],
+          expected_allowance: [],
+          expires_at: [],
+        },
+      ],
+      onSuccess: async (res) => {
+        console.log(`Approval successful for token: ${canisterId}`, res);
+      },
+      onFail: (res) => {
+        console.error(`Approval failed for token: ${canisterId}`, res);
+      },
+    };
+    return transaction;
+   }else{
+    {
+      console.error("Insufficient balance:", balance, "required:", amount + fee);
+      return { success: false, error: "Insufficient balance" };
+    }
+   }
+ 
 
+  };
+
+  
+  
+
+  // handleCreatePoolClick Function
   const handleCreatePoolClick = async (backendCanisterID) => {
     try {
-      for (let i = 0; i < Tokens.length; i++) {
-        const tokenActors = await createTokenActor(Tokens[i].CanisterId)
-        await transferApprove(Tokens[i].Amount, Tokens[i].CanisterId, backendCanisterID, tokenActors);
+      if (!Tokens || Tokens.length === 0) {
+        console.error('Tokens array is empty or undefined');
+        return { success: false, error: 'No tokens to process' };
       }
+
+      const approvalTransactions = await Promise.all(
+        Tokens.map(async (tokenData) => {
+          if (!tokenData.CanisterId || !tokenData.Amount) {
+            const errorMsg = `Invalid token data: ${JSON.stringify(tokenData)}`;
+            console.error(errorMsg);
+            throw new Error(errorMsg);
+          }
+          const tokenActor = await createTokenActor(tokenData.CanisterId);
+          const transaction = await transferApprove(
+            tokenData.Amount,
+            tokenData.CanisterId,
+            backendCanisterID,
+            tokenActor
+          );
+          return transaction;
+        })
+      );
+          console.log("approvalTransactions", approvalTransactions)
+      // Execute batch transactions
+      window["approvalTransaction"] = approvalTransactions
+      const result = await window.ic.plug.batchTransactions(approvalTransactions);
+
+
+      console.log('All tokens approved successfully');
+      toast.success("Approve successfully ")
+      return { success: true, data: result };
     } catch (error) {
-      console.error("Error creating pool:", error);
+      console.error('Error in handleCreatePoolClick:', error);
+      toast.error('Token approval failed. Please try again.');
+      return { success: false, error: error.message };
     }
   };
 
-
+  
+  
 
 
   return (
@@ -238,7 +285,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
               </span>
             </div>
             <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-             $ {InitialToken.currencyAmount}
+              $ {InitialToken.currencyAmount || 0}
             </span>
           </div>
         </div>
@@ -262,7 +309,7 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
                       />
                     </div>
                     <span className='text-sm sm:text-base font-normal'>
-                      Balance: {balance }
+                      Balance: {balance}
                     </span>
                   </div>
                   <div className='flex flex-col justify-center'>
@@ -278,7 +325,8 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
                       </span>
                     </div>
                     <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-                    $ {token.currencyAmount}
+                      $ {token.currencyAmount || 0}
+
                     </span>
                   </div>
                 </div>
@@ -291,22 +339,12 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
         <div
           className={`font-cabin text-base font-medium`}
           onClick={() => {
-            if (!ButtonActive) {
-              dispatch(showAlert({
-                type: 'danger',
-                text: 'Please select all the coins'
-              }));
-              setTimeout(() => {
-                dispatch(hideAlert());
-              }, [3000]);
+            if(!isAuthenticated){
+              toast.warn('Please login first')
+            }else if (!ButtonActive) {
+              toast.warn('Please select all the coins')
             } else if (!AmountSelectCheck) {
-              dispatch(showAlert({
-                type: 'danger',
-                text: 'You do not have enough tokens.'
-              }));
-              setTimeout(() => {
-                dispatch(hideAlert());
-              }, [3000]);
+              toast.warn('You do not have enough tokens.')
             } else {
               console.log("dispatched called");
               dispatch(toggleConfirm({
@@ -327,3 +365,4 @@ const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenA
 };
 
 export default InitialLiquidity;
+

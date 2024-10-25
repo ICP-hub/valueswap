@@ -3,8 +3,8 @@ dfx deploy swap
 set -e
 
 # Create and use the DevJourney identity
-# dfx identity new Nikhilrai || true
-dfx identity use Nikhilrai --network ic
+# dfx identity new DevJourney || true
+dfx identity use DevJourney --network ic
 
 # dfx canister create swap
 # dfx  build --all
@@ -24,8 +24,10 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use Nikhilrai --network ic
-export DEFAULT=$(dfx identity get-principal --network ic)
+
+dfx identity use Harshit
+export DEFAULT=$(dfx identity get-principal)
+
 echo "DEFAULT principal: $DEFAULT"
 
 # Set archive controller as the default identity for now
@@ -69,4 +71,12 @@ dfx deploy cketh_ledger --argument "$DEPLOY_ARGUMENTS" --network ic
 # Check the balance of the default identity
 # balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
 # echo "Balance of the DEFAULT account: $balance"
+
+
+balance=$(dfx canister call cketh_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
+echo "Balance of the DEFAULT account: $balance"
+
+
+
+# default xrinq-kad56-qulgo-h6pa5-gdqps-jif5v-ghngz-gcxac-5rbp3-acjjs-kae
 

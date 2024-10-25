@@ -1,10 +1,10 @@
 #!/bin/bash
-dfx deploy swap
+
 set -e
 
 # Create and use the DevJourney identity
 # dfx identity new default || true --network ic
-dfx identity use Nikhilrai --network ic
+dfx identity use DevJourney --network ic
 
 # dfx canister create swap
 # dfx  build --all
@@ -24,7 +24,7 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use Nikhilrai --network ic
+dfx identity use DevJourney --network ic
 export DEFAULT=$(dfx identity get-principal --network ic)
 echo "DEFAULT principal: $DEFAULT"
 

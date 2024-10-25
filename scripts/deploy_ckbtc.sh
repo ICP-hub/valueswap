@@ -1,16 +1,13 @@
 #!/bin/bash
-dfx deploy swap
+
 set -e
 
 # Create and use the DevJourney identity
-# dfx identity new Nikhilrai || true
-dfx identity use Nikhilrai --network ic
-
-# dfx canister create swap
-# dfx  build --all
+dfx identity new DevJourney || true
+dfx identity use DevJourney
 
 # Get the principal ID for the minter account
-export MINTER=$(dfx identity get-principal --network ic)
+export MINTER=$(dfx identity get-principal)
 echo "MINTER principal: $MINTER"
 
 # Set token details
@@ -24,7 +21,7 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use Nikhilrai --network ic
+dfx identity use Harshit
 export DEFAULT=$(dfx identity get-principal)
 echo "DEFAULT principal: $DEFAULT"
 
@@ -67,6 +64,5 @@ dfx deploy --network ic --mode reinstall
 echo "ckBTC got deployed"
 
 # Check the balance of the default identity
-# balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
-# echo "Balance of the DEFAULT account: $balance"
-
+balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
+echo "Balance of the DEFAULT account: $balance"
