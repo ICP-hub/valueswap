@@ -69,6 +69,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
         add_liquidity(params.clone(), canister_id.principal);
         increase_pool_lp_tokens(params.clone());
         users_pool(params.clone());
+        users_lp_share(principal_id.clone(), params.clone()).await?;
         for amount in params.pool_data.iter() {
             // Deposit tokens to the newly created canister
             // ic_cdk::println!("canister_id.principal{:}",canister_id.principal);
@@ -96,7 +97,8 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
 
                 increase_pool_lp_tokens(params.clone());
                 users_pool(params.clone());
-
+                users_lp_share(principal_id.clone(), params.clone()).await?;
+                
                 for amount in params.pool_data.iter() {
                     // Deposit tokens to the newly created canister
                     deposit_tokens(amount.balance.clone() , amount.ledger_canister_id.clone() , canister_id ).await?;
@@ -212,7 +214,7 @@ async fn install_wasm_on_new_canister(canister_id: Principal) -> Result<(), Stri
     let install_code_args = InstallCodeArgument {
         mode: CanisterInstallMode::Install,
         canister_id: canister_id,
-        wasm_module: include_bytes!("../../../../.dfx/ic/canisters/swap/swap.wasm").to_vec(),
+        wasm_module: include_bytes!("../../../../.dfx/local/canisters/swap/swap.wasm").to_vec(),
         arg: vec![],  // Optional: Arguments for the canister init method
     };
 

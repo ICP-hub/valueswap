@@ -43,7 +43,8 @@ type Result_2 = variant {
 type Result_3 = variant { Ok : nat; Err : text };
 type Result_4 = variant { Ok : record { float64; nat64 }; Err : text };
 type Result_5 = variant { Ok : vec Pool_Data; Err : text };
-type Result_6 = variant { Ok : vec text; Err : text };
+type Result_6 = variant { Ok : vec float64; Err : text };
+type Result_7 = variant { Ok : vec text; Err : text };
 type SwapParams = record {
   token_amount : nat64;
   ledger_canister_id2 : principal;
@@ -70,13 +71,14 @@ service : () -> {
   get_specific_pool_data : (text) -> (Result_5) query;
   get_tokens : () -> (vec record { text; PoolShare }) query;
   get_total_lp : () -> (float64) query;
+  get_user_share_ratio : (Pool_Data, text, float64) -> (Result_6);
   get_users_lp : (principal) -> (opt float64) query;
   get_users_pool : (principal) -> (opt vec text) query;
   icrc1_transfer : (principal, nat64) -> (Result_3);
   increase_pool_lp_tokens : (Pool_Data) -> ();
   install_wasm_on_new_canister : (principal) -> (Result);
   pre_compute_swap : (SwapParams) -> (text, float64) query;
-  search_swap_pool : (SwapParams) -> (Result_6);
+  search_swap_pool : (SwapParams) -> (Result_7);
   store_pool_data : (Pool_Data, principal) -> (Result);
   store_pool_data_curr : (Pool_Data) -> (Result);
   total_lp_tokens : () -> ();

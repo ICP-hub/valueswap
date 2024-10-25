@@ -14,6 +14,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { toast } from 'react-toastify';
 const Swap = () => {
     const navigate = useNavigate();
     const [PayCoin, setPayCoin] = useState(null);
@@ -30,6 +31,7 @@ const Swap = () => {
     const [ClickedSwap, setClickSwap] = useState(false);
     const [payCoinBalance, setPayCoinBalance] = useState(null); // New state for PayCoin balance
     const [recieveCoinBalance, setRecieveCoinBalance] = useState(null); // New state for RecieveCoin balance
+    const [recieveValue, setReciveValue] = useState(0)
     const { backendActor, principal, getBalance, isAuthenticated, createTokenActor } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
     const [approvalSuccess, setApprovalSuccess] = useState(false);
@@ -41,6 +43,7 @@ const Swap = () => {
     useEffect(() => {
         if (PayCoin && RecieveCoin) {
             setBothCoins(true);
+
         } else {
             setBothCoins(false);
         }
@@ -48,15 +51,33 @@ const Swap = () => {
 
     console.log("recive coin", RecieveCoin)
     useEffect(() => {
-        if (PayCoin) {
-            getBalance(PayCoin.CanisterId)
-                .then(balance => {
-                    setPayCoinBalance(Number(balance) / 100000000);
+        const getSwapValue = async () => {
+            console.log("coni amount hai", CoinAmount)
+            if (CoinAmount) {
+                const amount = BigInt(CoinAmount)
+                const swapValue = await backendActor.pre_compute_swap({
+                    token1_name: PayCoin.ShortForm,
+                    token_amount: amount,
+                    token2_name: RecieveCoin.ShortForm,
+                    ledger_canister_id: Principal.fromText(PayCoin.CanisterId),
+                    ledger_canister_id2: Principal.fromText(RecieveCoin.CanisterId)
                 })
-                .catch((err) => console.log(err));
-            console.log("Balance", payCoinBalance);
+                setReciveValue(swapValue[1])
+                console.log("swap value", swapValue)
+            } else {
+                console.log("no coin Amount enter")
+            }
+            if (PayCoin) {
+                getBalance(PayCoin.CanisterId)
+                    .then(balance => {
+                        setPayCoinBalance(Number(balance) / 100000000);
+                    })
+                    .catch((err) => console.log(err));
+                console.log("Balance", payCoinBalance);
+            }
         }
-    }, [PayCoin, getBalance]);
+        getSwapValue()
+    }, [PayCoin, getBalance, CoinAmount, RecieveCoin]);
 
 
     useEffect(() => {
@@ -121,7 +142,7 @@ const Swap = () => {
 
             if (balance >= amount + fee) {
                 const transaction = {
-                    amount: amount + fee,  // Approving amount (including fee)
+                    amount: BigInt(amount + fee),  // Approving amount (including fee)
                     from_subaccount: [],  // Optional subaccount
                     spender: {
                         owner: Principal.fromText(backendCanisterID),
@@ -140,9 +161,11 @@ const Swap = () => {
 
                 if (response?.Err) {
                     console.error("Approval error:", response.Err);
+                    toast.error("approve failed")
                     return { success: false, error: response.Err };
                 } else {
                     console.log("Approval successful:", response);
+                    toast.success("approve success")
                     return { success: true, data: response.Ok };
                 }
             } else {
@@ -150,6 +173,7 @@ const Swap = () => {
                 return { success: false, error: "Insufficient balance" };
             }
         } catch (error) {
+            toast.error("approve failed")
             console.error("Error in transferApprove:", error);
             return { success: false, error: error.message };
         }
@@ -183,6 +207,7 @@ const Swap = () => {
                 .then((approvalResult) => {
                     if (!approvalResult.success) {
                         console.error(`Approval failed for token: ${PayCoin.CanisterId}`, approvalResult.error);
+                        // toast.error("approve failed")
                         return resolve({ success: false, error: approvalResult.error, token: PayCoin });
                     } else {
                         console.log(`Approval successful for token: ${PayCoin.CanisterId}`);
@@ -235,8 +260,8 @@ const Swap = () => {
                 ledger_canister_id2: RecieveCoin.CanisterId
             });
             const res = await backendActor.compute_swap({
-                token_amount: amount,
                 token1_name: PayCoin.ShortForm,
+                token_amount: amount,
                 token2_name: RecieveCoin.ShortForm,
                 ledger_canister_id: Principal.fromText(PayCoin.CanisterId),
                 ledger_canister_id2: Principal.fromText(RecieveCoin.CanisterId)
@@ -244,9 +269,10 @@ const Swap = () => {
 
             console.log("Response from compute_swap:", res);
 
-            if (res && res.Ok) {
+            if (res.Ok == null) {
                 console.log("Swap successful");
                 // setSwapSuccess(true)
+                toast.success("swap complete")
                 navigate('/valueswap/transaction-successfull');
                 return res;
             } else if (res && res.Err) {
@@ -394,7 +420,7 @@ const Swap = () => {
                         {RecieveCoin ? (
                             <div className='flex flex-col font-cabin font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.RecieveSection.Heading}</span>
-                                <span className='text-3xl md:text-4xl'>{CoinAmount ? ((PayCoin.marketPrice * CoinAmount) / RecieveCoin?.marketPrice).toFixed(4) : 0}</span>
+                                <span className='text-3xl md:text-4xl'>{CoinAmount ? recieveValue.toFixed(8) : 0}</span>
                                 <span className='text-sm sm:text-base font-normal'>
                                     {SwapModalData.RecieveSection.Balance}: {recieveCoinBalance !== null ? parseFloat(recieveCoinBalance) : 'Loading...'}
                                 </span>
@@ -689,7 +715,7 @@ const Swap = () => {
                             </div>
 
                             <div className='flex gap-x-4 '>
-                                <div className='flex justify-center items-center'>{ approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+                                <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
                                 <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900  w-full'>
                                     <div className='flex justify-between  w-full'>
                                         <div className='flex gap-x-4'>

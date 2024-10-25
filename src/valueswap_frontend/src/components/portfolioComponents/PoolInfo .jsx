@@ -179,7 +179,7 @@ const PoolInfo = () => {
         </div>
 
       </div>
-      {openWithdraw ? <WithdrawModel setOpenWithdraw={setOpenWithdraw} />: ""}
+      {openWithdraw ? <WithdrawModel setOpenWithdraw={setOpenWithdraw} poolName={id}/> : ""}
     </div>
   )
 }

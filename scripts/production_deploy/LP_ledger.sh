@@ -6,7 +6,7 @@ set -e
 dfx identity new DevJourney || true
 dfx identity use DevJourney
 
-export MINTER="bw4dl-smaaa-aaaaa-qaacq-cai"
+export MINTER="ssvsn-2iaaa-aaaal-amg5a-cai"
 echo "MINTER principal (backend canister): $MINTER"
 
 # Get the principal ID for the minter account
@@ -24,7 +24,7 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use Harshit
+dfx identity use DevJourney
 export DEFAULT=$(dfx identity get-principal)
 echo "DEFAULT principal: $DEFAULT"
 
@@ -63,3 +63,4 @@ echo "LP ledger got deployed"
 balance=$(dfx canister call LP_ledger_canister icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
 echo "Balance of the DEFAULT account: $balance"
 
+echo "Approved backend canister to transfer tokens on behalf of the DEFAULT account"

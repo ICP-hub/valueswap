@@ -21,6 +21,9 @@ type SwapParams = record {
 };
 service : {
   add_liquidity_to_pool : (principal, Pool_Data) -> (Result);
+  burn_tokens : (Pool_Data, principal, float64) -> (Result);
+  get_burned_tokens : (Pool_Data, principal, float64) -> (vec float64) query;
+  get_pool_balance : (principal) -> (opt nat64) query;
   icrc1_transfer : (principal, principal, nat64) -> (Result_1);
   pool_balance : (principal, Pool_Data) -> ();
   store_pool_data : (principal, Pool_Data) -> (Result);
