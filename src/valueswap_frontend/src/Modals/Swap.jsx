@@ -15,6 +15,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { toast } from 'react-toastify';
+import CloseIcon from '@mui/icons-material/Close';
 const Swap = () => {
     const navigate = useNavigate();
     const [PayCoin, setPayCoin] = useState(null);
@@ -36,7 +37,8 @@ const Swap = () => {
     const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
     const [approvalSuccess, setApprovalSuccess] = useState(false);
     const [swapSuccess, setSwapSuccess] = useState(false);
-    const [subModel, setSubModel] = useState(0)
+    const [subModel, setSubModel] = useState(1)
+    
     // const { Tokens, Confirmation, TotalAmount, FeeShare } = useSelector((state) => state.pool);
 
 
@@ -273,7 +275,7 @@ const Swap = () => {
                 console.log("Swap successful");
                 // setSwapSuccess(true)
                 toast.success("swap complete")
-                navigate('/valueswap/transaction-successfull');
+                // navigate('/valueswap/transaction-successfull');
                 return res;
             } else if (res && res.Err) {
                 console.error("Swap failed with error:", res.Err, res);
@@ -673,27 +675,27 @@ const Swap = () => {
                     </div>
                 )} */}
                 {isModalOpen ? <div className="fixed inset-0  bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="p-6 pb-16 w-11/12 sm:max-w-[40rem] bg-gray-800 mt-10 rounded-lg shadow-lg text-white  mx-auto relative">
+                    <div className="p-6 pb-16 w-11/12 sm:max-w-[40rem] border-2 border-[#86828280] bg-[#182030] mt-10 rounded-lg shadow-lg text-white  mx-auto relative">
                         <button
                             className="absolute top-5 right-10 text-gray-400 hover:text-gray-300"
                             onClick={() => setIsModalOpen(false)}
                         >
-                            &times;
+                            <CloseIcon/>
                         </button>
 
-                        <h2 className="text-xl font-semibold mb-4">Swap Details</h2>
-                        <p className="text-gray-400 mb-6">
+                        <h2 className="text-xl font-semibold mb-4 font-fahkwang">Swap Details</h2>
+                        <p className="text-gray-400 mb-6 font-cabin">
                             You can swap directly without depositing, because you have sufficient balance in the Swap pool.
                         </p>
 
                         <div className='flex flex-col gap-y-6'>
-                            <div className='flex gap-x-4 '>
+                            <div className='flex gap-x-4 font-cabin '>
                                 <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
-                                <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900  w-full'>
-                                    <div className='flex justify-between  w-full'>
-                                        <div className='flex gap-x-4'>
-                                            <span>1.</span>
-                                            <span>Approve <span>{PayCoin.ShortForm}</span></span>
+                                <div className='flex flex-col border rounded-lg  py-2 border-gray-600 bg-[#30303080]  w-full'>
+                                    <div className='flex justify-between px-4 pb-1 w-full '>
+                                        <div className='flex  '>
+                                            <span>1. Approve <span>{PayCoin.ShortForm}</span></span>
+                                            
                                         </div>
                                         <div onClick={() => setSubModel(1)}>
                                             {subModel == 1 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -701,12 +703,14 @@ const Swap = () => {
                                     </div>
                                     <div className={` ${subModel == 1 ? "flex flex-col" : 'hidden'}`} >
                                         <hr className=' border-gray-500' />
-                                        <div className='flex gap-x-2 justify-between w-full font-extralight text-sm pr-2'>
+                                        <div className='flex gap-x-2 justify-between w-full font-extralight px-4 text-sm pt-1 text-[#FFFFFFBF]'>
                                             <span>Amount</span>
-                                            <span>{CoinAmount}</span>
+                                            <span className='flex gap-2 items-center'>
+                                                <img src={PayCoin.ImagePath} alt="" className='w-4 h-4' />
+                                                {CoinAmount}</span>
                                         </div>
-                                        <div className='flex justify-between w-full font-extralight text-sm'>
-                                            <span >canisterId</span>
+                                        <div className='flex justify-between w-full font-extralight px-4 text-sm pb-1 text-[#FFFFFFBF]'>
+                                            <span >Canister Id</span>
                                             <span>{PayCoin.CanisterId}</span>
                                         </div>
                                     </div>
@@ -714,41 +718,46 @@ const Swap = () => {
                                 </div>
                             </div>
 
-                            <div className='flex gap-x-4 '>
+
+                            <div className='flex gap-x-4 font-cabin '>
                                 <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
-                                <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900  w-full'>
-                                    <div className='flex justify-between  w-full'>
-                                        <div className='flex gap-x-4'>
-                                            <span>2.</span>
-                                            <span>Deposite <span>{PayCoin.ShortForm}</span></span>
+                                <div className='flex flex-col border rounded-lg  py-2 border-gray-600 bg-[#30303080]  w-full'>
+                                    <div className='flex justify-between px-4 w-full '>
+                                        <div className='flex  '>
+                                            <span>1. Deposite <span>{PayCoin.ShortForm}</span></span>
+                                            
                                         </div>
                                         <div onClick={() => setSubModel(2)}>
                                             {subModel == 2 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                                         </div>
                                     </div>
-                                    <div className={` ${subModel == 2 ? "flex flex-col" : 'hidden'}`}>
+                                    <div className={` ${subModel == 2 ? "flex flex-col" : 'hidden'}`} >
                                         <hr className=' border-gray-500' />
-                                        <div className='flex gap-x-2 justify-between w-full font-extralight text-sm pr-2'>
+                                        <div className='flex gap-x-2 justify-between w-full font-extralight px-4 text-sm pt-1 text-[#FFFFFFBF]'>
                                             <span>Amount</span>
-                                            <span>{CoinAmount}</span>
+                                            <span className='flex gap-2 items-center'>
+                                                <img src={PayCoin.ImagePath} alt="" className='w-4 h-4' />
+                                                {CoinAmount}</span>
                                         </div>
-                                        <div className='flex justify-between w-full font-extralight text-sm'>
-                                            <span >canisterId</span>
+                                        <div className='flex justify-between w-full font-extralight px-4 text-sm pb-1 text-[#FFFFFFBF]'>
+                                            <span >Canister Id</span>
                                             <span>{PayCoin.CanisterId}</span>
                                         </div>
                                     </div>
 
                                 </div>
                             </div>
+                                      
+                                      
+                                          {/*  */}
 
-
-                            <div className='flex gap-x-4 '>
+                            <div className='flex gap-x-4 font-cabin'>
                                 <div className='flex justify-center items-center'>{swapSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
-                                <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900 w-full'>
-                                    <div className='flex justify-between  w-full'>
+                                <div className='flex flex-col border rounded-lg  py-2 border-gray-600 bg-[#30303080] w-full'>
+                                    <div className='flex justify-between w-full px-4 '>
                                         <div className='flex gap-x-4'>
-                                            <span>3.</span>
-                                            <span>swap <span>{PayCoin.ShortForm}</span> to <span>{RecieveCoin.ShortForm}</span></span>
+                                            <span>3. Swap <span>{PayCoin.ShortForm}</span> to <span>{RecieveCoin.ShortForm}</span></span>
+                                          
                                         </div>
                                         <div onClick={() => setSubModel(3)}>
                                             {subModel == 3 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -756,11 +765,11 @@ const Swap = () => {
                                     </div>
                                     <div className={` ${subModel == 3 ? "flex flex-col" : 'hidden'}`}>
                                         <hr className=' border-gray-500' />
-                                        <div className='flex gap-x-2 justify-between w-full font-extralight text-sm pr-2'>
+                                        <div className='flex gap-x-2 justify-between w-full font-extralight text-sm px-4 pt-1'>
                                             <span>{PayCoin.ShortForm}</span>
                                             <span className='flex gap-x-2 justify-center items-center'><img src={PayCoin.ImagePath} alt="" className='w-4 h-4' /> {CoinAmount}</span>
                                         </div>
-                                        <div className='flex justify-between w-full font-extralight text-sm'>
+                                        <div className='flex justify-between w-full font-extralight text-sm px-4 pb-1'>
                                             <span >{RecieveCoin.ShortForm}</span>
                                             <span className='flex gap-x-2 justify-center items-center'><img src={RecieveCoin.ImagePath} alt="" className='w-4 h-4' /> 44</span>
                                         </div>
@@ -771,22 +780,22 @@ const Swap = () => {
 
 
                             {/* withdraw */}
-                            <div className='flex gap-x-4 '>
+                            <div className='flex gap-x-4 font-cabin'>
                                 <div className='flex justify-center items-center'>{swapSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
-                                <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600  bg-gray-900 w-full'>
-                                    <div className='flex justify-between  w-full'>
+                                <div className='flex flex-col border rounded-lg  py-2 border-gray-600  bg-[#30303080] w-full'>
+                                    <div className='flex justify-between px-4 w-full'>
                                         <div className='flex gap-x-4'>
-                                            <span>3.</span>
-                                            <span>withdraw  <span>{RecieveCoin.ShortForm}</span></span>
+                                            <span>3. Withdraw  <span>{RecieveCoin.ShortForm} </span></span>
+                                       
                                         </div>
-                                        <div onClick={() => setSubModel(3)}>
-                                            {subModel == 3 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                                        <div onClick={() => setSubModel(4)}>
+                                            {subModel == 4 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                                         </div>
                                     </div>
-                                    <div className={` ${subModel == 3 ? "flex flex-col" : 'hidden'}`}>
+                                    <div className={` ${subModel == 4 ? "flex flex-col" : 'hidden'}`}>
                                         <hr className=' border-gray-500' />
 
-                                        <div className='flex justify-between w-full font-extralight text-sm'>
+                                        <div className='flex justify-between w-full font-extralight text-sm px-4 pt-1 text-[#FFFFFFBF]'>
                                             <span >{RecieveCoin.ShortForm}</span>
                                             <span className='flex gap-x-2 justify-center items-center'><img src={RecieveCoin.ImagePath} alt="" className='w-4 h-4' /> 44</span>
                                         </div>

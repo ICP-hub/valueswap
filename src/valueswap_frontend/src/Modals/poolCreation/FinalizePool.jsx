@@ -10,6 +10,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CloseIcon from '@mui/icons-material/Close';
 const FinalizePool = ({ handleCreatePoolClick }) => {
   const { Tokens, Confirmation, TotalAmount, FeeShare } = useSelector((state) => state.pool);
   const dispatch = useDispatch();
@@ -20,7 +21,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
   // const [poolData, setPoolData] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [approvalSuccess, setApprovalSuccess] = useState(false);
-  const [subModel, setSubModel] = useState(0);
+  const [subModel, setSubModel] = useState(1);
   useEffect(() => {
     if (confirmPool && poolCreated) {
       setFinal(true);
@@ -383,40 +384,43 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
 
       {/*steps confirmation model */}
       {isModalOpen ? <div className="fixed inset-0  bg-black bg-opacity-50 flex justify-center items-center z-50">
-        <div className="p-6 pb-16  xl:w-5/12 lg:w-6/12 md:w-7/12 sm:w-8/12 w-11/12 bg-gray-800 mt-10 rounded-lg shadow-lg text-white  mx-auto relative">
+        <div className="p-6 pb-16  xl:w-4/12 lg:w-5/12 md:w-6/12 sm:w-7/12 w-11/12 border-2 border-[#86828280] bg-[#182030] mt-10 rounded-lg shadow-lg text-white  mx-auto relative">
           <button
             className="absolute top-5 right-10 text-gray-400 hover:text-gray-300"
             onClick={() => setIsModalOpen(false)}
           >
-            &times;
+            
+            <CloseIcon/>
           </button>
 
-          <h2 className="text-xl font-semibold mb-4">pool creation Details</h2>
+          <h2 className="text-xl font-medium mb-4 text-center font-fahkwang">Pool Creation Details</h2>
           {/* <p className="text-gray-400 mb-6">
             You can swap directly without depositing, because you have sufficient balance in the Swap pool.
           </p> */}
 
-          <div className='flex flex-col gap-y-6'>
+          <div className='flex flex-col gap-y-6 font-cabin'>
             <div className='flex gap-x-4 '>
-              <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
-              <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900  w-full'>
-                <div className='flex justify-between  w-full'>
-                  <div className='flex gap-x-4'>
-                    <span>1.</span>
-                    <span>Approve</span>
+              <div className='flex justify-center items-center '>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+              <div className='flex flex-col border rounded-lg  py-2 border-gray-600 bg-[#30303080]  w-full'>
+                <div className='flex justify-between  w-full px-4'>
+                  <div className='flex gap-x-4 font-cabin pb-1'>
+                    <span>1. Approve Tokens</span>
+                    {/* <span></span> */}
                   </div>
                   <div onClick={() => setSubModel(1)}>
                     {subModel == 1 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                   </div>
                 </div>
                 {Tokens.map((token) => <div className={` ${subModel == 1 ? "flex flex-col" : 'hidden'}`} >
-                  <hr className=' border-gray-500' />
-                  <div className='flex gap-x-2 justify-between w-full font-extralight text-sm pr-2'>
+                  <hr className=' border-[#FFFFFF4D] w-full'/>
+                  <div className='flex  justify-between w-full font-extralight text-sm px-4 pt-1 text-[#FFFFFFBF]'>
                     <span>Amount</span>
-                    <span>{token.Amount}</span>
+                    <span className='flex gap-2 items-center'>
+                      <img src={token.ImagePath} alt=""  className="w-4 h-4"/>
+                      {token.Amount}</span>
                   </div>
-                  <div className='flex justify-between w-full font-extralight text-sm'>
-                    <span >canisterId</span>
+                  <div className='flex justify-between w-full font-extralight text-sm px-4 pb-1 text-[#FFFFFFBF]'>
+                    <span >Canister Id</span>
                     <span>{token.CanisterId}</span>
                   </div>
                 </div>)}
@@ -426,11 +430,11 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
 
             <div className='flex gap-x-4 '>
               <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
-              <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900  w-full'>
+              <div className='flex flex-col border rounded-lg py-2 border-gray-600 bg-[#30303080]  w-full'>
                 <div className='flex justify-between  w-full'>
-                  <div className='flex gap-x-4'>
-                    <span>2.</span>
-                    <span>Deposite </span>
+                  <div className='flex gap-x-4 pb-1 px-4'>
+                    <span>2. Deposit Tokens</span>
+
                   </div>
                   <div onClick={() => setSubModel(2)}>
                     {subModel == 2 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
@@ -438,12 +442,14 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
                 </div>
                 {Tokens.map((token) => <div className={` ${subModel == 2 ? "flex flex-col" : 'hidden'}`} >
                   <hr className=' border-gray-500' />
-                  <div className='flex gap-x-2 justify-between w-full font-extralight text-sm pr-2'>
+                  <div className='flex justify-between w-full font-extralight text-sm px-4 pt-1 text-[#FFFFFFBF]'>
                     <span>Amount</span>
-                    <span>{token.Amount}</span>
+                    <span className='flex gap-2 items-center'>
+                      <img src={token.ImagePath} alt=""  className="w-4 h-4"/>
+                      {token.Amount}</span>
                   </div>
-                  <div className='flex justify-between w-full font-extralight text-sm'>
-                    <span >canisterId</span>
+                  <div className='flex justify-between w-full font-extralight text-sm px-4 pb-1 text-[#FFFFFFBF]'>
+                    <span >Canister Id</span>
                     <span>{token.CanisterId}</span>
                   </div>
                 </div>)}
@@ -452,11 +458,11 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
             </div>
             <div className='flex gap-x-4 '>
               <div className='flex justify-center items-center'>{confirmPool ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
-              <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-gray-900 w-full'>
+              <div className='flex flex-col border rounded-lg px-4 py-2 border-gray-600 bg-[#30303080] w-full'>
                 <div className='flex justify-between  w-full'>
                   <div className='flex gap-x-4'>
-                    <span>3.</span>
-                    <span>pool creation completed</span>
+                    <span>3. Pool Creation Completed</span>
+
                   </div>
                 </div>
 
