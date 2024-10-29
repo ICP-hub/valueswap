@@ -63,7 +63,7 @@ dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS"
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
 ./deploy_cketh.sh
 dfx deploy
-
+# 
 
 # dfx deploy valueswap_fontend
 # dfx deploy

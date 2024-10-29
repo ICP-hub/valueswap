@@ -187,7 +187,7 @@ async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -
     // let amount_nat = Nat::from(amount_as_u64);
 
 // Example usage within your swap function
-let transfer_result = icrc1_transfer(params.ledger_canister_id, user_principal, amount_as_u64.clone()).await;
+let transfer_result = icrc1_transfer(params.ledger_canister_id2, user_principal, amount_as_u64.clone()).await;
 
 if let Err(e) = transfer_result {
  ic_cdk::println!("Transfer failed: {:?}", e);
