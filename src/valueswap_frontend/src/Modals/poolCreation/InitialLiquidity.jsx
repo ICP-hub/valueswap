@@ -134,60 +134,68 @@ const InitialLiquidity = () => {
 
   // token Approval function
   const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
-    let decimals = null;
-    let fee = null;
-    let amount = null;
-    let balance = null;
-    const metaData = await tokenActor.icrc1_metadata();
+        try {
+            let decimals = null;
+            let fee = null;
+            let amount = null;
+            let balance = null;
+            const metaData = await tokenActor.icrc1_metadata();
+            for (const item of metaData) {
+                if (item[0] === 'icrc1:decimals') {
+                    decimals = Number(item[1].Nat); // Assuming decimals is stored as a Nat (BigInt)
+                } else if (item[0] === 'icrc1:fee') {
+                    fee = Number(item[1].Nat); // Assuming fee is stored as a Nat (BigInt)
+                }
+            }
+            amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
+            balance = await getBalance(canisterId);
 
-    for (const item of metaData) {
-      if (item[0] === 'icrc1:decimals') {
-        decimals = Number(item[1].Nat);
-      } else if (item[0] === 'icrc1:fee') {
-        fee = Number(item[1].Nat);
-      }
-    }
 
-    amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
-    balance = await getBalance(canisterId);
 
-   if (balance >= amount + fee){
-    const transaction = {
-      idl: tokenIdl,
-      canisterId: canisterId,
-      methodName: 'icrc2_approve',
-      args: [
-        {
-          amount: BigInt(amount + fee),
-          from_subaccount: [],
-          spender: {
-            owner: Principal.fromText(backendCanisterID),
-            subaccount: [],
-          },
-          fee: [],
-          memo: [],
-          created_at_time: [],
-          expected_allowance: [],
-          expires_at: [],
-        },
-      ],
-      onSuccess: async (res) => {
-        console.log(`Approval successful for token: ${canisterId}`, res);
-      },
-      onFail: (res) => {
-        console.error(`Approval failed for token: ${canisterId}`, res);
-      },
+            console.log("init metaData", metaData);
+            console.log("init decimals", decimals);
+            console.log("init fee", fee);
+            console.log("init amount", amount);
+            console.log("init balance", balance);
+
+            if (balance >= amount + fee) {
+                const transaction = {
+                    amount: BigInt(amount + fee),  // Approving amount (including fee)
+                    from_subaccount: [],  // Optional subaccount
+                    spender: {
+                        owner: Principal.fromText(backendCanisterID),
+                        subaccount: [],  // Optional subaccount for the spender
+                    },
+                    fee: [],  // Fee is optional, applied during the transfer
+                    memo: [],  // Optional memo
+                    created_at_time: [],  // Optional timestamp
+                    expected_allowance: [],  // Optional expected allowance
+                    expires_at: [],  // Optional expiration time
+                };
+
+                // console.log("transaction", transaction);
+
+                const response = await tokenActor.icrc2_approve(transaction);
+
+                if (response?.Err) {
+                    console.error("Approval error:", response.Err);
+                    toast.error("approve failed")
+                    return { success: false, error: response.Err };
+                } else {
+                    console.log("Approval successful:", response);
+                    toast.success("approve success")
+                    return { success: true, data: response.Ok };
+                }
+            } else {
+                console.error("Insufficient balance:", balance, "required:", amount + fee);
+                return { success: false, error: "Insufficient balance" };
+            }
+        } catch (error) {
+            toast.error("approve failed")
+            console.error("Error in transferApprove:", error);
+            return { success: false, error: error.message };
+        }
     };
-    return transaction;
-   }else{
-    {
-      console.error("Insufficient balance:", balance, "required:", amount + fee);
-      return { success: false, error: "Insufficient balance" };
-    }
-   }
- 
-
-  };
 
   
   
@@ -196,43 +204,59 @@ const InitialLiquidity = () => {
   const handleCreatePoolClick = async (backendCanisterID) => {
     try {
       if (!Tokens || Tokens.length === 0) {
-        console.error('Tokens array is empty or undefined');
-        return { success: false, error: 'No tokens to process' };
+        console.error("Tokens array is empty or undefined");
+        return { success: false, error: "No tokens to process" };
       }
-
-      const approvalTransactions = await Promise.all(
-        Tokens.map(async (tokenData) => {
+      const approvalResults = [];
+      await Tokens.reduce((promiseChain, tokenData, index) => {
+        return promiseChain.then(async () => {
+          console.log(`Processing token ${index + 1} / ${Tokens.length}:`, tokenData);
+  
           if (!tokenData.CanisterId || !tokenData.Amount) {
-            const errorMsg = `Invalid token data: ${JSON.stringify(tokenData)}`;
+            const errorMsg = `Invalid token data at index ${index}: ${JSON.stringify(tokenData)}`;
             console.error(errorMsg);
-            throw new Error(errorMsg);
+            approvalResults.push({ success: false, error: errorMsg, token: tokenData });
+            // Decide whether to continue or reject the chain
+            // return Promise.resolve(); // To continue
+            return Promise.reject({ success: false, error: errorMsg, token: tokenData }); // To exit on error
           }
-          const tokenActor = await createTokenActor(tokenData.CanisterId);
-          const transaction = await transferApprove(
+          const tokenActors = await createTokenActor(tokenData.CanisterId);
+          const approvalResult = await transferApprove(
             tokenData.Amount,
             tokenData.CanisterId,
             backendCanisterID,
-            tokenActor
+            tokenActors
           );
-          return transaction;
-        })
-      );
-          console.log("approvalTransactions", approvalTransactions)
-      // Execute batch transactions
-      window["approvalTransaction"] = approvalTransactions
-      const result = await window.ic.plug.batchTransactions(approvalTransactions);
-
-
-      console.log('All tokens approved successfully');
-      toast.success("Approve successfully ")
-      return { success: true, data: result };
+  
+          if (!approvalResult.success) {
+            console.error(`Approval failed for token: ${tokenData.CanisterId}`, approvalResult.error);
+  
+            approvalResults.push({ success: false, error: approvalResult.error, token: tokenData });
+            // Decide whether to continue or reject the chain
+            // return Promise.resolve(); // To continue
+            return Promise.reject({ success: false, error: approvalResult.error, token: tokenData }); // To exit on error
+          } else {
+            console.log(`Approval successful for token: ${tokenData.CanisterId}`);
+            approvalResults.push({ success: true, data: approvalResult.data, token: tokenData });
+          }
+        });
+      }, Promise.resolve());
+  
+      const failedApprovals = approvalResults.filter(result => !result.success);
+  
+      if (failedApprovals.length > 0) {
+        console.error("Some token approvals failed:", failedApprovals);
+        return { success: false, error: "Some token approvals failed", details: failedApprovals };
+      }
+  
+      console.log("All tokens approved successfully");
+      return { success: true };
     } catch (error) {
-      console.error('Error in handleCreatePoolClick:', error);
-      toast.error('Token approval failed. Please try again.');
-      return { success: false, error: error.message };
+      console.error("Error in handleCreatePoolClick:", error);
+      // The error object might be our custom error from reject
+      return error.success !== undefined ? error : { success: false, error: error.message };
     }
   };
-
   
   
 
