@@ -497,7 +497,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
 
     // let user_principal_id = api::caller();
 
-    deposit_tokens(params.token_amount.clone(), params.ledger_canister_id.clone(), canister_id.clone()).await?;
+    deposit_tokens(params.token_amount, params.ledger_canister_id1.clone(), canister_id.clone()).await?;
 
     // ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
     // Proceed with the call using the extracted principal

@@ -54,18 +54,18 @@ const Swap = () => {
     console.log("recive coin", RecieveCoin)
     useEffect(() => {
         const getSwapValue = async () => {
-            console.log("coni amount hai", CoinAmount)
+           
             if (CoinAmount) {
                 const amount = BigInt(CoinAmount)
                 const swapValue = await backendActor.pre_compute_swap({
                     token1_name: PayCoin.ShortForm,
                     token_amount: amount,
                     token2_name: RecieveCoin.ShortForm,
-                    ledger_canister_id: Principal.fromText(PayCoin.CanisterId),
+                    ledger_canister_id1: Principal.fromText(PayCoin.CanisterId),
                     ledger_canister_id2: Principal.fromText(RecieveCoin.CanisterId)
                 })
                 setReciveValue(swapValue[1])
-                console.log("swap value", swapValue)
+                
             } else {
                 console.log("no coin Amount enter")
             }
@@ -75,7 +75,7 @@ const Swap = () => {
                         setPayCoinBalance(Number(balance) / 100000000);
                     })
                     .catch((err) => console.log(err));
-                console.log("Balance", payCoinBalance);
+                // console.log("Balance", payCoinBalance);
             }
         }
         getSwapValue()
@@ -265,7 +265,7 @@ const Swap = () => {
                 token1_name: PayCoin.ShortForm,
                 token_amount: amount,
                 token2_name: RecieveCoin.ShortForm,
-                ledger_canister_id: Principal.fromText(PayCoin.CanisterId),
+                ledger_canister_id1: Principal.fromText(PayCoin.CanisterId),
                 ledger_canister_id2: Principal.fromText(RecieveCoin.CanisterId)
             });
 
