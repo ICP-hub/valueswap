@@ -254,13 +254,13 @@ const Swap = () => {
         }
 
         try {
-            console.log("Calling backendActor.compute_swap with:", {
-                token_amount: amount,
-                token1_name: PayCoin.ShortForm,
-                token2_name: RecieveCoin.ShortForm,
-                ledger_canister_id: PayCoin.CanisterId,
-                ledger_canister_id2: RecieveCoin.CanisterId
-            });
+            // console.log("Calling backendActor.compute_swap with:", {
+            //     token_amount: amount,
+            //     token1_name: PayCoin.ShortForm,
+            //     token2_name: RecieveCoin.ShortForm,
+            //     ledger_canister_id: PayCoin.CanisterId,
+            //     ledger_canister_id2: RecieveCoin.CanisterId
+            // });
             const res = await backendActor.compute_swap({
                 token1_name: PayCoin.ShortForm,
                 token_amount: amount,
