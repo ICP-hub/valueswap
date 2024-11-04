@@ -55,7 +55,7 @@ const SetPoolFees = ({ handleNext, setFixedActiveSetp }) => {
             <div className='z-50 w-min md:w-max m-auto flex flex-col gap-4 p-4 sm:p-6 bg-gradient-to-b from-[#3E434B] to-[#02060D] border  rounded-lg'>
                 <div className='w-[75%] sm:w-[65%] place-self-end  flex justify-between'>
                     <span className='font-fahkwang font-light text-2xl sm:text-3xl '>Set Fee Tier</span>
-                    <Bolt size={30} className='cursor-pointer' onClick={() => { console.log("settings open") }} />
+                    {/* <Bolt size={30} className='cursor-pointer' onClick={() => { console.log("settings open") }} /> */}
                 </div>
 
 

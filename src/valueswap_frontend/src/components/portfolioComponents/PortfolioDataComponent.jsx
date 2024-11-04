@@ -90,18 +90,18 @@ const PortfolioDataComponent = () => {
     };
 
     const navigate = useNavigate();
-    const Headings = ['Token', 'Weightage', 'Balance', 'Value']
+    const Headings = ['Token', 'TVL', 'Volume(24h)', 'APR']
     return (
         <div className='max-w-[1200px] mx-auto h-screen relative'>
             <div className='w-full h-screen text-white mt-12 px-8 mx-auto absolute'>
                 <div className='flex justify-between bg-[#010427] p-2 pb-6 pt-8 rounded-lg mx-auto'>
-                    <div className='flex justify-between items-center mx-2 md:mx-16'>
+                    <div className='flex justify-between items-center mx-2 md:mx-8'>
                         <span className='font-cabin text-xl md:text-3xl font-medium'>My Liquidity Pools</span>
                     </div>
                     <div
                         className='mr-4'
                         onClick={() => {
-                            navigate('/valueswap/pool/create-pool');
+                            navigate('/valueswap/pool/create-pool/steps')
                         }}>
                         <GradientButton CustomCss={`hover:opacity-75 text-xs md:text-base lg:text-base h-[45px] w-[120px] py-2 lg:py-4`}>
                             Create Pool
@@ -115,13 +115,13 @@ const PortfolioDataComponent = () => {
                                 <SkeletonTheme baseColor="#1f2029" highlightColor="#2b2b2b" borderRadius="0.5rem" duration={2}>
                                     <table className='min-w-full'>
                                         <thead>
-                                            <tr>
+                                            <tr >
                                                 {Headings?.map((heading, index) => (
                                                     <th
                                                         scope='col'
                                                         key={index}
-                                                        className='py-7 pl-6 pr-3 text-center text-sm md:text-base lg:text-xl font-medium text-white'>
-                                                        <span className='flex gap-2 items-center justify-center' onClick={() => sortingConditional(index)}>
+                                                        className={`py-7 pl-6 pr-10 md:pr-0 text-center text-sm md:text-base lg:text-xl font-medium text-white ${heading == "Token" ?  'w-7/12': ''} `}>
+                                                        <span className='flex  items-center ml-4' onClick={() => sortingConditional(index)}>
                                                             {heading}
                                                             {index === activeSort ? <ArrowDownwardIcon sx={{ color: "" }} /> : ""}
                                                         </span>
@@ -166,9 +166,17 @@ const PortfolioDataComponent = () => {
                                                             ))}
 
                                                         </td>
-                                                        <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
-                                                           
+                                                        <td className='whitespace-nowrap py-4 pl-3 text-center text-sm md:text-base font-medium pr-2'>
+                                                            {/* {pool?.PoolMetaData?.APRstart}% - {pool?.PoolMetaData?.APRend}% */}
+                                                            ${(() => {
+                                                                const value = Poolinfo?.pool_data?.reduce(
+                                                                    (sum, item) => sum + BigInt(item.value),
+                                                                    BigInt(0)
+                                                                );
+                                                                return  value?.toLocaleString('en-US');
+                                                            })()}
                                                         </td>
+                                                       
                                                         <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
                                                             {/* $ {pool?.PoolMetaData?.PoolValue.toLocaleString('en-US')} */}
                                                             {(() => {
@@ -179,19 +187,10 @@ const PortfolioDataComponent = () => {
                                                                 return totalBalance?.toLocaleString('en-US');
                                                             })()}
                                                         </td>
-                                                        <td className='whitespace-nowrap py-4 pl-3 text-center text-sm md:text-base font-medium pr-6'>
-                                                            {/* {pool?.PoolMetaData?.APRstart}% - {pool?.PoolMetaData?.APRend}% */}
-                                                            ${(() => {
-                                                                const value = Poolinfo?.pool_data?.reduce(
-                                                                    (sum, item) => sum + BigInt(item.value),
-                                                                    BigInt(0)
-                                                                );
-                                                                return  value?.toLocaleString('en-US');
-                                                            })()}
+                                                        <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
+                                                           1% - 2%
                                                         </td>
-                                                        <td className='whitespace-nowrap py-4 pl-3 text-center text-sm md:text-base font-medium pr-6'>
-                                                            {/* {pool?.PoolMetaData?.Time.toLocaleString()} */}
-                                                        </td>
+                                                       
                                                     </tr>
 
                                                 ))}

@@ -149,7 +149,7 @@ const ShowAllPools = () => {
           <div className='flex items-center justify-between gap-4 mx-8 md:gap-16 '>
             <span className='font-medium text-white font-cabin md:text-3xl'>Liquidity Pools</span>
           </div>
-          <div className='mr-4' onClick={() => navigate('/valueswap/pool/create-pool')}>
+          <div className='mr-4' onClick={() => navigate('/valueswap/pool/create-pool/steps')}>
             <GradientButton CustomCss={`hover:opacity-75 text-xs md:text-base lg:text-base h-[45px] w-[120px] py-2 lg:py-4`}>
               Create Pool
             </GradientButton>
@@ -161,14 +161,14 @@ const ShowAllPools = () => {
             <div className='inline-block min-w-full py-2 align-middle'>
               <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5'>
                 <SkeletonTheme baseColor="#1f2029" highlightColor="#2b2b2b" borderRadius="0.5rem" duration={2}>
-                  <table className='min-w-[1000px] md:min-w-[1200px]'>
+                  <table className='min-w-full'>
                     <thead>
                       <tr>
                         {['Pool Name', 'Value', 'Total Volume', 'APR'].map((heading, index) => (
                           <th
                             scope='col'
                             key={index}
-                            className='pl-10 pr-3 text-sm font-medium text-center text-white py-7 md:text-base lg:text-xl'
+                            className={`pl-10 pr-0 text-sm font-medium text-center text-white py-7 md:text-base lg:text-xl ${heading == 'Pool Name' ?  'w-7/12': ""}`}
                           >
                             <span className='flex cursor-pointer items-center gap-2' onClick={() => sortingConditional(index)}>
                               {heading}

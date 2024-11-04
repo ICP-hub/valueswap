@@ -181,7 +181,7 @@ async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -
     // let token_canister_id = ic_cdk::api::id();
 
     // Convert f64 to u64
-    let amount_as_u64 = amount as u64;
+    let amount_as_u64: u64 = amount as u64;
 
     // Convert u64 to Nat
     // let amount_nat = Nat::from(amount_as_u64);
@@ -209,18 +209,18 @@ let mut user_pool_data = pool_data.unwrap();
 let mut has_sufficient_balance = false;
 let mut has_sufficient_liquidity = false;
 
-for pool in &mut user_pool_data {
-    for token in &mut pool.pool_data {
-        if token.token_name == params.token1_name && token.balance >= params.token_amount {
-            has_sufficient_balance = true;
-            token.balance -= params.token_amount;
-        }
-        if token.token_name == params.token2_name {
-            has_sufficient_liquidity = true;
-            token.balance += params.token_amount;
-        }
-    }
-}
+// for pool in &mut user_pool_data {
+//     for token in &mut pool.pool_data {
+//         if token.token_name == params.token1_name && token.balance >= params.token_amount {
+//             has_sufficient_balance = true;
+//             token.balance -= params.token_amount;
+//         }
+//         if token.token_name == params.token2_name {
+//             has_sufficient_liquidity = true;
+//             token.balance += params.token_amount;
+//         }
+//     }
+// }
 
 if !has_sufficient_balance {
     return Err("Insufficient balance".to_string());

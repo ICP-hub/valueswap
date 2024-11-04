@@ -274,10 +274,10 @@ const InitialLiquidity = () => {
         <div className='w-[78%] sm:w-[74%] place-self-end  flex justify-between'>
           <span className='font-fahkwang font-light text-base sm:text-3xl '>Set Initial Liquidity</span>
           <div className='sm:hidden block'>
-            <Bolt size={22} className='cursor-pointer' onClick={() => { console.log("settings open") }} />
+            {/* <Bolt size={22} className='cursor-pointer' onClick={() => { console.log("settings open") }} /> */}
           </div>
           <div className='sm:block hidden'>
-            <Bolt size={30} className='cursor-pointer' onClick={() => { console.log("settings open") }} />
+            {/* <Bolt size={30} className='cursor-pointer' onClick={() => { console.log("settings open") }} /> */}
           </div>
         </div>
 
@@ -293,13 +293,13 @@ const InitialLiquidity = () => {
               />
             </div>
             <span className='text-sm sm:text-base font-normal'>
-              Balance: {initialTokenBalance}
+              Balance: {initialTokenBalance.toLocaleString()}
             </span>
           </div>
           <div className='flex flex-col justify-center'>
             <div className='flex gap-3 items-center'>
               <BlueGradientButton customCss={'disabled px-2 py-2  normal-cursor'}>
-                <img src={InitialToken.ImagePath} alt="" className=' h-3 w-3 sm:h-6 sm:w-6 transform scale-150' />
+                <img src={InitialToken.ImagePath} alt="" className=' h-3 w-3 sm:h-4 sm:w-4 translate-[] scale-150' />
               </BlueGradientButton>
               <span className='text-base sm:text-2xl font-normal'>
                 {InitialToken.ShortForm}
@@ -309,7 +309,7 @@ const InitialLiquidity = () => {
               </span>
             </div>
             <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-              $ {InitialToken.currencyAmount || 0}
+              ${InitialToken.currencyAmount.toLocaleString() || 0}
             </span>
           </div>
         </div>
@@ -333,13 +333,13 @@ const InitialLiquidity = () => {
                       />
                     </div>
                     <span className='text-sm sm:text-base font-normal'>
-                      Balance: {balance}
+                      Balance: {balance !== undefined ? balance.toLocaleString() : "0"}
                     </span>
                   </div>
                   <div className='flex flex-col justify-center'>
                     <div className='flex gap-3 items-center'>
                       <BlueGradientButton customCss={'disabled px-2 py-2  normal-cursor'}>
-                        <img src={token.ImagePath} alt="" className='h-3 w-3 sm:h-6 sm:w-6 transform scale-150' />
+                        <img src={token.ImagePath} alt="" className='h-3 w-3 sm:h-4 sm:w-4 transform scale-150' />
                       </BlueGradientButton>
                       <span className='text-sm sm:text-2xl font-normal'>
                         {token.ShortForm}
@@ -349,7 +349,7 @@ const InitialLiquidity = () => {
                       </span>
                     </div>
                     <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-                      $ {token.currencyAmount || 0}
+                      ${token.currencyAmount.toLocaleString() || 0}
 
                     </span>
                   </div>
