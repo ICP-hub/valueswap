@@ -17,11 +17,11 @@ echo "Token Name: $TOKEN_NAME"
 echo "Token Symbol: $TOKEN_SYMBOL"
 
 # Set initial parameters
-export PRE_MINTED_TOKENS=10_000_000_000
+export PRE_MINTED_TOKENS=10_000_000_000_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use default
+dfx identity use Harshit
 export DEFAULT=$(dfx identity get-principal)
 echo "DEFAULT principal: $DEFAULT"
 
