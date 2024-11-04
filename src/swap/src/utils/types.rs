@@ -66,7 +66,7 @@ pub struct CreatePoolParams{
 
 pub struct SwapParams {
     pub token1_name : String,
-    pub token_amount : u64,
+    pub token_amount : f64,
     pub token2_name : String,
     pub ledger_canister_id : Principal,
     pub  ledger_canister_id2 : Principal

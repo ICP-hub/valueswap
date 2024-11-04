@@ -51,19 +51,20 @@ const Swap = () => {
         }
     }, [PayCoin, RecieveCoin]);
 
-    console.log("recive coin", RecieveCoin)
+
     useEffect(() => {
         const getSwapValue = async () => {
            
             if (CoinAmount) {
-                const amount = BigInt(CoinAmount)
+                const amount = parseFloat(CoinAmount)
                 const swapValue = await backendActor.pre_compute_swap({
-                    token1_name: PayCoin.ShortForm,
+                    token1_name: RecieveCoin.ShortForm,
                     token_amount: amount,
-                    token2_name: RecieveCoin.ShortForm,
-                    ledger_canister_id1: Principal.fromText(PayCoin.CanisterId),
-                    ledger_canister_id2: Principal.fromText(RecieveCoin.CanisterId)
+                    token2_name: PayCoin.ShortForm,
+                    ledger_canister_id1: Principal.fromText(RecieveCoin.CanisterId),
+                    ledger_canister_id2: Principal.fromText(PayCoin.CanisterId)
                 })
+                console.log("swapValue", swapValue)
                 setReciveValue(swapValue[1])
                 
             } else {
@@ -198,7 +199,7 @@ const Swap = () => {
             }
 
             createTokenActor(PayCoin.CanisterId).then((tokenActor) => {
-                console.log("tokenActor", tokenActor);
+                // console.log("tokenActor", tokenActor);
                 return transferApprove(
                     CoinAmount,
                     PayCoin.CanisterId,
@@ -235,7 +236,7 @@ const Swap = () => {
         }
         let amount;
         try {
-            amount = BigInt(CoinAmount);
+            amount = parseFloat(CoinAmount);
         } catch (error) {
             console.error("Invalid CoinAmount:", CoinAmount, error);
             return error;
@@ -258,7 +259,7 @@ const Swap = () => {
                 token_amount: amount,
                 token1_name: PayCoin.ShortForm,
                 token2_name: RecieveCoin.ShortForm,
-                ledger_canister_id: PayCoin.CanisterId,
+                ledger_canister_id1: PayCoin.CanisterId,
                 ledger_canister_id2: RecieveCoin.CanisterId
             });
             const res = await backendActor.compute_swap({
@@ -399,7 +400,7 @@ const Swap = () => {
                                         {searchToken1 && <SearchToken setSearchToken={setSearchToken1} setPayToken={setPayCoin} setRecToken={setRecieveCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${CoinAmount ? (PayCoin.marketPrice * CoinAmount).toFixed(4) : 0}
+                                        ${CoinAmount ? (PayCoin.marketPrice * CoinAmount).toLocaleString() : 0}
                                     </span>
                                 </div>
                             )}
@@ -484,7 +485,7 @@ const Swap = () => {
                                         {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
                                     </div>
                                     <span className='font-cabin font-normal text-center'>
-                                        ${CoinAmount ? (((PayCoin?.marketPrice * CoinAmount) / RecieveCoin?.marketPrice) * RecieveCoin?.marketPrice).toFixed(4) : 0}
+                                        ${CoinAmount ? (((PayCoin?.marketPrice * CoinAmount) / RecieveCoin?.marketPrice) * RecieveCoin?.marketPrice).toLocaleString() : 0}
                                     </span>
                                 </div>
                             )}
@@ -494,16 +495,16 @@ const Swap = () => {
                     {bothCoins && (
                         <div className='w-full mx-auto'>
                             <div className='flex justify-between items-center my-3'>
-                                <div className='flex items-center'>
+                                {/* <div className='flex items-center'>
                                     <Dot color='#F7931A' />
                                     <span>{SwapModalData.bothCoinsPresent.Price}</span>
                                 </div>
 
                                 <div className='font-cabin font-medium text-sm sm:text-base'>
                                     {`1 CT = 0.0025 ETH (12.58$)`}
-                                </div>
+                                </div> */}
                             </div>
-
+{/* 
                             <div className='flex justify-between items-center my-3'>
                                 <div className='flex items-center'>
                                     <Dot color='#F7931A' />
@@ -513,9 +514,9 @@ const Swap = () => {
                                 <div className='font-cabin font-medium text-sm sm:text-base'>
                                     {`0.000052 ETH  ($0.1656)`}
                                 </div>
-                            </div>
+                            </div> */}
 
-                            <div className='w-full'>
+                            {/* <div className='w-full'>
                                 {ClickedSwap && (
                                     <div className='flex flex-col gap-8 my-4 rounded-lg'>
                                         <div className='flex justify-between'>
@@ -545,7 +546,7 @@ const Swap = () => {
                                         </div>
                                     </div>
                                 )}
-                            </div>
+                            </div> */}
 
                             {isAuthenticated ? <div className='w-full'>
                                 {(payCoinBalance <= 0 && recieveCoinBalance <= 0) || CoinAmount > payCoinBalance ? (

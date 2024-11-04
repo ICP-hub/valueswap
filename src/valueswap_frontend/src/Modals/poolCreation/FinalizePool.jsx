@@ -11,6 +11,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CloseIcon from '@mui/icons-material/Close';
+import { useNavigate } from 'react-router-dom';
 const FinalizePool = ({ handleCreatePoolClick }) => {
   const { Tokens, Confirmation, TotalAmount, FeeShare } = useSelector((state) => state.pool);
   const dispatch = useDispatch();
@@ -22,6 +23,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [approvalSuccess, setApprovalSuccess] = useState(false);
   const [subModel, setSubModel] = useState(1);
+  const navigate = useNavigate()
   useEffect(() => {
     if (confirmPool && poolCreated) {
       setFinal(true);
@@ -389,8 +391,8 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
             className="absolute top-5 right-10 text-gray-400 hover:text-gray-300"
             onClick={() => setIsModalOpen(false)}
           >
-            
-            <CloseIcon/>
+
+            <CloseIcon />
           </button>
 
           <h2 className="text-xl font-medium mb-4 text-center font-fahkwang">Pool Creation Details</h2>
@@ -412,11 +414,11 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
                   </div>
                 </div>
                 {Tokens.map((token) => <div className={` ${subModel == 1 ? "flex flex-col" : 'hidden'}`} >
-                  <hr className=' border-[#FFFFFF4D] w-full'/>
+                  <hr className=' border-[#FFFFFF4D] w-full' />
                   <div className='flex  justify-between w-full font-extralight text-sm px-4 pt-1 text-[#FFFFFFBF]'>
                     <span>Amount</span>
                     <span className='flex gap-2 items-center'>
-                      <img src={token.ImagePath} alt=""  className="w-4 h-4"/>
+                      <img src={token.ImagePath} alt="" className="w-4 h-4" />
                       {token.Amount}</span>
                   </div>
                   <div className='flex justify-between w-full font-extralight text-sm px-4 pb-1 text-[#FFFFFFBF]'>
@@ -445,7 +447,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
                   <div className='flex justify-between w-full font-extralight text-sm px-4 pt-1 text-[#FFFFFFBF]'>
                     <span>Amount</span>
                     <span className='flex gap-2 items-center'>
-                      <img src={token.ImagePath} alt=""  className="w-4 h-4"/>
+                      <img src={token.ImagePath} alt="" className="w-4 h-4" />
                       {token.Amount}</span>
                   </div>
                   <div className='flex justify-between w-full font-extralight text-sm px-4 pb-1 text-[#FFFFFFBF]'>
@@ -467,6 +469,17 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
                 </div>
 
               </div>
+
+            </div>
+
+
+            <div className='flex gap-x-4  justify-center'>
+
+              {confirmPool && (
+                <div className={final ? 'block' : 'hidden'} onClick={()=> navigate('/valueswap/portfolio')}>
+                  <GradientButton CustomCss="w-full md:w-full">View Pool</GradientButton>
+                </div>
+              )}
 
             </div>
 

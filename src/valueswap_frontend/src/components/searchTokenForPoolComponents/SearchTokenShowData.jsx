@@ -95,7 +95,7 @@ console.log("searchToken", searchToken)
                     <div className='flex flex-col gap-1'>
                         <div className='flex items-center place-self-end gap-1 custom-400:gap-2'>
                             <BlueGradientButton customCss={'disabled px-2 py-2  normal-cursor'}>
-                                <img src={token.ImagePath} alt="" className='h-4 w-4 md:h-6 md:w-6 transform scale-150' />
+                                <img src={token.ImagePath} alt="" className='h-3 w-3 md:h-4 md:w-4 transform scale-150' />
                             </BlueGradientButton>
 
                             <div className='flex items-center gap-1'

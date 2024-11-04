@@ -412,7 +412,7 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                     let fee = data.swap_fee;
 
                     // Calculate the required input using the in_given_out formula
-                    let required_input = in_given_out(b_i, w_i, b_o, w_o, amount_out, fee);
+                    let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out, fee);
                     // ic_cdk::println!("The required output is {:?}", required_input);
 
                     // Ensure the user has enough balance to provide the input
@@ -496,8 +496,9 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
     // deposit_tokens(amount_as_u64.clone(), ledger_canister_id, canister_id.clone());
 
     // let user_principal_id = api::caller();
+    let token_amount_u64: u64  = params.token_amount as u64;
 
-    deposit_tokens(params.token_amount, params.ledger_canister_id1.clone(), canister_id.clone()).await?;
+    deposit_tokens(token_amount_u64, params.ledger_canister_id1.clone(), canister_id.clone()).await?;
 
     // ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
     // Proceed with the call using the extracted principal
