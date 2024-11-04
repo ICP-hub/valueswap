@@ -58,11 +58,11 @@ const Swap = () => {
             if (CoinAmount) {
                 const amount = parseFloat(CoinAmount)
                 const swapValue = await backendActor.pre_compute_swap({
-                    token1_name: RecieveCoin.ShortForm,
+                    token1_name: PayCoin.ShortForm,
                     token_amount: amount,
-                    token2_name: PayCoin.ShortForm,
-                    ledger_canister_id1: Principal.fromText(RecieveCoin.CanisterId),
-                    ledger_canister_id2: Principal.fromText(PayCoin.CanisterId)
+                    token2_name: RecieveCoin.ShortForm,
+                    ledger_canister_id1: Principal.fromText(PayCoin.CanisterId),
+                    ledger_canister_id2: Principal.fromText(RecieveCoin.CanisterId)
                 })
                 console.log("swapValue", swapValue)
                 setReciveValue(swapValue[1])

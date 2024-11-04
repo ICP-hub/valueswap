@@ -52,11 +52,11 @@ pub fn spot_price(b_i: f64, w_i: f64, b_o: f64, w_o: f64, fee: f64) -> f64 {
 // sF = swapFee                                                                              //
 **********************************************************************************************/
 
-// pub fn out_given_in(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_in: f64, fee: f64) -> f64 {
-//     b_o * (
-//         1.0 - (b_i / (b_i + amount_in * (1.0 - fee))).powf(w_i / w_o)
-//     )
-// }
+pub fn out_given_in(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_in: f64, fee: f64) -> f64 {
+    b_o * (
+        1.0 - (b_i / (b_i + amount_in * (1.0 - fee/100.0))).powf(w_i / w_o)
+    )
+}
 
 /**********************************************************************************************
 // calcInGivenOut                                                                            //
