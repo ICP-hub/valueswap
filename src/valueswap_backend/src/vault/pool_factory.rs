@@ -395,25 +395,28 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                     .iter()
                     .find(|p| p.token_name == params.token2_name);
 
-                ic_cdk::println!(
-                    "Testing pool_key {} with tokenA_data: {:?}, tokenB_data: {:?}",
-                    pool_key,
-                    tokenA_data,
-                    tokenB_data
-                );
+                // ic_cdk::println!(
+                //     "Testing pool_key {} with tokenA_data: {:?}, tokenB_data: {:?}",
+                //     pool_key,
+                //     tokenA_data,
+                //     tokenB_data
+                // );
 
                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
                     let b_i = tokenA.balance as f64;
                     let w_i = tokenA.weight as f64;
                     let b_o = tokenB.balance as f64;
                     let w_o = tokenB.weight as f64;
+                    ic_cdk::println!("Argument for swap {:?} , {:?} , {:?} , {:?}",b_i,w_i,b_o,w_o);
 
                     let amount_out = params.token_amount as f64;
                     let fee = data.swap_fee;
+                    ic_cdk::println!("{:?}, {:?} ",amount_out , fee);
 
                     // Calculate the required input using the in_given_out formula
                     let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out, fee);
                     // ic_cdk::println!("The required output is {:?}", required_input);
+                    ic_cdk::println!("Required Input {:}", required_input);
 
                     // Ensure the user has enough balance to provide the input
                     if required_input >= max_output_amount {
