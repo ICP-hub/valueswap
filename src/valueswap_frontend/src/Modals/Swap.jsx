@@ -61,7 +61,7 @@ const Swap = () => {
                     token1_name: PayCoin.ShortForm,
                     token_amount: amount,
                     token2_name: RecieveCoin.ShortForm,
-                    ledger_canister_id1: Principal.fromText(PayCoin.CanisterId),
+                    ledger_canister_id1: Principal.fromText(RecieveCoin.CanisterId),
                     ledger_canister_id2: Principal.fromText(RecieveCoin.CanisterId)
                 })
                 console.log("swapValue", swapValue)
@@ -309,7 +309,7 @@ const Swap = () => {
             <div className='flex justify-center my-auto flex-col'>
                 <div className='relative align-middle max-w-[1200px] flex flex-col justify-center mt-12 p-6 bg-gradient-to-b from-[#3E434B] to-[#02060D] border sm:mx-auto rounded-lg '>
                     <div className='w-[64%] sm:w-[58%] place-self-end flex justify-between '>
-                        <span className='font-fahkwang font-light text-3xl'>{SwapModalData.Heading}</span>
+                        <span className='font-cabin font-light text-3xl'>{SwapModalData.Heading}</span>
                         <Bolt size={30} className='cursor-pointer' onClick={handleSettings} />
                     </div>
                     {settings && (
@@ -677,6 +677,7 @@ const Swap = () => {
                 )} */}
                 {isModalOpen ? <div className="fixed inset-0  bg-black bg-opacity-50 flex justify-center items-center z-50">
                     <div className="p-6 pb-16 w-11/12 sm:max-w-[40rem] border-2 border-[#86828280] bg-[#182030] mt-10 rounded-lg shadow-lg text-white  mx-auto relative">
+                        <div className='ml-9 '>
                         <button
                             className="absolute top-5 right-10 text-gray-400 hover:text-gray-300"
                             onClick={() => setIsModalOpen(false)}
@@ -684,10 +685,11 @@ const Swap = () => {
                             <CloseIcon/>
                         </button>
 
-                        <h2 className="text-xl font-semibold mb-4 font-fahkwang">Swap Details</h2>
+                        <h2 className="text-xl font-semibold mb-4 font-cabin">Swap Details</h2>
                         <p className="text-gray-400 mb-6 font-cabin">
                             You can swap directly without depositing, because you have sufficient balance in the Swap pool.
                         </p>
+                        </div>
 
                         <div className='flex flex-col gap-y-6'>
                             <div className='flex gap-x-4 font-cabin '>

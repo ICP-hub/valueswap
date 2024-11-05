@@ -13,10 +13,10 @@ type Pool_Data = record {
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok : nat; Err : text };
 type SwapParams = record {
-  token_amount : nat64;
+  token_amount : float64;
+  ledger_canister_id1 : principal;
   ledger_canister_id2 : principal;
   token2_name : text;
-  ledger_canister_id : principal;
   token1_name : text;
 };
 service : {

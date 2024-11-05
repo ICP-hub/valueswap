@@ -58,6 +58,7 @@ pub fn out_given(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_in: f64, fee: f6
     )
 }
 
+
 /**********************************************************************************************
 // calcInGivenOut                                                                            //
 // aI = tokenAmountIn                                                                        //
