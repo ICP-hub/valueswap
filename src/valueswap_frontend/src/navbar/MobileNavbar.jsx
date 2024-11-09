@@ -124,12 +124,12 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
 
                 </ul>
 
-                <div className="w-full  rounded-2xl  flex justify-between max-w-[1200px] bg-[#686868AB] tracking-wide backdrop-blur-md items-center md:py-4 px-6">
+                <div className="w-full  rounded-2xl  flex justify-between max-w-[1200px] bg-[#686868AB] tracking-wide backdrop-blur-md items-center md:py-4 px-2">
 
                     <div className='flex items-center justify-between px-2 md:justify-start'>
-                        <div className='flex items-center gap-2 md:gap-3'>
-                            <span className='font-extrabold'>LOGO</span>
-                            <div className="items-center h-12 ml-4 border-l border-white lg:ml-0"></div>
+                        <div className='flex items-center'>
+                            <img src="./image/valueswap.png" alt="" className='w-20 h-[1.2rem] sm:w-28 sm:h-[1.8rem]' />
+                            <div className="items-center h-12 ml-2 border-l border-white lg:ml-0"></div>
                         </div>
 
 
@@ -158,6 +158,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                         </li>
                                     ))
                                 }
+                                
 
                                 <div className='block font-semibold text-center my-7 md:hidden '>
 
