@@ -1,3 +1,3 @@
 dfx identity use DevJourney --network ic
-COUPONCODE="5DFD6-EFCA7-9F4C3"
+COUPONCODE="7E44D-55A76-C649A"
 dfx cycles redeem-faucet-coupon $COUPONCODE --network ic
