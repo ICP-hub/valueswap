@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Bolt } from 'lucide-react';
 import BlueGradientButton from '../../buttons/BlueGradientButton';
 import FinalizePool from './FinalizePool';
@@ -11,6 +11,7 @@ import { Principal } from '@dfinity/principal';
 import { searchCoinGeckoById } from '../../components/utils/fetchCoinGeckoData';
 import { toast } from 'react-toastify';
 import { idlFactory as tokenIdl } from '../../../../declarations/ckbtc_ledger';
+import { IOSSwitch } from '../../buttons/SwitchButton';
 
 const InitialLiquidity = () => {
   const dispatch = useDispatch();
@@ -28,7 +29,39 @@ const InitialLiquidity = () => {
   const { backendActor, isAuthenticated } = useAuth();
   const initialTokenRef = useRef(null);
   const restTokensRefs = useRef([]);
+  const [optimizeEnable, setOptimizeEnable] = useState(true)
+  // useEffect(() => {
+  //     if(Tokens.length > 0){
+  //         let onePercentPrice = Tokens[0].marketPrice / Tokens[0].weights; 
+  //         setOnePercent(onePercentPrice)   
+         
+     
+  //     }
+  // })
 
+  const handleOptimize = () =>{
+    let onePercentPrice = Tokens[0].currencyAmount / Tokens[0].weights; 
+      Tokens.slice(1).forEach((token, index) => {
+        let totalPrice = token.weights * onePercentPrice
+         console.log("token.currencyAmount", totalPrice, token.currencyAmount )
+         //  console.log(totalPrice / token.marketPrice)
+         let newValue = totalPrice / token.marketPrice
+         let newIndex = 1 + index
+         console.log("idex", newIndex, newValue)
+         dispatch(UpdateAmount({ index: newIndex, Amount: newValue }))
+        // 
+      })
+  }
+
+  useMemo(()=> {
+    console.log("optimizeEnable", optimizeEnable, initialTokenBalance)
+    if(optimizeEnable){
+      handleOptimize()
+    }else{
+      return;
+    }
+  }, [optimizeEnable, initialTokenAmount, restTokensAmount])
+  
   useEffect(() => {
     if (Tokens.length <= 0) {
       return;
@@ -94,7 +127,7 @@ const InitialLiquidity = () => {
     }
   }, [Tokens, createTokenActor, principal]);
 
-  useEffect(() => {
+  useMemo(() => {
     fetchRestTokensBalances();
   }, [fetchRestTokensBalances]);
 
@@ -272,7 +305,7 @@ const InitialLiquidity = () => {
       </div>
       <div className='z-50 w-max m-auto flex flex-col gap-4 p-3 sm:p-6 bg-gradient-to-b from-[#3E434B] to-[#02060D] border mx-auto rounded-lg'>
         <div className='w-[78%] sm:w-[74%] place-self-end  flex justify-between'>
-          <span className='font-fahkwang font-light text-base sm:text-3xl '>Set Initial Liquidity</span>
+          <span className='font-cabin font-light text-base sm:text-3xl '>Set Initial Liquidity</span>
           <div className='sm:hidden block'>
             {/* <Bolt size={22} className='cursor-pointer' onClick={() => { console.log("settings open") }} /> */}
           </div>
@@ -287,6 +320,7 @@ const InitialLiquidity = () => {
               <input
                 className="font-normal leading-5 text-xl sm:text-3xl py-1 inline-block bg-transparent border-none outline-none"
                 type="number"
+                min='0'
                 value={initialTokenAmount}
                 ref={initialTokenRef}
                 onChange={(e) => handleInput(e, 0)}
@@ -327,6 +361,7 @@ const InitialLiquidity = () => {
                       <input
                         className="font-normal leading-5 text-xl sm:text-3xl py-1 inline-block outline-none bg-transparent"
                         type="number"
+                        min="0"
                         value={restTokensAmount[index]}
                         ref={(el) => (restTokensRefs.current[index] = el)}
                         onChange={(e) => handleInput(e, index + 1)}
@@ -358,7 +393,10 @@ const InitialLiquidity = () => {
             );
           })}
         </div>
-
+        <div className='flex gap-2 items-center'>
+          <p className='font-cabin text-sm'>Auto optimize liquidity</p>
+          <IOSSwitch sx={{ m: 1 }} defaultChecked  onClick={()=> setOptimizeEnable((prev)=> !prev)}/>
+          </div>
         {Confirmation && <FinalizePool handleCreatePoolClick={handleCreatePoolClick} />}
         <div
           className={`font-cabin text-base font-medium`}
@@ -379,6 +417,7 @@ const InitialLiquidity = () => {
             }
           }}
         >
+        
           <GradientButton CustomCss={`my-2 sm:my-4 w-full md:w-full ${ButtonActive ? 'opacity-100 cursor-pointer' : 'opacity-50 cursor-default'}`}>
             Analyse Pair
           </GradientButton>

@@ -247,7 +247,7 @@ export const ConnectWalletData = {
             Image: icp
         }
     ],
-    TermsAndConditions: 'By connecting a wallet, you agree to [company name] Terms of Service and consent to its Privacy Policy.',
+    TermsAndConditions: 'By connecting a wallet, you agree to Valueswap Terms of Service and consent to its Privacy Policy.',
     LearnMore: 'Learn More',
     ButtonText: 'Connect Now',
     Heading: 'Connect Wallet',
