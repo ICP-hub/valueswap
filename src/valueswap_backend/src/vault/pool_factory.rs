@@ -67,9 +67,12 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
     if let Some(canister_id) = pool_canister_id {
         add_liquidity_curr(params.clone());
         add_liquidity(params.clone(), canister_id.principal);
+
+        // LP calculations
         increase_pool_lp_tokens(params.clone());
-        users_pool(params.clone());
+        // users_pool(params.clone());
         users_lp_share(principal_id.clone(), params.clone()).await?;
+
         for amount in params.pool_data.iter() {
             // Deposit tokens to the newly created canister
             // ic_cdk::println!("canister_id.principal{:}",canister_id.principal);
@@ -95,8 +98,9 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
                 store_pool_data_curr(params.clone());
                 store_pool_data(params.clone(), canister_id_record).await?;
 
+                // LP calculations
                 increase_pool_lp_tokens(params.clone());
-                users_pool(params.clone());
+                // users_pool(params.clone());
                 users_lp_share(principal_id.clone(), params.clone()).await?;
                 
                 for amount in params.pool_data.iter() {
@@ -109,7 +113,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
 
                 Ok(())
             }
-            Err(( err_string)) => Err(format!("Error creating canister: {}", err_string)),
+            Err((err_string)) => Err(format!("Error creating canister: {}", err_string)),
         }
     }
 }
@@ -407,16 +411,16 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                     let w_i = tokenA.weight as f64;
                     let b_o = tokenB.balance as f64;
                     let w_o = tokenB.weight as f64;
-                    ic_cdk::println!("Argument for swap {:?} , {:?} , {:?} , {:?}",b_i,w_i,b_o,w_o);
+                    // ic_cdk::println!("Argument for swap {:?} , {:?} , {:?} , {:?}",b_i,w_i,b_o,w_o);
 
                     let amount_out = params.token_amount as f64;
                     let fee = data.swap_fee;
-                    ic_cdk::println!("{:?}, {:?} ",amount_out , fee);
+                    // ic_cdk::println!("{:?}, {:?} ",amount_out , fee);
 
                     // Calculate the required input using the in_given_out formula
                     let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out, fee);
                     // ic_cdk::println!("The required output is {:?}", required_input);
-                    ic_cdk::println!("Required Input {:}", required_input);
+                    // ic_cdk::println!("Required Input {:}", required_input);
 
                     // Ensure the user has enough balance to provide the input
                     if required_input >= max_output_amount {

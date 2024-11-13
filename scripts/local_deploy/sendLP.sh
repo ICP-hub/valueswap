@@ -1,0 +1,1 @@
+dfx canister call LP_ledger_canister icrc1_transfer ' (record {to=record {owner = principal "by6od-j4aaa-aaaaa-qaadq-cai"; subaccount=null}; fee=null; memo=null; from_subaccount=null; created_at_time=null; amount=5000000000000000000})'
