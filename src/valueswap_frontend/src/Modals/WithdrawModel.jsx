@@ -8,8 +8,9 @@ import { Principal } from '@dfinity/principal';
 function WithdrawModel({ setOpenWithdraw, poolName }) {
     const [change, setChange] = useState(false);
     const [coinDetail, setCoinDetail] = useState([]);
+    const [CoinName, setCoinName] = useState([])
     // const { backendActor } = useAuth();
-    const [amount, setAmountLp] = useState(0);
+    const [amountLp, setAmountLp] = useState(0);
     const { createTokenActor, backendActor, principal, getBalance } = useAuth();
 
 
@@ -21,7 +22,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                 .then(specificData => {
                     let pool_data = specificData.Ok[0].pool_data;
                     let swap_fee = specificData.Ok[0].swap_fee;
-    
+                    setCoinName(pool_data)
                     console.log("pooldata:", pool_data);
                     console.log("swap_fee:", swap_fee);
     
@@ -30,7 +31,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                         return backendActor?.get_user_share_ratio(
                             { pool_data: pool_data, swap_fee: swap_fee }, 
                             poolName, 
-                            parseFloat(amount)
+                            parseFloat(amountLp)
                         );
                     } else {
                         reject(new Error("Invalid pool data."));
@@ -43,7 +44,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                         reject(new Error("Coin issue encountered."));
                     } else {
                         setCoinDetail(res.Ok);
-                        console.log("res", res);
+                        
                         resolve(res);
                     }
                 })
@@ -56,7 +57,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
     };
     
     
-
+    console.log("res", coinDetail);
 
     const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
         let decimals = null;
@@ -118,13 +119,13 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
     const handleCreatePoolClick = async (backendCanisterID) => {
         const CanisterId = process.env.CANISTER_ID_LP_LEDGER_CANISTER;
         try {
-            if (!CanisterId || !amount) {
+            if (!CanisterId || !amountLp) {
                 console.error("Invalid CanisterId or amount");
                 return { success: false, error: "Invalid CanisterId or amount" };
             }
             const tokenActor = await createTokenActor(CanisterId);
             const approvalTransactions = await transferApprove(
-                amount,
+                amountLp,
                 CanisterId,
                 backendCanisterID,
                 tokenActor
@@ -145,7 +146,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
 
 
     const withdrawCoinHandler = async () => {
-        if (amount <= 0) {
+        if (amountLp <= 0) {
             toast.error("Please enter a valid amount to withdraw.");
             return;
         }
@@ -158,7 +159,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                 const specificData = await backendActor?.get_specific_pool_data(poolName);
                 let pool_data = await specificData.Ok[0].pool_data;
                 let swap_fee = await specificData.Ok[0].swap_fee;
-                const res = await backendActor.burn_lp_tokens({ pool_data: pool_data, swap_fee: swap_fee }, poolName, amount);
+                const res = await backendActor.burn_lp_tokens({ pool_data: pool_data, swap_fee: swap_fee }, poolName, amountLp);
                 if (res.Err) {
                     toast.error("We are fixing the withdraw issue");
                 } else {
@@ -198,7 +199,9 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                         name="lp"
                         id=""
                         className='rounded-2xl bg-[#1e2021a1] p-2'
-                        value={amount}
+                         min="0"
+                         defaultValue={0}
+                        // value={amountLp}
                         onChange={(e) => setAmountLp(Number(e.target.value))}
                     />
                     <div className='flex justify-center' onClick={() => change ? withdrawCoinHandler() : fetchCoinFromLp()}>
@@ -208,10 +211,13 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                     </div>
                     <div>
                         {/* Display coin details */}
-                        {coinDetail.map((coin, index) => (
+                        {CoinName.map((coin, index) => (
                             <div key={index} className='flex justify-between'>
                                 <span>{coin.token_name}</span>
-                                <span>{coin.balance}</span>
+                               
+                                <span>{coinDetail[index]}</span>
+                               
+                               
                             </div>
                         ))}
                     </div>
