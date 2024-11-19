@@ -21,7 +21,7 @@ export PRE_MINTED_TOKENS=10_000_000_000_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use Harshit
+dfx identity use DevJourney
 export DEFAULT=$(dfx identity get-principal)
 echo "DEFAULT principal: $DEFAULT"
 
@@ -70,3 +70,4 @@ echo "Balance of the DEFAULT account: $balance"
 #     amount = 500000000;
 # })"
 # echo "Approved backend canister to transfer tokens on behalf of the DEFAULT account"
+

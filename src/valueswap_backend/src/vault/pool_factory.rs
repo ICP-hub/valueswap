@@ -70,7 +70,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
 
         // LP calculations
         increase_pool_lp_tokens(params.clone());
-        // users_pool(params.clone());
+        users_pool(params.clone());
         users_lp_share(principal_id.clone(), params.clone()).await?;
 
         for amount in params.pool_data.iter() {
@@ -100,7 +100,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), String> {
 
                 // LP calculations
                 increase_pool_lp_tokens(params.clone());
-                // users_pool(params.clone());
+                users_pool(params.clone());
                 users_lp_share(principal_id.clone(), params.clone()).await?;
                 
                 for amount in params.pool_data.iter() {
