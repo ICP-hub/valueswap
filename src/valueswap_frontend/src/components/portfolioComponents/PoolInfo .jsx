@@ -16,9 +16,10 @@ const PoolInfo = () => {
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
  const [openWithdraw, setOpenWithdraw] = useState(false)
  const [specificPool, setSpecificPool] = useState([])
- const {backendActor} = useAuth()
+ const {backendActor, getBalance} = useAuth()
   useEffect(() => {
     console.log("pool id", id)
+    console.log("getBalance", getBalance("bkyz2-fmaaa-aaaaa-qaaaq-cai"));
     const poolData = async () =>{
      const pool = await backendActor.get_specific_pool_data(id)
      const poolDataArray = pool.Ok[0].pool_data;
