@@ -188,7 +188,7 @@
 
 
 
-
+// plug integration
 
 import { AuthClient } from "@dfinity/auth-client";
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
@@ -662,4 +662,118 @@ export const useAuth = () => useContext(AuthContext);
 //     return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
 // };
 // // 
+// export const useAuth = () => useContext(AuthContext);
+
+
+
+
+
+
+
+// import { useIdentityKit } from '@nfid/identitykit/react';
+// import React, { createContext, useContext, useState, useEffect } from 'react';
+// import { createActor as createActorBackend, idlFactory } from '../../declarations/h1_backend/index';
+// import { Actor } from '@dfinity/agent';
+
+// const AuthContext = createContext();
+
+// export const useAuthClient = () => {
+//   const { agent } = useIdentityKit();
+//   const {
+//     isInitializing,
+//     user,
+//     isUserConnecting,
+//     icpBalance,
+//     signer,
+//     identity,
+//     delegationType,
+//     accounts,
+//     connect,
+//     disconnect,
+//     fetchIcpBalance,
+//   } = useIdentityKit();
+
+//   const [userAuthenticated, setUserAuthenticated] = useState(false);
+//   const [principal, setPrincipal] = useState(null);
+//   const [backendActor, setBackendActor] = useState(null);
+//   const [balance, setBalance] = useState(null);
+
+//   const login = async () => {
+//     await connect();
+//     if (user) {
+//       setUserAuthenticated(true);
+//       setPrincipal(identity?._principal.toString());
+//     } else {
+//       setUserAuthenticated(false);
+//     }
+//   };
+
+//   const logout = () => {
+//     disconnect();
+//     setUserAuthenticated(false);
+//   };
+
+//   // Initialize backend actor when agent or principal changes
+//   useEffect(() => {
+//     if (agent && process.env.CANISTER_ID_H1_BACKEND) {
+//       const newBackendActor =  Actor.createActor(idlFactory, {
+//         agent,
+//         canisterId: process.env.CANISTER_ID_H1_BACKEND,
+//       });
+//       setBackendActor(newBackendActor);
+//     }
+    
+//   }, []);
+
+//   const createTokenActor = async (canisterId) => {
+//     return Actor.createActor(idlFactory, {
+//       agent,
+//       canisterId: canisterId,
+//     });
+//   };
+
+//   const getBalance = async (canisterId) => {
+//     try {
+//       const tokenActor = await createTokenActor(canisterId);
+//       const balance = await tokenActor.icrc1_balance_of({ owner: principal, subaccount: [] });
+//       setBalance(balance);
+//       return balance;
+//     } catch (error) {
+//       console.error("Failed to fetch balance:", error);
+//       return null;
+//     }
+//   };
+
+
+//   return {
+//     isInitializing,
+//     isAuthenticated: user,
+//     isUserConnecting,
+//     icpBalance,
+//     signer,
+//     identity,
+//     delegationType,
+//     accounts,
+//     backendActor,
+//     createTokenActor,
+//     agent,
+//     login,
+//     logout,
+//     fetchIcpBalance,
+//     principal,
+//     getBalance,
+//     balance,
+//   };
+// };
+
+// export const AuthProvider = ({ children }) => {
+//   const auth = useAuthClient();
+
+//   return (
+//     <AuthContext.Provider value={auth}>
+//       {children}
+//     </AuthContext.Provider>
+//   );
+// };
+
 // export const useAuth = () => useContext(AuthContext);

@@ -57,7 +57,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
     };
     
     
-    console.log("res", coinDetail);
+    console.log("getBalance", getBalance("bkyz2-fmaaa-aaaaa-qaaaq-cai"));
 
     const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
         let decimals = null;
@@ -134,7 +134,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
             // Execute batch transactions
             const result = await window.ic.plug.batchTransactions(approvalTransactions);
 
-            console.log('All tokens approved successfully');
+            console.log('Lp tokens approved successfully');
             toast.success("Approve successfully ")
             return { success: true, data: result };
         } catch (error) {
@@ -215,7 +215,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                             <div key={index} className='flex justify-between'>
                                 <span>{coin.token_name}</span>
                                
-                                <span>{coinDetail[index]}</span>
+                                <span>{coinDetail[index]/100000000}</span>
                                
                                
                             </div>
