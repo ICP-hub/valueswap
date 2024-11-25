@@ -97,7 +97,7 @@ fn total_lp_tokens() {
         for (_key, value) in temp.iter() {
             total_supply += value;
         }
-        total_supply = total_supply / 10.0;
+        total_supply = total_supply / 1000.0;
     });
 
     TOTAL_LP_SUPPLY.with(|lp_supply| *lp_supply.borrow_mut() = total_supply);
@@ -129,7 +129,7 @@ pub async fn users_lp_share(user: Principal, params: Pool_Data) -> Result<(), St
         for amount in params.pool_data {
             users_contribution += amount.value as f64 * amount.balance as f64;
         }
-        let total_pool_value = get_total_lp() * 10.0;
+        let total_pool_value = get_total_lp() * 1000.0;
         let total_lp_supply = get_total_lp();
         let mut borrowed_share = share.borrow_mut();
         let amount : f64 = (users_contribution / total_pool_value) * total_lp_supply;
