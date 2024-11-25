@@ -290,9 +290,9 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
                 <span className="bg-[#3E434B] p-1 rounded-lg px-3">{token.weights} %</span>
               </div>
 
-              <div className="flex flex-col justify-center items-center">
+              <div className="flex flex-col justify-end items-end">
                 <div className="text-center">
-                  <span className="font-normal leading-5 text-xl sm:text-3xl px-2 py-1 inline-block">
+                  <span className="font-normal leading-5 text-xl sm:text-3xl  py-1 inline-block">
                     {Number.isFinite(parseFloat(token.Amount)) ? token.Amount : 'N/A'}
                   </span>
                 </div>

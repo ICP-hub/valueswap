@@ -30,6 +30,8 @@ const InitialLiquidity = () => {
   const initialTokenRef = useRef(null);
   const restTokensRefs = useRef([]);
   const [optimizeEnable, setOptimizeEnable] = useState(true)
+  const [pooExits, setPoolExist] = useState();
+  const [poolName, setPoolName] = useState();
   // useEffect(() => {
   //     if(Tokens.length > 0){
   //         let onePercentPrice = Tokens[0].marketPrice / Tokens[0].weights; 
@@ -38,6 +40,27 @@ const InitialLiquidity = () => {
      
   //     }
   // })
+
+  useEffect(() => {
+    const concatenatedNames = Tokens.map((token) => token.ShortForm).join('');
+    setPoolName(concatenatedNames);
+  }, [Tokens]);
+  
+  
+  const fetchPoolName = async (id) =>{
+    const pool = await backendActor.get_specific_pool_data(id)
+    // const poolDataArray = pool;
+    console.log("specific pool data array", pool);
+    setPoolExist(pool);
+   if(!pool.Ok){
+    dispatch(toggleConfirm({
+      value: true,
+      page: "Initial Page"
+    }));
+   }else{
+    toast.warn('Pool already exist')
+   }
+   }
 
   const handleOptimize = () =>{
     let onePercentPrice = Tokens[0].currencyAmount / Tokens[0].weights; 
@@ -397,7 +420,7 @@ const InitialLiquidity = () => {
           <p className='font-cabin text-sm'>Auto optimize liquidity</p>
           <IOSSwitch sx={{ m: 1 }} defaultChecked  onClick={()=> setOptimizeEnable((prev)=> !prev)}/>
           </div>
-        {Confirmation && <FinalizePool handleCreatePoolClick={handleCreatePoolClick} />}
+        {( pooExits && Confirmation) && <FinalizePool handleCreatePoolClick={handleCreatePoolClick} />}
         <div
           className={`font-cabin text-base font-medium`}
           onClick={() => {
@@ -408,11 +431,7 @@ const InitialLiquidity = () => {
             } else if (!AmountSelectCheck) {
               toast.warn('You do not have enough tokens.')
             } else {
-              console.log("dispatched called");
-              dispatch(toggleConfirm({
-                value: true,
-                page: "Initial Page"
-              }));
+              fetchPoolName(poolName)
               console.log("dispatched finished");
             }
           }}
