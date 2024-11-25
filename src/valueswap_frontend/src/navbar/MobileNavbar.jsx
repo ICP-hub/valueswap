@@ -128,7 +128,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
 
                     <div className='flex items-center justify-between px-2 md:justify-start'>
                         <div className='flex items-center justify-around'>
-                            <img src="./image/valueswap.png" alt="" className='w-20 h-[1.2rem] sm:w-28 sm:h-[2rem]' />
+                            <img src="./image/valueswap.png" alt="" className='w-20 h-[1.2rem] sm:w-28 sm:h-[1.7rem]' />
                             <div className="items-center h-12 ml-2 md:ml-4 lg:ml-6 border-l border-white "></div>
                         </div>
 
