@@ -2,9 +2,9 @@
 
 set -e
 
-# Create and use the DevJourney identity
-dfx identity new DevJourney || true
-dfx identity use DevJourney
+# Create and use the default identity
+dfx identity new default || true
+dfx identity use default
 
 # Get the principal ID for the minter account
 export MINTER=$(dfx identity get-principal)
@@ -21,7 +21,7 @@ export PRE_MINTED_TOKENS=10_000_000_000_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use DevJourney
+dfx identity use default
 export DEFAULT=$(dfx identity get-principal)
 echo "DEFAULT principal: $DEFAULT"
 
