@@ -3,6 +3,7 @@ import GradientButton from '../buttons/GradientButton';
 import { useAuth } from '../components/utils/useAuthClient';
 import { toast } from 'react-toastify';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import CircularProgress from '@mui/material/CircularProgress';
 import { idlFactory as tokenIdl } from '../../../declarations/ckbtc_ledger';
 import { Principal } from '@dfinity/principal';
 function WithdrawModel({ setOpenWithdraw, poolName }) {
@@ -16,7 +17,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
 
     const fetchCoinFromLp = () => {
         setChange(true);
-        
+
         return new Promise((resolve, reject) => {
             backendActor?.get_specific_pool_data(poolName)
                 .then(specificData => {
@@ -25,13 +26,13 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                     setCoinName(pool_data)
                     console.log("pooldata:", pool_data);
                     console.log("swap_fee:", swap_fee);
-    
+
                     if (pool_data) {
                         console.log("calling start");
                         return backendActor?.get_user_share_ratio(
-                            { pool_data: pool_data, swap_fee: swap_fee }, 
-                            poolName, 
-                            parseFloat(amountLp)
+                            { pool_data: pool_data, swap_fee: swap_fee },
+                            poolName,
+                            parseFloat(amountLp) * Math.pow(10, 8)
                         );
                     } else {
                         reject(new Error("Invalid pool data."));
@@ -44,7 +45,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                         reject(new Error("Coin issue encountered."));
                     } else {
                         setCoinDetail(res.Ok);
-                        
+
                         resolve(res);
                     }
                 })
@@ -55,64 +56,72 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                 });
         });
     };
-    
-    
-    console.log("getBalance", getBalance("bkyz2-fmaaa-aaaaa-qaaaq-cai"));
+
+
+    console.log("getBalance", getBalance(process.env.CANISTER_ID_LP_LEDGER_CANISTER));
 
     const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
-        let decimals = null;
-        let fee = null;
-        let amount = null;
-        let balance = null;
-        const metaData = await tokenActor.icrc1_metadata();
-
-        for (const item of metaData) {
-            if (item[0] === 'icrc1:decimals') {
-                decimals = Number(item[1].Nat);
-            } else if (item[0] === 'icrc1:fee') {
-                fee = Number(item[1].Nat);
+        try {
+            let decimals = null;
+            let fee = null;
+            let amount = null;
+            let balance = null;
+            const metaData = await tokenActor.icrc1_metadata();
+            for (const item of metaData) {
+                if (item[0] === 'icrc1:decimals') {
+                    decimals = Number(item[1].Nat); // Assuming decimals is stored as a Nat (BigInt)
+                } else if (item[0] === 'icrc1:fee') {
+                    fee = Number(item[1].Nat); // Assuming fee is stored as a Nat (BigInt)
+                }
             }
-        }
+            amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
+            balance = await getBalance(canisterId);
 
-        amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
-        balance = await getBalance(canisterId);
 
-        if (balance >= amount + fee) {
-            const transaction = {
-                idl: tokenIdl,
-                canisterId: canisterId,
-                methodName: 'icrc2_approve',
-                args: [
-                    {
-                        amount: BigInt(amount + fee),
-                        from_subaccount: [],
-                        spender: {
-                            owner: Principal.fromText(backendCanisterID),
-                            subaccount: [],
-                        },
-                        fee: [],
-                        memo: [],
-                        created_at_time: [],
-                        expected_allowance: [],
-                        expires_at: [],
+
+            console.log("init metaData", metaData);
+            console.log("init decimals", decimals);
+            console.log("init fee", fee);
+            console.log("init amount", amount);
+            console.log("init balance", balance);
+
+            if (balance >= amount + fee) {
+                const transaction = {
+                    amount: BigInt(amount + fee),  // Approving amount (including fee)
+                    from_subaccount: [],  // Optional subaccount
+                    spender: {
+                        owner: Principal.fromText(backendCanisterID),
+                        subaccount: [],  // Optional subaccount for the spender
                     },
-                ],
-                onSuccess: async (res) => {
-                    console.log(`Approval successful for token: ${canisterId}`, res);
-                },
-                onFail: (res) => {
-                    console.error(`Approval failed for token: ${canisterId}`, res);
-                },
-            };
-            return transaction;
-        } else {
-            {
+                    fee: [],  // Fee is optional, applied during the transfer
+                    memo: [],  // Optional memo
+                    created_at_time: [],  // Optional timestamp
+                    expected_allowance: [],  // Optional expected allowance
+                    expires_at: [],  // Optional expiration time
+                };
+
+                // console.log("transaction", transaction);
+
+                const response = await tokenActor.icrc2_approve(transaction);
+
+                if (response?.Err) {
+                    console.error("Approval error:", response.Err);
+                    toast.error("approve failed")
+                    return { success: false, error: response.Err };
+                } else {
+                 
+                    toast.success("approve success")
+                    return { success: true, data: response.Ok };
+                }
+            } else {
                 console.error("Insufficient balance:", balance, "required:", amount + fee);
                 return { success: false, error: "Insufficient balance" };
             }
+        } catch (error) {
+            toast.error("approve failed")
+            console.error("Error in transferApprove:", error);
+            return { success: false, error: error.message };
         }
-
-
     };
 
 
@@ -134,8 +143,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
             // Execute batch transactions
             const result = await window.ic.plug.batchTransactions(approvalTransactions);
 
-            console.log('Lp tokens approved successfully');
-            toast.success("Approve successfully ")
+        
             return { success: true, data: result };
         } catch (error) {
             console.error('Error in handleCreatePoolClick:', error);
@@ -146,34 +154,41 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
 
 
     const withdrawCoinHandler = async () => {
-        if (amountLp <= 0) {
+
+        const scaledAmount = parseFloat(amountLp);
+        if (isNaN(scaledAmount) || scaledAmount <= 0) {
+            toast.error("Invalid amount. Please enter a valid number.");
+            return;
+        }
+        console.log("scaledAmount", typeof (scaledAmount))
+        if (scaledAmount <= 0) {
             toast.error("Please enter a valid amount to withdraw.");
             return;
         }
         const CANISTER_ID_VALUESWAP_BACKEND = process.env.CANISTER_ID_VALUESWAP_BACKEND;
         try {
-            handleCreatePoolClick(CANISTER_ID_VALUESWAP_BACKEND).then(approveResult =>{
+            handleCreatePoolClick(CANISTER_ID_VALUESWAP_BACKEND).then(approveResult => {
                 console.log("approve result", approveResult)
-                
-            const finallWidthdraw = async ()=>{
-                const specificData = await backendActor?.get_specific_pool_data(poolName);
-                let pool_data = await specificData.Ok[0].pool_data;
-                let swap_fee = await specificData.Ok[0].swap_fee;
-                const res = await backendActor.burn_lp_tokens({ pool_data: pool_data, swap_fee: swap_fee }, poolName, amountLp);
-                if (res.Err) {
-                    toast.error("We are fixing the withdraw issue");
-                } else {
-                    toast.success("Successfully withdrew 🤞");
-                    setChange(false);
-                    return res;
-                }
-               }
-               if(approveResult.success){
 
-                   return finallWidthdraw()
-               }
+                const finallWidthdraw = async () => {
+                    const specificData = await backendActor?.get_specific_pool_data(poolName);
+                    let pool_data = await specificData.Ok[0].pool_data;
+                    let swap_fee = await specificData.Ok[0].swap_fee;
+                    const res = await backendActor.burn_lp_tokens({ pool_data: pool_data, swap_fee: swap_fee }, poolName, scaledAmount);
+                    if (res.Err) {
+                        toast.error("We are fixing the withdraw issue");
+                    } else {
+                        toast.success("Successfully withdrew 🤞");
+                        setChange(false);
+                        return res;
+                    }
+                }
+                if (approveResult.success) {
+
+                    return finallWidthdraw()
+                }
             })
-           
+
         } catch (error) {
             console.error("Error during withdrawal:", error);
             toast.error("An error occurred while processing your request.");
@@ -199,8 +214,8 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                         name="lp"
                         id=""
                         className='rounded-2xl bg-[#1e2021a1] p-2'
-                         min="0"
-                         defaultValue={0}
+                        min="0"
+                        defaultValue={0}
                         // value={amountLp}
                         onChange={(e) => setAmountLp(Number(e.target.value))}
                     />
@@ -214,10 +229,18 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                         {CoinName.map((coin, index) => (
                             <div key={index} className='flex justify-between'>
                                 <span>{coin.token_name}</span>
-                               
-                                <span>{coinDetail[index]/100000000}</span>
-                               
-                               
+                                {coinDetail[index] ? (
+                                    coinDetail[index] >= 0.00001 ? (
+                                        <span>{(coinDetail[index]).toFixed(8)}</span>
+                                    ) : (
+                                        <span>Insufficient Balance</span>
+                                    )
+                                ) : (
+                                    <CircularProgress color="secondary" size={20} />
+                                )}
+
+
+
                             </div>
                         ))}
                     </div>
