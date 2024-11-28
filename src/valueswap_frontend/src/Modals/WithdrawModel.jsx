@@ -33,9 +33,9 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                     if (pool_data) {
                         console.log("calling start");
                         return backendActor?.get_user_share_ratio(
-                            { pool_data: pool_data, swap_fee: swap_fee }, 
-                            poolName, 
-                            parseFloat(amountLp)
+                            { pool_data: pool_data, swap_fee: swap_fee },
+                            poolName,
+                            parseFloat(amountLp) * Math.pow(10, 8)
                         );
                     } else {
                         reject(new Error("Invalid pool data."));
@@ -48,7 +48,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                         reject(new Error("Coin issue encountered."));
                     } else {
                         setCoinDetail(res.Ok);
-                        
+
                         resolve(res);
                     }
                 })
@@ -59,9 +59,15 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                 });
         });
     };
+<<<<<<< HEAD
     
     
     console.log("res", coinDetail);
+=======
+
+
+    console.log("getBalance", getBalance(process.env.CANISTER_ID_LP_LEDGER_CANISTER));
+>>>>>>> f77b7ce (add spinner in withdraw)
 
     const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
         try {
@@ -159,7 +165,14 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
 
 
     const withdrawCoinHandler = async () => {
-        if (amountLp <= 0) {
+
+        const scaledAmount = parseFloat(amountLp);
+        if (isNaN(scaledAmount) || scaledAmount <= 0) {
+            toast.error("Invalid amount. Please enter a valid number.");
+            return;
+        }
+        console.log("scaledAmount", typeof (scaledAmount))
+        if (scaledAmount <= 0) {
             toast.error("Please enter a valid amount to withdraw.");
             return;
         }
@@ -167,22 +180,25 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
         try {
             handleCreatePoolClick(CANISTER_ID_VALUESWAP_BACKEND).then(approveResult => {
                 console.log("approve result", approveResult)
-                
-            const finallWidthdraw = async ()=>{
-                const specificData = await backendActor?.get_specific_pool_data(poolName);
-                let pool_data = await specificData.Ok[0].pool_data;
-                let swap_fee = await specificData.Ok[0].swap_fee;
-                const res = await backendActor.burn_lp_tokens({ pool_data: pool_data, swap_fee: swap_fee }, poolName, amountLp);
-                if (res.Err) {
-                    toast.error("We are fixing the withdraw issue");
-                } else {
-                    toast.success("Successfully withdrew 🤞");
-                    setChange(false);
-                    return res;
-                }
-               }
-               if(approveResult.success){
 
+<<<<<<< HEAD
+=======
+                const finallWidthdraw = async () => {
+                    const specificData = await backendActor?.get_specific_pool_data(poolName);
+                    let pool_data = await specificData.Ok[0].pool_data;
+                    let swap_fee = await specificData.Ok[0].swap_fee;
+                    const res = await backendActor.burn_lp_tokens({ pool_data: pool_data, swap_fee: swap_fee }, poolName, scaledAmount);
+                    if (res.Err) {
+                        toast.error("We are fixing the withdraw issue");
+                    } else {
+                        toast.success("Successfully withdrew 🤞");
+                        setChange(false);
+                        return res;
+                    }
+                }
+                if (approveResult.success) {
+
+>>>>>>> f77b7ce (add spinner in withdraw)
                     return finallWidthdraw()
                 }
             })
@@ -212,8 +228,8 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                         name="lp"
                         id=""
                         className='rounded-2xl bg-[#1e2021a1] p-2'
-                         min="0"
-                         defaultValue={0}
+                        min="0"
+                        defaultValue={0}
                         // value={amountLp}
                         onChange={(e) => setAmountLp(Number(e.target.value))}
                     />
@@ -228,10 +244,25 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                         {CoinName.map((coin, index) => (
                             <div key={index} className='flex justify-between'>
                                 <span>{coin.token_name}</span>
+<<<<<<< HEAD
                                
                                 <span>{coinDetail[index]}</span>
                                
                                
+=======
+                                {coinDetail[index] ? (
+                                    coinDetail[index] >= 0.00001 ? (
+                                        <span>{(coinDetail[index]).toFixed(8)}</span>
+                                    ) : (
+                                        <span>Insufficient Balance</span>
+                                    )
+                                ) : (
+                                    <CircularProgress color="secondary" size={20} />
+                                )}
+
+
+
+>>>>>>> f77b7ce (add spinner in withdraw)
                             </div>
                         ))}
                     </div>
