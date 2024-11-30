@@ -22,6 +22,7 @@ use ic_cdk::{
 };
 
 use crate::api::deposit::deposit_tokens;
+use crate::api::balance::*;
 use crate::types::state_handlers;
 use crate::utils::maths::*;
 use crate::utils::types::*;
@@ -407,15 +408,19 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                 // );
 
                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
-                    let b_i = tokenA.balance as f64;
+                    // let b_i = tokenA.balance as f64;
                     let w_i = tokenA.weight as f64;
-                    let b_o = tokenB.balance as f64;
+                    // let b_o = tokenB.balance as f64;
                     let w_o = tokenB.weight as f64;
                     // ic_cdk::println!("Argument for swap {:?} , {:?} , {:?} , {:?}",b_i,w_i,b_o,w_o);
 
                     let amount_out = params.token_amount as f64;
                     let fee = data.swap_fee;
                     // ic_cdk::println!("{:?}, {:?} ",amount_out , fee);
+
+                    // let b_i = 
+
+                    // let b_o = 
 
                     // Calculate the required input using the in_given_out formula
                     let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out, fee);

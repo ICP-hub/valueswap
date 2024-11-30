@@ -7,12 +7,12 @@ use std::cell::Ref;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
-mod utils;
 mod api;
+mod utils;
 
+pub use api::transfer::*;
 pub use utils::maths::*;
 pub use utils::types::*;
-pub use api::transfer::*;
 
 thread_local! {
     pub static POOL_DATA: RefCell<BTreeMap<Principal, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
@@ -37,29 +37,36 @@ thread_local! {
 //     TOTAL_LP.with(|lp|{ lp.borrow().clone()})
 // }
 
-#[update]
-pub fn pool_balance(user_principal : Principal ,params : Pool_Data) {
-    let balance : u64 = params
-    .pool_data
-    .iter()
-    .map(|pool| pool.balance.clone())
-    .sum();
+// #[update]
+// pub fn cmm_algorithm(){
 
-POOL_BALANCE.with(|pool_balance|{
-    let mut borrowed_pool_balance = pool_balance.borrow_mut();
-    borrowed_pool_balance.entry(user_principal)
-    .and_modify(|user_balance| *user_balance += balance)
-    .or_insert(balance);
-})
+// }
+
+
+#[update]
+pub fn pool_balance(user_principal: Principal, params: Pool_Data) {
+    let balance: u64 = params
+        .pool_data
+        .iter()
+        .map(|pool| pool.balance.clone())
+        .sum();
+
+    POOL_BALANCE.with(|pool_balance| {
+        let mut borrowed_pool_balance = pool_balance.borrow_mut();
+        borrowed_pool_balance
+            .entry(user_principal)
+            .and_modify(|user_balance| *user_balance += balance)
+            .or_insert(balance);
+    })
 }
 
 #[query]
-pub fn get_pool_balance(user_principal : Principal) -> Option<u64> {
-    POOL_BALANCE.with(|pool_balance|{
+pub fn get_pool_balance(user_principal: Principal) -> Option<u64> {
+    POOL_BALANCE.with(|pool_balance| {
         let borrowed_pool_balance = pool_balance.borrow();
-        if let Some(balance) = borrowed_pool_balance.get(&user_principal){
+        if let Some(balance) = borrowed_pool_balance.get(&user_principal) {
             Some(balance.clone())
-        }else{
+        } else {
             None
         }
     })
@@ -74,14 +81,14 @@ async fn store_pool_data(user_principal: Principal, params: Pool_Data) -> Result
     // increase_total_lp(params.clone());
     pool_balance(user_principal.clone(), params.clone());
 
-POOL_DATA.with(|pool_data| {
-    let mut pool_data_borrowed = pool_data.borrow_mut();
-    let liquidity = params.clone();
+    POOL_DATA.with(|pool_data| {
+        let mut pool_data_borrowed = pool_data.borrow_mut();
+        let liquidity = params.clone();
 
-    pool_data_borrowed.entry(key).or_default().push(liquidity);
-});
+        pool_data_borrowed.entry(key).or_default().push(liquidity);
+    });
 
-Ok(())
+    Ok(())
 }
 
 // check if user exists and if it exists update pool data else add user entry with pool data
@@ -95,66 +102,69 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
         .collect::<Vec<String>>()
         .join("");
 
-// increase_total_lp(params.clone());
-pool_balance(user_principal.clone(), params.clone());
+    // increase_total_lp(params.clone());
+    pool_balance(user_principal.clone(), params.clone());
 
-// let key = format!("{},{}", pool_name, params.swap_fee);
+    // let key = format!("{},{}", pool_name, params.swap_fee);
 
-POOL_DATA.with(|pool_data| {
-    let mut pool_data_borrowed = pool_data.borrow_mut();
-    let liquidity = params.clone();
+    POOL_DATA.with(|pool_data| {
+        let mut pool_data_borrowed = pool_data.borrow_mut();
+        let liquidity = params.clone();
 
-    // check if user exists
-    if let Some(existing_pool_data) = pool_data_borrowed.get_mut(&user_principal) {
-        existing_pool_data.push(liquidity)
-    } else {
-        pool_data_borrowed
-            .entry(user_principal)
-            .or_default()
-            .push(liquidity);
-    }
-});
+        // check if user exists
+        if let Some(existing_pool_data) = pool_data_borrowed.get_mut(&user_principal) {
+            existing_pool_data.push(liquidity)
+        } else {
+            pool_data_borrowed
+                .entry(user_principal)
+                .or_default()
+                .push(liquidity);
+        }
+    });
 
-Ok(())
+    Ok(())
 }
 
 #[update]
-async fn burn_tokens(params : Pool_Data , user : Principal , user_share_ratio : f64) -> Result<(), String> {
-    let total_token_balance = match get_pool_balance(user.clone()){
+async fn burn_tokens(
+    params: Pool_Data,
+    user: Principal,
+    user_share_ratio: f64,
+) -> Result<(), String> {
+    let total_token_balance = match get_pool_balance(user.clone()) {
         Some(balance) => balance,
-        None => 0
+        None => 0,
     };
 
-for token in params.pool_data.iter(){
-    let token_amount = token.weight as u64 * total_token_balance;
-    let transfer_amount = token_amount * user_share_ratio as u64;
-    let transfer_result = icrc1_transfer(token.ledger_canister_id , user , transfer_amount).await;
+    for token in params.pool_data.iter() {
+        let token_amount = token.weight as u64 * total_token_balance;
+        let transfer_amount = token_amount * user_share_ratio as u64;
+        let transfer_result = icrc1_transfer(token.ledger_canister_id, user, transfer_amount).await;
 
-    if let Err(e) = transfer_result{
-        ic_cdk::println!("Transfer failed {:}", e );
-        return Err("Token transfer failed" . to_string());
+        if let Err(e) = transfer_result {
+            ic_cdk::println!("Transfer failed {:}", e);
+            return Err("Token transfer failed".to_string());
+        }
     }
-}
-Ok(())
+    Ok(())
 }
 
 #[query]
-async fn get_burned_tokens(params : Pool_Data , user : Principal , user_share_ratio : f64) -> Vec<f64> {
-    let total_token_balance = match get_pool_balance(user.clone()){
+async fn get_burned_tokens(params: Pool_Data, user: Principal, user_share_ratio: f64) -> Vec<f64> {
+    let total_token_balance = match get_pool_balance(user.clone()) {
         Some(balance) => balance,
-        None => 0
+        None => 0,
     };
 
-let mut result : Vec<f64> = vec![];
-for token in params.pool_data.iter(){
-    let token_amount = token.weight * total_token_balance as f64;
-    
-    let transfer_amount = user_share_ratio * token_amount;
-    result.push(transfer_amount);
-}
-result
-}
+    let mut result: Vec<f64> = vec![];
+    for token in params.pool_data.iter() {
+        let token_amount = token.weight * total_token_balance as f64;
 
+        let transfer_amount = user_share_ratio * token_amount;
+        result.push(transfer_amount);
+    }
+    result
+}
 
 // fn pre_swap(params: SwapParams) -> Result<(), SwapError> {
 //     let entered_token: u64 = if params.zero_for_one {
@@ -171,12 +181,94 @@ result
 
 // #[update]
 // fn swap(params : SwapParams) -> Result<() , String>{
-    
 
 // }
 
+// #[query]
+// fn pre_compute_swap(params: SwapParams) -> (String, f64) {
+//     // let required_pools = match search_swap_pool(params.clone()) {
+//     //     Ok(pools) => pools,
+//     //     Err(_) => {
+//     //         ic_cdk::println!("No matching pools found.");
+//     //         return ("No matching pools found.".to_string(), 0.0);
+//     //     }
+//     // };
+
+//     // let mut best_pool = None;
+//     // let mut max_output_amount = 0.0;
+
+//     POOL_DATA.with(|pool_data| {
+//         let pool_data = pool_data.borrow();
+
+//         for pool_key in required_pools {
+//             let pool_entries = match pool_data.get(&pool_key) {
+//                 Some(entries) => entries,
+//                 None => {
+//                     ic_cdk::println!("Pool key {} not found in POOL_DATA.", pool_key);
+//                     continue;
+//                 }
+//             };
+
+//             for data in pool_entries {
+//                 // Find the tokenA (input) and tokenB (output) from the pool data
+//                 let tokenA_data = data
+//                     .pool_data
+//                     .iter()
+//                     .find(|p| p.token_name == params.token1_name);
+//                 let tokenB_data = data 
+//                     .pool_data
+//                     .iter()
+//                     .find(|p| p.token_name == params.token2_name);
+
+//                 // ic_cdk::println!(
+//                 //     "Testing pool_key {} with tokenA_data: {:?}, tokenB_data: {:?}",
+//                 //     pool_key,
+//                 //     tokenA_data,
+//                 //     tokenB_data
+//                 // );
+
+//                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
+//                     let b_i = tokenA.balance as f64;
+//                     let w_i = tokenA.weight as f64;
+//                     let b_o = tokenB.balance as f64;
+//                     let w_o = tokenB.weight as f64;
+//                     // ic_cdk::println!("Argument for swap {:?} , {:?} , {:?} , {:?}",b_i,w_i,b_o,w_o);
+
+//                     let amount_out = params.token_amount as f64;
+//                     let fee = data.swap_fee;
+//                     // ic_cdk::println!("{:?}, {:?} ",amount_out , fee);
+
+//                     // Calculate the required input using the in_given_out formula
+//                     let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out, fee);
+//                     // ic_cdk::println!("The required output is {:?}", required_input);
+//                     // ic_cdk::println!("Required Input {:}", required_input);
+
+//                     // Ensure the user has enough balance to provide the input
+//                     if required_input >= max_output_amount {
+//                         max_output_amount = f64::max(required_input, max_output_amount);
+
+//                         best_pool = Some(pool_key.clone());
+//                         // Check if the current pool gives a better output
+//                         // if calculated_output > max_output_amount {
+//                         //     max_output_amount = calculated_output;
+//                         // }
+//                     }
+//                 } else {
+//                     ic_cdk::println!("Either tokenA or tokenB was not found in pool.");
+//                 }
+//             }
+//         }
+//     });
+
+//     match best_pool {
+//         Some(pool) => (pool, max_output_amount),
+//         None => ("No suitable pool found.".to_string(), 0.0),
+//     }
+// }
+
+
 #[update]
-async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -> Result<(), String> {
+async fn swap(user_principal: Principal, params: SwapParams, amount: f64) -> Result<(), String> {
     // pool canister id
     // let token_canister_id = ic_cdk::api::id();
 
@@ -186,56 +278,74 @@ async fn swap( user_principal : Principal , params: SwapParams , amount : f64) -
     // Convert u64 to Nat
     // let amount_nat = Nat::from(amount_as_u64);
 
-// Example usage within your swap function
-let transfer_result = icrc1_transfer(params.ledger_canister_id2, user_principal, amount_as_u64.clone()).await;
+    // Example usage within your swap function
+    let transfer_result = icrc1_transfer(
+        params.ledger_canister_id2,
+        user_principal,
+        amount_as_u64.clone(),
+    )
+    .await;
 
-if let Err(e) = transfer_result {
- ic_cdk::println!("Transfer failed: {:?}", e);
- return Err("Token transfer failed.".to_string());
-}   
+    if let Err(e) = transfer_result {
+        ic_cdk::println!("Transfer failed: {:?}", e);
+        return Err("Token transfer failed.".to_string());
+    }
 
-// Fetch user pool data
-let pool_data = POOL_DATA.with(|pool_data| {
-    pool_data.borrow().get(&user_principal).cloned()
-});
+    // Fetch user pool data
+    let mut pool_data = POOL_DATA.with(|pool_data| pool_data.borrow_mut().clone());
 
-if pool_data.is_none() {
-    return Err("User has no pool data".to_string());
-}
+    // if pool_data.is_none() {
+    //     return Err("User has no pool data".to_string());
+    // }
 
-let mut user_pool_data = pool_data.unwrap();
+    // let mut user_pool_data = pool_data.unwrap();
 
-// Check if user has enough balance and liquidity
-let mut has_sufficient_balance = false;
-let mut has_sufficient_liquidity = false;
+    // Check if user has enough balance and liquidity
+    let mut has_sufficient_balance = false;
+    let mut has_sufficient_liquidity = false;
 
-// for pool in &mut user_pool_data {
-//     for token in &mut pool.pool_data {
-//         if token.token_name == params.token1_name && token.balance >= params.token_amount {
-//             has_sufficient_balance = true;
-//             token.balance -= params.token_amount;
-//         }
-//         if token.token_name == params.token2_name {
-//             has_sufficient_liquidity = true;
-//             token.balance += params.token_amount;
-//         }
-//     }
-// }
+    let length = pool_data.len();
 
-if !has_sufficient_balance {
-    return Err("Insufficient balance".to_string());
-}
+    let distribute_amount1 = params.token_amount / length as f64;
+    let distribute_amount2 = amount / length as f64;
 
-if !has_sufficient_liquidity {
-    return Err("Insufficient liquidity".to_string());
-}
+    for (user, pools) in pool_data.iter_mut() {
+        for pool in pools {
+            for token in &mut pool.pool_data {
+                if token.token_name == params.token1_name {
+                    // Ensure sufficient balance
+                    if token.balance < distribute_amount1 as u64 {
+                        return Err(format!(
+                            "User {:?} has insufficient balance for token {}",
+                             user,  token.token_name
+                        ));
+                    }
+                    // Subtract distributed amount from token
+                    token.balance -= distribute_amount1 as u64;
+                }
 
-// Update the pool data
-POOL_DATA.with(|pool_data| {
-    pool_data.borrow_mut().insert(user_principal, user_pool_data);
-});
+                if token.token_name == params.token2_name {
+                    token.balance += distribute_amount2 as u64;
+                }
+            }
+        }
+    }
 
-Ok(()) 
+    if !has_sufficient_balance {
+        return Err("Insufficient balance".to_string());
+    }
+
+    if !has_sufficient_liquidity {
+        return Err("Insufficient liquidity".to_string());
+    }
+
+    // Update the pool data
+    POOL_DATA.with(|pool_data_cell| {
+        let mut pool_data_mut = pool_data_cell.borrow_mut();
+        *pool_data_mut = pool_data;
+    });
+
+    Ok(())
 }
 
 // fn pre_swap_for_all(params: SwapParams, operator: Principal) -> Result<Nat, SwapError> {
