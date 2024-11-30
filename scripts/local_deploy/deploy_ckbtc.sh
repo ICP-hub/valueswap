@@ -1,5 +1,6 @@
 #!/bin/bash
 dfx deploy swap
+./LP.sh
 set -e
 
 # Create and use the DevJourney identity
