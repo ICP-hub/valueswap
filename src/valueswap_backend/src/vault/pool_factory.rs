@@ -125,7 +125,7 @@ async fn create_canister(arg: CreateCanisterArgument) -> CallResult<(CanisterIdR
         settings: arg.settings,
         sender_canister_version: Some(canister_version()),
     };
-    let cycles: u128 = 200_000_000_000;
+    let cycles: u128 = 500_000_000_000;
 
     call_with_payment128(
         Principal::management_canister(),
@@ -183,7 +183,7 @@ pub async fn create() -> Result<Principal, String> {
 
     let _add_cycles: Result<(), String> =
 
-        match deposit_cycles(canister_id_record, 200_000_000_000).await {
+        match deposit_cycles(canister_id_record, 500_000_000_000).await {
             Ok(_) => Ok(()),
             Err((_, err_string)) => {
                 ic_cdk::println!("Error in depositing cycles: {}", err_string);

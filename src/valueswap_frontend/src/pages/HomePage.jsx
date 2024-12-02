@@ -4,6 +4,7 @@ import TransactionPage from './TransactionPage'
 import PoolPage from './PoolPage'
 import PortfolioPage from './PortfolioPage'
 import { Routes, Route } from 'react-router-dom'
+import Faucet from './Faucet'
 
 const HomePage = () => {
 
@@ -15,6 +16,7 @@ const HomePage = () => {
                 <Route path="/transaction-successfull" element={<TransactionPage />} />
                 <Route path="/portfolio/*" element={<PortfolioPage />} />
                 <Route path="/pool/*" element={<PoolPage />} />
+                <Route path='/faucet' element={<Faucet/>}/>
 
             </Routes>
         </div>
