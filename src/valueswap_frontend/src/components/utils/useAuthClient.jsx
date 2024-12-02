@@ -199,7 +199,11 @@ import { PlugLogin, StoicLogin, NFIDLogin, IdentityLogin } from "ic-auth";
 import { createActor as ledgerActor, idlFactory as TokenIdl } from "../../../../declarations/ckbtc_ledger/index";
 import {  idlFactory as ckETHIdlFactory } from "../../../../declarations/cketh_ledger/index";
 import { DummyDataTokens } from '../../TextData';
+<<<<<<< HEAD
 // import { PlugMobileProvider } from '@funded-labs/plug-mobile-sdk'
+=======
+import { PlugMobileProvider } from '@funded-labs/plug-mobile-sdk'
+>>>>>>> 26ad3fc (add faucet)
 
 
 const AuthContext = createContext();
@@ -212,7 +216,11 @@ export const useAuthClient = () => {
   const [backendActor, setBackendActor] = useState(null);
   const [balance, setBalance] = useState(null);
   const [provider, setProvider] = useState(null); // Keep track of the provider
+<<<<<<< HEAD
   // const isMobile = PlugMobileProvider.isMobileBrowser()
+=======
+  const isMobile = PlugMobileProvider.isMobileBrowser()
+>>>>>>> 26ad3fc (add faucet)
   
   useEffect(() => {
 
@@ -255,6 +263,7 @@ export const useAuthClient = () => {
 
       if (selectedProvider === "plug") {
         // Plug login
+<<<<<<< HEAD
         // if (isMobile) {
         //   const provider = new PlugMobileProvider({
         //     debug: true, // If you want to see debug logs in console
@@ -281,6 +290,34 @@ export const useAuthClient = () => {
         // setPrincipal(principal);
         // setIsAuthenticated(true);
         // }
+=======
+        if (isMobile) {
+          const provider = new PlugMobileProvider({
+            debug: true, // If you want to see debug logs in console
+            walletConnectProjectId: '6e2de4a3633b8ad436730aea43901ef3', // Project ID from WalletConnect console
+            window: window,
+          })
+          // setProvider(provider)
+          provider.initialize().catch(console.log)
+          setProvider(provider)
+
+          if (!provider.isPaired()) {
+            provider.pair().catch(console.log)
+          }
+
+         
+            const agent = await provider.createAgent({
+              host: 'https://icp0.io',
+              targets: [whitelist], // List of canister you are planning to call
+            })
+        
+        const backendActor = createActorBackend(process.env.CANISTER_ID_VALUESWAP_BACKEND, {agent:agent});
+        const principal = agent.getPrincipal()
+        setBackendActor(backendActor);
+        setPrincipal(principal);
+        setIsAuthenticated(true);
+        }
+>>>>>>> 26ad3fc (add faucet)
         // Collect all canister IDs you need to whitelist
        
         // Ensure all canister IDs are valid

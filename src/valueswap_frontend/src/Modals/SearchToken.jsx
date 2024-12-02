@@ -145,7 +145,11 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
 
               // Find corresponding metadata if available(mainnet)
               const CanisterId = canisterIdToken? token.contract_address : null;
+<<<<<<< HEAD
               // const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC;
+=======
+              // const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER;
+>>>>>>> 26ad3fc (add faucet)
 
 
               // Find the amount based on CanisterId
@@ -170,7 +174,11 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
                         ImagePath: ImagePath,
                         ShortForm: ShortForm,
                         CanisterId: CanisterId,
+<<<<<<< HEAD
                         // CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC,
+=======
+                        // CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER,
+>>>>>>> 26ad3fc (add faucet)
                         marketPrice: marketPrice,
                         currencyAmount: marketPrice * TokenAmount,
                       };
