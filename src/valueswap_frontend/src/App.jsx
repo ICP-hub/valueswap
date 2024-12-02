@@ -40,7 +40,7 @@ function App() {
                 key={index}
                 path={route.path}
                 element={
-                  route.page
+                route.page
                 }
               />
             ))}

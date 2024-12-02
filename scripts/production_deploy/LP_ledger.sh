@@ -55,7 +55,7 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy LP_ledger_canister --argument "$DEPLOY_ARGUMENTS" 
+dfx deploy LP_ledger_canister --argument "$DEPLOY_ARGUMENTS" --network ic
 
 echo "LP ledger got deployed"
 
