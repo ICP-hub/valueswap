@@ -69,6 +69,11 @@ export const CommonNavbarData = {
             LinkId: 'staking',
         },
         {
+            LinkName: 'Faucet',
+            LinkPath: '/valueswap/faucet',
+            LinkId: 'faucet',
+        },
+        {
             LinkName: 'Whitepaper',
             
             LinkPath: 'https://balancer.fi/whitepaper.pdf',

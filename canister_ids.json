@@ -1,4 +1,7 @@
 {
+  "LP_ledger_canister": {
+    "ic": "wc7l6-daaaa-aaaal-ars5a-cai"
+  },
   "swap": {
     "ic": "s3wzr-maaaa-aaaal-amg4q-cai"
   },

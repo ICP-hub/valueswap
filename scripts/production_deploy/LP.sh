@@ -1,23 +1,14 @@
 #!/bin/bash
-dfx deploy swap --network ic
-./LP.sh 
 set -e
 
 
-# Create and use the DevJourney identity
-# dfx identity new default || true --network ic
-dfx identity use DevJourney --network ic
-
-# dfx canister create swap
-# dfx  build --all
-
 # Get the principal ID for the minter account
-export MINTER=$(dfx identity get-principal --network ic)
+export MINTER="ssvsn-2iaaa-aaaal-amg5a-cai"
 echo "MINTER principal: $MINTER"
 
 # Set token details
-export TOKEN_NAME="ckBTC"
-export TOKEN_SYMBOL="ckBTC"
+export TOKEN_NAME="LP_Token"
+export TOKEN_SYMBOL="LP_Token"
 echo "Token Name: $TOKEN_NAME"
 echo "Token Symbol: $TOKEN_SYMBOL"
 
@@ -26,12 +17,12 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use DevJourney --network ic
-export DEFAULT=$(dfx identity get-principal)
+dfx identity use DevJourney 
+export DEFAULT=$(dfx identity get-principal )
 echo "DEFAULT principal: $DEFAULT"
 
 # Set archive controller as the default identity for now
-export ARCHIVE_CONTROLLER=$(dfx identity get-principal)
+export ARCHIVE_CONTROLLER=$(dfx identity get-principal )
 
 # Set archive options
 export TRIGGER_THRESHOLD=2000
@@ -57,19 +48,5 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS" --network ic
-
-
-# cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
-
-# candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
-./deploy_cketh.sh
-dfx deploy --network ic
-# dfx deploy valueswap_frontend --network ic
-# dfx deploy valueswap_backend --network ic
-echo "ckBTC got deployed"
-
-# Check the balance of the default identity
-# balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
-# echo "Balance of the DEFAULT account: $balance"
+dfx deploy LP_ledger_canister --argument "$DEPLOY_ARGUMENTS" --network ic
 
