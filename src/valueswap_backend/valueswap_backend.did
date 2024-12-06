@@ -35,12 +35,12 @@ type RejectionCode = variant {
   CanisterReject;
 };
 type Result = variant { Ok; Err : text };
-type Result_1 = variant { Ok : principal; Err : text };
-type Result_2 = variant {
+type Result_1 = variant { Ok : nat; Err : text };
+type Result_2 = variant { Ok : principal; Err : text };
+type Result_3 = variant {
   Ok : record { CanisterIdRecord };
   Err : record { RejectionCode; text };
 };
-type Result_3 = variant { Ok : nat; Err : text };
 type Result_4 = variant { Ok : record { float64; nat64 }; Err : text };
 type Result_5 = variant { Ok : vec Pool_Data; Err : text };
 type Result_6 = variant { Ok : vec float64; Err : text };
@@ -55,10 +55,11 @@ type SwapParams = record {
 service : () -> {
   add_liquidity : (Pool_Data, principal) -> (Result);
   add_liquidity_curr : (Pool_Data) -> (Result);
+  approve_allowance : (principal, principal, nat64) -> (Result_1);
   burn_lp_tokens : (Pool_Data, text, float64) -> (Result);
   compute_swap : (SwapParams) -> (Result);
-  create : () -> (Result_1);
-  create_canister : (CreateCanisterArgument) -> (Result_2);
+  create : () -> (Result_2);
+  create_canister : (CreateCanisterArgument) -> (Result_3);
   create_pools : (Pool_Data) -> (Result);
   decrease_pool_lp : (text, float64) -> ();
   decrease_total_lp : (float64) -> ();
@@ -75,10 +76,11 @@ service : () -> {
   get_user_share_ratio : (Pool_Data, text, float64) -> (Result_6);
   get_users_lp : (principal) -> (opt float64) query;
   get_users_pool : (principal) -> (opt vec text) query;
-  icrc1_transfer : (principal, nat64) -> (Result_3);
+  icrc1_transfer : (principal, nat64) -> (Result_1);
+  icrc_get_balance : (principal, principal) -> (Result_1);
   increase_pool_lp_tokens : (Pool_Data) -> ();
   install_wasm_on_new_canister : (principal) -> (Result);
-  pre_compute_swap : (SwapParams) -> (text, float64) query;
+  pre_compute_swap : (SwapParams) -> (text, float64);
   search_swap_pool : (SwapParams) -> (Result_7);
   store_pool_data : (Pool_Data, principal) -> (Result);
   store_pool_data_curr : (Pool_Data) -> (Result);

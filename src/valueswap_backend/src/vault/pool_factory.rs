@@ -5,6 +5,7 @@ use ic_cdk::api::management_canister::bitcoin::BitcoinNetwork;
 use ic_cdk_macros::*;
 use serde::de::value;
 use core::panic;
+use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::{cmp, result};
 use std::collections::{BTreeMap, HashMap};
@@ -364,8 +365,8 @@ fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
     })
 }
 
-#[query]
-fn pre_compute_swap(params: SwapParams) -> (String, f64) {
+#[update]
+async fn pre_compute_swap(params: SwapParams) -> (String, f64) {
     let required_pools = match search_swap_pool(params.clone()) {
         Ok(pools) => pools,
         Err(_) => {
@@ -377,78 +378,83 @@ fn pre_compute_swap(params: SwapParams) -> (String, f64) {
     let mut best_pool = None;
     let mut max_output_amount = 0.0;
 
-    POOL_DATA.with(|pool_data| {
-        let pool_data = pool_data.borrow();
+    // Move the POOL_DATA closure logic outside of the async block
+    let pool_data = POOL_DATA.with(|pool| pool.borrow().clone());
 
-        for pool_key in required_pools {
-            let pool_entries = match pool_data.get(&pool_key) {
-                Some(entries) => entries,
-                None => {
-                    ic_cdk::println!("Pool key {} not found in POOL_DATA.", pool_key);
-                    continue;
+    for pool_key in required_pools {
+        let pool_entries = match pool_data.get(&pool_key) {
+            Some(entries) => entries,
+            None => {
+                ic_cdk::println!("Pool data {} not found in pool key.", pool_key);
+                continue;
+            }
+        };
+
+        for data in pool_entries {
+            // Find the tokenA (input) and tokenB (output) from the pool data
+            let tokenA_data = data
+                .pool_data
+                .iter()
+                .find(|p| p.token_name == params.token1_name);
+            let tokenB_data = data 
+                .pool_data
+                .iter()
+                .find(|p| p.token_name == params.token2_name);
+
+            let pool_name = data.pool_data.iter().map(|pool| pool.token_name.clone())
+                .collect::<Vec<String>>()
+                .join("");
+
+            if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
+                let w_i = tokenA.weight as f64;
+                let w_o = tokenB.weight as f64;
+                let amount_out = params.token_amount as f64;
+                let fee = data.swap_fee;
+
+                // Fetch the pool canister ID asynchronously
+                let pool_canister_id = with_state(|pool| {
+                    let borrowed_pool = pool.TOKEN_POOLS.borrow();
+                    borrowed_pool.get(&pool_name).map(|user_principal| user_principal.principal)
+                });
+
+                let pool_canister_id = match pool_canister_id {
+                    Some(id) => id,
+                    None => {
+                        ic_cdk::println!("Pool key {} not found in POOL_DATA.", pool_key);
+                        continue;
+                    },
+                };
+
+                // Fetch balances asynchronously
+                let b_i = icrc_get_balance(tokenA.ledger_canister_id, pool_canister_id).await.unwrap();
+                let b_o = icrc_get_balance(tokenB.ledger_canister_id, pool_canister_id).await.unwrap();
+
+                let b_i_f64 = convert_nat_to_u64(b_i).unwrap();
+                let b_o_f64 = convert_nat_to_u64(b_o).unwrap();
+
+                let b_i = b_i_f64/100000000.0;
+                let b_o = b_o_f64/100000000.0;
+
+                // Calculate the required input using the out_given_in formula
+                let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out, fee);
+
+                // Ensure the user has enough balance to provide the input
+                if required_input >= max_output_amount {
+                    max_output_amount = f64::max(required_input, max_output_amount);
+                    best_pool = Some(pool_key.clone());
                 }
-            };
-
-            for data in pool_entries {
-                // Find the tokenA (input) and tokenB (output) from the pool data
-                let tokenA_data = data
-                    .pool_data
-                    .iter()
-                    .find(|p| p.token_name == params.token1_name);
-                let tokenB_data = data 
-                    .pool_data
-                    .iter()
-                    .find(|p| p.token_name == params.token2_name);
-
-                // ic_cdk::println!(
-                //     "Testing pool_key {} with tokenA_data: {:?}, tokenB_data: {:?}",
-                //     pool_key,
-                //     tokenA_data,
-                //     tokenB_data
-                // );
-
-                if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
-                    // let b_i = tokenA.balance as f64;
-                    let w_i = tokenA.weight as f64;
-                    // let b_o = tokenB.balance as f64;
-                    let w_o = tokenB.weight as f64;
-                    // ic_cdk::println!("Argument for swap {:?} , {:?} , {:?} , {:?}",b_i,w_i,b_o,w_o);
-
-                    let amount_out = params.token_amount as f64;
-                    let fee = data.swap_fee;
-                    // ic_cdk::println!("{:?}, {:?} ",amount_out , fee);
-
-                    // let b_i = 
-
-                    // let b_o = 
-
-                    // Calculate the required input using the in_given_out formula
-                    let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out, fee);
-                    // ic_cdk::println!("The required output is {:?}", required_input);
-                    // ic_cdk::println!("Required Input {:}", required_input);
-
-                    // Ensure the user has enough balance to provide the input
-                    if required_input >= max_output_amount {
-                        max_output_amount = f64::max(required_input, max_output_amount);
-
-                        best_pool = Some(pool_key.clone());
-                        // Check if the current pool gives a better output
-                        // if calculated_output > max_output_amount {
-                        //     max_output_amount = calculated_output;
-                        // }
-                    }
-                } else {
-                    ic_cdk::println!("Either tokenA or tokenB was not found in pool.");
-                }
+            } else {
+                ic_cdk::println!("Either tokenA or tokenB was not found in pool.");
             }
         }
-    });
+    }
 
     match best_pool {
         Some(pool) => (pool, max_output_amount),
         None => ("No suitable pool found.".to_string(), 0.0),
     }
 }
+
 
 // Adding liquidity to the specific pool
 #[update]
@@ -482,8 +488,8 @@ fn get_pool_canister_id(token1 : String , token2 : String) -> Option<Principal>{
 
 #[update]
 async fn compute_swap(params: SwapParams) -> Result<(), String> {
-    let (pool_name, _) = pre_compute_swap(params.clone());
-    let (_ , amount) = pre_compute_swap(params.clone());
+    let (pool_name, _) = pre_compute_swap(params.clone()).await;
+    let (_ , amount) = pre_compute_swap(params.clone()).await;
 
     if pool_name == "No suitable pool found.".to_string()
         || pool_name == "No matching pools found.".to_string()
