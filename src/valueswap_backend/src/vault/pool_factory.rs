@@ -367,6 +367,7 @@ fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
 
 #[update]
 async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
+
     let required_pools = match search_swap_pool(params.clone()) {
         Ok(pools) => pools,
         Err(_) => {
@@ -411,6 +412,7 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
                 let amount_out = params.token_amount.clone();
                 let fee = data.swap_fee.clone();
 
+
                 // Fetch the pool canister ID asynchronously
                 let pool_canister_id = with_state(|pool| {
                     let borrowed_pool = pool.TOKEN_POOLS.borrow();
@@ -424,7 +426,6 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
                         continue;
                     },
                 };
-                         
                 // Fetch balances asynchronously
                 let b_i = icrc_get_balance(tokenA.ledger_canister_id, pool_canister_id).await.unwrap();
                 let b_o = icrc_get_balance(tokenB.ledger_canister_id, pool_canister_id).await.unwrap();
