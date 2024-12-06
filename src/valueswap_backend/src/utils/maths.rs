@@ -1,4 +1,4 @@
-
+use candid::{Nat, CandidType};
 
 /**********************************************************************************************
 // constantProduct                                                                           //
@@ -105,3 +105,28 @@ pub fn in_given_out(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_out: f64, fee
 // pub fn single_asset_withdraw(supply: f64, redeemed: f64, b_t: f64, w_t: f64) -> f64 {
 //     b_t * (1.0 - (1.0 - redeemed / supply).powf(1.0 / w_t))
 // }
+
+// #[ic_cdk::query]
+// fn process_nat(input: Nat) -> String {
+//     match convert_nat_to_u64(input) {
+//         Ok(u64_value) => format!("Converted value: {}", u64_value),
+//         Err(e) => format!("Conversion error: {}", e),
+//     }
+// }
+
+// fn convert_nat_to_u64(nat: Nat) -> Result<u64, &'static str> {
+//     u64::try_from(nat).map_err(|_| "Nat value is too large for u64")
+// }
+
+
+
+pub fn convert_nat_to_u64(nat: Nat) -> Result<f64, &'static str> {
+    // Convert the Nat to a string
+    let nat_str = nat.to_string();
+
+    // Try to parse the string as a u64
+    match nat_str.parse::<f64>() {
+        Ok(value) => Ok(value),
+        Err(_) => Err("Nat value is too large for u64"),
+    }
+}
