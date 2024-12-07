@@ -258,7 +258,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
     <div className="flex z-50 justify-center fixed inset-0 bg-opacity-50 backdrop-blur-sm py-10 overflow-y-scroll">
       <div className="h-fit xl:w-5/12 lg:w-6/12 md:w-7/12 sm:w-8/12 w-11/12 border rounded-xl flex flex-col gap-2 bg-[#05071D] my-auto">
         <div className="md:w-[64%] w-[62%] flex place-self-end items-center justify-between mx-4">
-          <span className="font-fahkwang font-medium md:text-2xl text-xl py-4">Analyse Pair</span>
+          <span className="font-gilroy font-medium md:text-2xl text-xl py-4">Analyse Pair</span>
           <div
             className="cursor-pointer"
             onClick={() => {
@@ -279,7 +279,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
 
         {Tokens.map((token, index) => (
           <div className="mx-3 sm:mx-10" key={index}>
-            <div className="flex justify-between items-center font-cabin">
+            <div className="flex justify-between items-center font-gilroy">
               <div className="flex justify-evenly items-center gap-2">
                 <BlueGradientButton>
                   <img src={token.ImagePath} alt="" className="h-12 w-12" />
@@ -305,16 +305,16 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
         ))}
         <div className="border border-transparent font-bold custom-height-3 bg-gradient-to-r from-transparent via-[#00308E] to-transparent w-full mx-auto mb-4"></div>
 
-        <div className="flex justify-between font-cabin font-light text-base mx-10">
+        <div className="flex justify-between font-gilroy font-light text-base mx-10">
           <span>Total</span>
 
           <span>${TotalAmount}</span>
         </div>
 
-        <h1 className="text-center font-fahkwang font-medium text-xl leading-5 ">Overview</h1>
+        <h1 className="text-center font-gilroy font-medium text-xl leading-5 ">Overview</h1>
         <div className="border border-transparent font-bold custom-height-3 bg-gradient-to-r from-transparent via-[#00308E] to-transparent w-full mx-auto mb-4"></div>
 
-        <div className="flex justify-between font-cabin font-normal text-sm sm:text-base mx-5 sm:mx-10">
+        <div className="flex justify-between font-gilroy font-normal text-sm sm:text-base mx-5 sm:mx-10">
           <span>Pool Symbol</span>
 
           <div className="leading-6 inline-block items-center text-center">
@@ -332,7 +332,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
             ))}
           </div>
         </div>
-        <div className="flex justify-between font-cabin font-normal text-sm sm:text-base mx-5 sm:mx-10">
+        <div className="flex justify-between font-gilroy font-normal text-sm sm:text-base mx-5 sm:mx-10">
           <span>Pool Name</span>
 
           <div className="leading-6 inline-block items-center text-center">
@@ -351,7 +351,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
           </div>
         </div>
 
-        <div className="flex justify-between font-cabin font-normal text-sm sm:text-base mx-5 sm:mx-10">
+        <div className="flex justify-between font-gilroy font-normal text-sm sm:text-base mx-5 sm:mx-10">
           <span>Pool Fee Share</span>
 
           <div className="leading-6 inline-block items-center text-center">{FeeShare} %</div>
@@ -395,17 +395,17 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
             <CloseIcon />
           </button>
 
-          <h2 className="text-xl font-medium mb-4 text-center font-fahkwang">Pool Creation Details</h2>
+          <h2 className="text-xl font-medium mb-4 text-center font-gilroy">Pool Creation Details</h2>
           {/* <p className="text-gray-400 mb-6">
             You can swap directly without depositing, because you have sufficient balance in the Swap pool.
           </p> */}
 
-          <div className='flex flex-col gap-y-6 font-cabin'>
+          <div className='flex flex-col gap-y-6 font-gilroy'>
             <div className='flex gap-x-4 '>
               <div className='flex justify-center items-center '>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
               <div className='flex flex-col border rounded-lg  py-2 border-gray-600 bg-[#30303080]  w-full'>
                 <div className='flex justify-between  w-full px-4'>
-                  <div className='flex gap-x-4 font-cabin pb-1'>
+                  <div className='flex gap-x-4 font-gilroy pb-1'>
                     <span>1. Approve Tokens</span>
                     {/* <span></span> */}
                   </div>

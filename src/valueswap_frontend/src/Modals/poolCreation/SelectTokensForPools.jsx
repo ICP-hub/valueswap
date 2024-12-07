@@ -37,7 +37,7 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
             <div className='inset-0 bg-opacity-10 m-auto  justify-center z-50 w-max  flex flex-col gap-4 p-3 sm:p-6 bg-gradient-to-b from-[#3E434B] to-[#02060D] border mx-auto rounded-lg'>
 
                 {/* <div className='w-[90%] place-self-end  flex justify-between px-6'>
-                    <span className='font-fahkwang font-light md:text-3xl '>Select Tokens</span>
+                    <span className='font-gilroy font-light md:text-3xl '>Select Tokens</span>
                     <Bolt size={30} className='cursor-pointer' onClick={() => { console.log("settings open") }} />
                 </div> */}
 
@@ -70,7 +70,7 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                 </div>
 
                 <div
-                    className={`font-cabin text-base font-medium `}
+                    className={`font-gilroy text-base font-medium `}
                     onClick={() => {
 
                         if (!ButtonActive) {

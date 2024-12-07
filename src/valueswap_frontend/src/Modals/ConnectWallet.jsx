@@ -45,53 +45,53 @@ const ConnectWallet = ({ setClickConnectWallet, setWalletClicked }) => {
         <div className='fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center custom-z-index'>
             <div className='bg-[#05071D] mt-28 lg:4/12 md:w-5/12 sm:w-6/12 w-10/12 max-w-[400px] border rounded-xl flex flex-col gap-2 my-auto mx-auto'>
                 <div className='md:w-[64%] w-[62%] flex place-self-end items-center justify-between mx-4'>
-                    <span className='font-fahkwang font-medium md:text-2xl text-xl py-4'>{ConnectWalletData.Heading}</span>
+                    <span className='font-gilroy font-medium md:text-2xl text-xl py-4'>{ConnectWalletData.Heading}</span>
                     <span className='cursor-pointer' onClick={() => setClickConnectWallet(false)}><X /></span>
                 </div>
                 <div className='border border-transparent font-bold custom-height-3 bg-gradient-to-r from-transparent via-[#00308E] to-transparent w-full mx-auto'></div>
-                <div className='flex flex-col items-center gap-4 overflow-y-scroll h-72 '>
+                <div className='flex flex-col items-center gap-4 overflow-y-scroll lg:h-72 '>
                     {/* {artemis?.wallets.map((item, indx) => (
                         <div key={indx} className={`flex gap-6 items-center w-10/12 p-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
                             onClick={() => handleWalletConnect(item?.id, item?.name)}>
                             <div className='rounded-lg bg-[#3D3F47]'>
                                 <img src={walletImage[indx]?.url} alt="" className='w-8 h-8' />
                             </div>
-                            <div className='font-extralight text-lg font-cabin text-start'>{item?.name}</div>
+                            <div className='font-extralight text-lg font-gilroy text-start'>{item?.name}</div>
                         </div>))} */}
                     <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
                         onClick={() => handleWalletConnect('ii')}>
                         <div className='rounded-lg bg-[#3D3F47]'>
                             <img src='/image/icp.svg' alt="" className='w-8 h-8' />
                         </div>
-                        <div className='font-normal text-lg font-cabin text-start'>Internet Identity</div>
+                        <div className='font-normal text-lg font-gilroy text-start'>Internet Identity</div>
                     </div>
                     <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
                         onClick={() => handleWalletConnect('nfid')}>
                         <div className='rounded-lg bg-[#3D3F47]'>
                             <img src='/image/nfid.png' alt="" className='w-8 h-8' />
                         </div>
-                        <div className='font-normal text-lg font-cabin text-start'>Nfid</div>
+                        <div className='font-normal text-lg font-gilroy text-start'>Nfid</div>
                     </div>
-                    <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
+                    <div className={`lg:flex gap-6 items-center w-10/12 hidden px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
                         onClick={() => handleWalletConnect("bitfinityWallet")}>
                         <div className='rounded-lg bg-[#3D3F47]'>
                             <img src="/image/bifinity.png" alt="" className='w-8 h-8' />
                         </div>
-                        <div className='font-normal text-lg font-cabin text-start'>Bifinity</div>
+                        <div className='font-normal text-lg font-gilroy text-start'>Bifinity</div>
                     </div>
-                    <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
+                    <div className={`hidden lg:flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
                         onClick={() => handleWalletConnect("stoic")}>
                         <div className='rounded-lg bg-[#3D3F47]'>
                             <img src="/image/stoic.png" alt="" className='w-8 h-8' />
                         </div>
-                        <div className='font-normal text-lg font-cabin text-start'>Stoic</div>
+                        <div className='font-normal text-lg font-gilroy text-start'>Stoic</div>
                     </div>
-                    <div className={`flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
+                    <div className={`hidden lg:flex gap-6 items-center w-10/12 px-2 py-2 bg-[#303030] hover:opacity-80 cursor-pointer rounded-xl`}
                         onClick={() => handleWalletConnect("plug")}>
                         <div className='rounded-lg bg-[#3D3F47]'>
                             <img src='/image/Plug.png' alt="" className='w-8 h-8' />
                         </div>
-                        <div className='font-normal text-lg font-cabin text-start'>Plug</div>
+                        <div className='font-normal text-lg font-gilroy text-start'>Plug</div>
                     </div>
                 </div>
                 <div className='border border-transparent font-bold custom-height-3 bg-gradient-to-r from-transparent via-[#00308E] to-transparent w-full mx-auto'></div>
@@ -102,7 +102,7 @@ const ConnectWallet = ({ setClickConnectWallet, setWalletClicked }) => {
                         className="w-6 h-5 text-blue-600 bg-gray-800 border-gray-600 rounded-xl   dark:ring-offset-gray-800  mt-2"
                         onChange={() => SetTermsAndConditionsChecked(!TermsAndConditionsChecked)}
                     />
-                    <label htmlFor="consent-checkbox" className="text-base font-cabin">
+                    <label htmlFor="consent-checkbox" className="text-base font-gilroy">
                         {ConnectWalletData.TermsAndConditions} <a href="" className='text-blue-500 underline'>{ConnectWalletData.LearnMore}</a>
                     </label>
                 </div>

@@ -96,7 +96,7 @@ const PortfolioDataComponent = () => {
             <div className='w-full h-screen text-white mt-12 px-8 mx-auto absolute'>
                 <div className='flex justify-between bg-[#010427] p-2 pb-6 pt-8 rounded-lg mx-auto'>
                     <div className='flex justify-between items-center mx-2 md:mx-8'>
-                        <span className='font-cabin text-xl md:text-3xl font-medium'>My Liquidity Pools</span>
+                        <span className='font-gilroy text-xl md:text-3xl font-medium'>My Liquidity Pools</span>
                     </div>
                     <div
                         className='mr-4'
@@ -108,7 +108,7 @@ const PortfolioDataComponent = () => {
                         </GradientButton>
                     </div>
                 </div>
-                <div className='flex flex-col font-cabin bg-[#05071D]'>
+                <div className='flex flex-col font-gilroy bg-[#05071D]'>
                     <div className='-my-2 overflow-x-auto'>
                         <div className='inline-block min-w-full py-2 align-middle'>
                             {allDataInPool.Ok?.length <= 0 ? <div> No Pool found ! </div> : <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5'>

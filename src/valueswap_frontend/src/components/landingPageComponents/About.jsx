@@ -11,32 +11,32 @@ const About = () => {
             <div className='flex max-w-[1200px]  flex-col lg:flex-row  justify-evenly  text-2xl md:text-4xl items-center ' id={`${NavbarData.Links[0].LinkId}`}>
                 <div className='max-h-[800px] flex flex-col gap-y-8  w-full lg:w-1/2'>
                     <div>
-                        <div className='flex items-center font-fahkwang font-medium gap-2'>
+                        <div className='flex items-center font-gilroy font-medium gap-2'>
                             <img src={AboutImageFirst} alt="" />
                             <span>{LandingPageData.AboutSectionData.Elementone.WordOne}</span> <GradientSpan>{LandingPageData.AboutSectionData.Elementone.WordTwo}</GradientSpan> <span>{LandingPageData.AboutSectionData.Elementone.WordThree}</span>
 
                         </div>
-                        <p className=' text-[#FFFFFFBF] text-base md:text-lg md:leading-7 leading-6 m-2 font-cabin'>
+                        <p className=' text-[#FFFFFFBF] text-base md:text-lg md:leading-7 leading-6 m-2 font-gilroy'>
                             {LandingPageData.AboutSectionData.Elementone.Description}
                         </p>
                     </div>
 
                     <div>
-                        <div className='flex items-center font-fahkwang font-[500] gap-2'>
+                        <div className='flex items-center font-gilroy font-[500] gap-2'>
                             <img src={AboutImageSecond} alt="" />
                             <span>{LandingPageData.AboutSectionData.ElementTwo.WordOne}</span> <GradientSpan>{LandingPageData.AboutSectionData.ElementTwo.WordTwo}</GradientSpan>
                         </div>
-                        <p className='text-[#FFFFFFBF] text-base md:text-lg md:leading-7 leading-6 m-2 font-cabin'>
+                        <p className='text-[#FFFFFFBF] text-base md:text-lg md:leading-7 leading-6 m-2 font-gilroy'>
                             {LandingPageData.AboutSectionData.ElementTwo.Description}
                         </p>
                     </div>
 
                     <div>
-                        <div className='flex items-center font-fahkwang font-[500] gap-2'>
+                        <div className='flex items-center font-gilroy font-[500] gap-2'>
                             <img src={AboutImageThird} alt="" />
                             <span>{LandingPageData.AboutSectionData.ElementThree.WordOne}</span> <GradientSpan>{LandingPageData.AboutSectionData.ElementThree.WordTwo}</GradientSpan>
                         </div>
-                        <p className='text-[#FFFFFFBF] text-base md:text-lg md:leading-7 leading-6 m-2 font-cabin'>
+                        <p className='text-[#FFFFFFBF] text-base md:text-lg md:leading-7 leading-6 m-2 font-gilroy'>
                             {LandingPageData.AboutSectionData.ElementThree.Description}
                         </p>
                     </div>

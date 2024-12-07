@@ -328,7 +328,7 @@ const InitialLiquidity = () => {
       </div>
       <div className='z-50 w-max m-auto flex flex-col gap-4 p-3 sm:p-6 bg-gradient-to-b from-[#3E434B] to-[#02060D] border mx-auto rounded-lg'>
         <div className='w-[78%] sm:w-[74%] place-self-end  flex justify-between'>
-          <span className='font-cabin font-light text-base sm:text-3xl '>Set Initial Liquidity</span>
+          <span className='font-gilroy font-light text-base sm:text-3xl '>Set Initial Liquidity</span>
           <div className='sm:hidden block'>
             {/* <Bolt size={22} className='cursor-pointer' onClick={() => { console.log("settings open") }} /> */}
           </div>
@@ -337,7 +337,7 @@ const InitialLiquidity = () => {
           </div>
         </div>
 
-        <div className='flex justify-between gap-12 items-center font-cabin'>
+        <div className='flex justify-between gap-12 items-center font-gilroy'>
           <div className='flex flex-col'>
             <div>
               <input
@@ -378,7 +378,7 @@ const InitialLiquidity = () => {
             return (
               <div key={index}>
                 <div className='border-t-[1px] opacity-50 item-center my-6'></div>
-                <div className='flex justify-between items-center font-cabin'>
+                <div className='flex justify-between items-center font-gilroy'>
                   <div className='flex flex-col'>
                     <div>
                       <input
@@ -417,12 +417,12 @@ const InitialLiquidity = () => {
           })}
         </div>
         <div className='flex gap-2 items-center'>
-          <p className='font-cabin text-sm'>Auto optimize liquidity</p>
+          <p className='font-gilroy text-sm'>Auto optimize liquidity</p>
           <IOSSwitch sx={{ m: 1 }} defaultChecked  onClick={()=> setOptimizeEnable((prev)=> !prev)}/>
           </div>
         {( pooExits && Confirmation) && <FinalizePool handleCreatePoolClick={handleCreatePoolClick} />}
         <div
-          className={`font-cabin text-base font-medium`}
+          className={`font-gilroy text-base font-medium`}
           onClick={() => {
             if(!isAuthenticated){
               toast.warn('Please login first')

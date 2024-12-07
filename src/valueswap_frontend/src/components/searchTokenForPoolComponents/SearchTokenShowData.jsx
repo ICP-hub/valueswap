@@ -102,7 +102,7 @@ console.log("searchToken", searchToken)
                                 onClick={() => {
                                     setSearchToken(!searchToken);
                                 }}>
-                                <div className='font-cabin font-normal text-xl md:text-2xl cursor-pointer'>
+                                <div className='font-gilroy font-normal text-xl md:text-2xl cursor-pointer'>
                                     {token.ShortForm}
                                 </div>
                                 {!searchToken ? (
@@ -128,7 +128,7 @@ console.log("searchToken", searchToken)
                         setSearchToken(true);
                     }}>
 
-                        <BlueGradientButton customCss={'py-2 px-2 lg:px-4 lg:py-3 font-cabin font-light'}  >
+                        <BlueGradientButton customCss={'py-2 px-2 lg:px-4 lg:py-3 font-gilroy font-light'}  >
                             <div className='flex items-center gap-1 text-xs sm:text-sm'
                                 >
                                 Select a Token

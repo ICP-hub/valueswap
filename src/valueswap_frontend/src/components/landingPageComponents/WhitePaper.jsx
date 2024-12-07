@@ -10,11 +10,11 @@ const whitePaper = () => {
 
 
 
-                <div className='font-fahkwang font-bold md:font-medium md:text-6xl text-2xl'>
+                <div className='font-gilroy font-bold md:font-medium md:text-6xl text-2xl'>
                     {LandingPageData.WhitePaperText.Heading}
                 </div>
 
-                <div className='md:text-xl font-normal font-cabin leading-6 max-w-7xl mx-auto px-1 md:px-24'>
+                <div className='md:text-xl font-normal font-gilroy leading-6 max-w-7xl mx-auto px-1 md:px-24'>
                     {LandingPageData.WhitePaperText.Description}
                 </div>
 

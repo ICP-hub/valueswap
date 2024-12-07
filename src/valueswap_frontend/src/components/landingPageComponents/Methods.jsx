@@ -15,7 +15,7 @@ const Methods = () => {
                     <img src={MethodsImageOne} alt="MethodImageOne" className='h-11/12  w-full mx-auto' />
                 </div>
 
-                <div className='w-1/2   pl-20 flex flex-col rounded-r-lg items-start font-fahkwang text-4xl bg-[#000211]'>
+                <div className='w-1/2   pl-20 flex flex-col rounded-r-lg items-start font-gilroy text-4xl bg-[#000211]'>
                     <div className='mb-0 w-full h-11/12'>
                         <div className='flex gap-2 '>
                             <span className=' '>{LandingPageData.MethodsText.UpperSection.HeadingWordOne}</span>
@@ -24,7 +24,7 @@ const Methods = () => {
                         <span className='flex  justify-start'>{LandingPageData.MethodsText.UpperSection.HeadingWordThree}</span>
                     </div>
 
-                    <div className='font-cabin text-[#FFFFFFBF] text-lg py-4 leading-6 w-10/12 text-start'>
+                    <div className='font-gilroy text-[#FFFFFFBF] text-lg py-4 leading-6 w-10/12 text-start'>
                         {LandingPageData.MethodsText.UpperSection.Description}
                     </div>
                     <div className='m-4 md:m-0'>
@@ -37,7 +37,7 @@ const Methods = () => {
 
             <div className='lg:flex justify-between  max-w-[1200px] mx-auto  items-center hidden '>
 
-                <div className='w-1/2 h-10/12 bg-[#000211] py-[6.3rem] flex flex-col items-start rounded-l-lg  justify-between pl-12 font-fahkwang text-4xl'>
+                <div className='w-1/2 h-10/12 bg-[#000211] py-[6.3rem] flex flex-col items-start rounded-l-lg  justify-between pl-12 font-gilroy text-4xl'>
                     <div>
                         <div className='flex gap-2'>
                             <GradientSpan >{LandingPageData.MethodsText.LowerSection.HeadingWordOne}</GradientSpan>
@@ -45,7 +45,7 @@ const Methods = () => {
                         </div>
                     </div>
 
-                    <div className='font-cabin text-[#FFFFFFBF] text-lg py-4 text-start leading-6 w-10/12   '>
+                    <div className='font-gilroy text-[#FFFFFFBF] text-lg py-4 text-start leading-6 w-10/12   '>
                         {LandingPageData.MethodsText.LowerSection.Description}
                     </div>
                     <div>
@@ -65,7 +65,7 @@ const Methods = () => {
                     <img className="w-full" src={MethodsImageOne} alt=""  />
                 </div>
 
-                <div className=' rounded-b-xl bg-[#000211] flex flex-col justify-evenly font-fahkwang text-4xl p-4 gap-y-6 pt-8'>
+                <div className=' rounded-b-xl bg-[#000211] flex flex-col justify-evenly font-gilroy text-4xl p-4 gap-y-6 pt-8'>
                     <div className='mb-4 md:mb-0'>
                         <div className='flex gap-2 flex-wrap '>
                             <span className=' '>{LandingPageData.MethodsText.UpperSection.HeadingWordOne}</span>
@@ -74,7 +74,7 @@ const Methods = () => {
                         </div>
                     </div>
 
-                    <div className='font-cabin font-[400] text-base md:text-xl leading-7   text-start '>
+                    <div className='font-gilroy font-[400] text-base md:text-xl leading-7   text-start '>
                         {LandingPageData.MethodsText.UpperSection.Description}
                     </div>
                     <div className='m-4 '>
@@ -89,7 +89,7 @@ const Methods = () => {
                     <img className="w-full" src={MethodsImageTwo} alt="" />
                 </div>
 
-                <div className=' rounded-b-xl bg-[#000211] flex flex-col justify-evenly font-fahkwang text-4xl gap-y-6 pt-8'>
+                <div className=' rounded-b-xl bg-[#000211] flex flex-col justify-evenly font-gilroy text-4xl gap-y-6 pt-8'>
                     <div>
                         <div className='flex gap-2 m-2 text-center'>
                             <span className=' '>{LandingPageData.MethodsText.LowerSection.HeadingWordOne}</span>
@@ -97,7 +97,7 @@ const Methods = () => {
                         </div>
                     </div>
 
-                    <div className='font-cabin font-[400] text-base md:text-xl leading-7  text-start '>
+                    <div className='font-gilroy font-[400] text-base md:text-xl leading-7  text-start '>
                         {LandingPageData.MethodsText.LowerSection.Description}
                     </div>
                     <div className='m-4'>

@@ -4,7 +4,7 @@ import GradientSpan from '../../CustomSpan/GradientSpan'
 const Partnership = () => {
     return (
         <div>
-            <div className='flex flex-col items-center font-fahkwang '>
+            <div className='flex flex-col items-center font-gilroy '>
                 <div className='md:text-5xl text-3xl flex'>
                     <span className='  mr-2'>{LandingPageData.PaternshipPageData.HeadingWordOne}</span> <GradientSpan>{LandingPageData.PaternshipPageData.HeadingWordTwo}</GradientSpan>
                 </div>
@@ -27,7 +27,7 @@ const Partnership = () => {
                                         <img src={LogoLink} alt="PartnerShipData"/>
                                     </div>
 
-                                    <div className='flex flex-col font-cabin'>
+                                    <div className='flex flex-col font-gilroy'>
                                         <span>
                                             {CompanyName}
                                         </span>

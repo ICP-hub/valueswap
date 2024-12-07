@@ -163,7 +163,7 @@ async fn burn_lp_tokens(params: Pool_Data, pool_name: String, amount: f64) -> Re
     let target_canister_id = ic_cdk::id();
 
     let result = deposit_tokens(amount as u64, ledger_canister_id, target_canister_id).await;
-    if let Err(e) = result {
+    if let Err(e) = result { 
         ic_cdk::trap(&format!("Transfer failed : {}", e));
     }
 

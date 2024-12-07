@@ -9,7 +9,7 @@ const BorderGradientTransparentButton = ({ Css, customCss, children }) => {
     }, [customCss])
 
     return (
-        <button className={` ${Css}  h-14 w-32 button-gradient-wrapper text-white font-bold text-base font-cabin rounded-lg  hover:opacity-50`}>
+        <button className={` ${Css}  h-14 w-32 button-gradient-wrapper text-white font-bold text-base font-gilroy rounded-lg  hover:opacity-50`}>
             <span className={`${customGradient} font-normal flex justify-center items-center`}>
                 {children}
             </span>

@@ -14,7 +14,7 @@ const Navbar = ({ NavbarData, setClickConnectWallet }) => {
 
     return (
         <div className='mx-12'>
-            <div className='w-full sticky top-8 rounded-2xl bg-[#05071D] font-cabin backdrop-blur-lg  z-50 '>
+            <div className='w-full sticky top-8 rounded-2xl bg-[#05071D] font-gilroy backdrop-blur-lg  z-50 '>
                 <div className='flex items-center justify-between w-full gap-8 p-4'>
                     <div className='flex items-center gap-16 text-base'>
                         <button className='font-extrabold' onClick={handleFunc}>sfd</button>

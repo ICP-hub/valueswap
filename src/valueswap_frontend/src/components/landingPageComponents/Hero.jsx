@@ -17,7 +17,7 @@ const Hero = ({ setClickConnectWallet }) => {
         <div id='beng' className=' flex flex-col justify-evenly relative pt-28'>
             {/* <ParticlesBackground /> */}
             <div className=' items-center  text-center'>
-                <div className='font-fahkwang font-light md:text-6xl text-4xl pb-5 m-2 md:m-0'>
+                <div className='font-gilroy font-light md:text-6xl text-4xl pb-5 m-2 md:m-0'>
                     <span>
                         {LandingPageData.HeroSection.HeadLineWordOne}
                     </span>
@@ -26,7 +26,7 @@ const Hero = ({ setClickConnectWallet }) => {
                         <span > {LandingPageData.HeroSection.HeadLineWordThree}</span>
                     </div>
                 </div>
-                <span className='font-cabin text-lg '>
+                <span className='font-gilroy text-lg '>
                     {LandingPageData.HeroSection.Tagline}
                 </span>
 
@@ -76,7 +76,7 @@ const Hero = ({ setClickConnectWallet }) => {
 
 
             <div className='text-center mt-4'>
-                <div className='font-cabin font-normal leading-5 text-xl '>
+                <div className='font-gilroy font-normal leading-5 text-xl '>
                     {LandingPageData.HeroSection.BottomLine}
                 </div>
             </div>

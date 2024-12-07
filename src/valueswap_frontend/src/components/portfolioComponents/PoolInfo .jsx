@@ -45,7 +45,7 @@ const PoolInfo = () => {
 
         <div className='flex flex-col justify-between bg-[#010427] p-2  py-6  rounded-t-lg mx-auto'>
           <div className='flex justify-between items-center  mx-2  md:ml-8'>
-            <div className='font-cabin text-base md:text-3xl font-medium flex items-center gap-4'>
+            <div className='font-gilroy text-base md:text-3xl font-medium flex items-center gap-4'>
               <div className='flex gap-1 sm:gap-2'>
                 {
                   specificPool?.map((token, index) => (
@@ -132,7 +132,7 @@ const PoolInfo = () => {
             </div>
           </div>
 
-          <div className='gap-2 pt-9 mx-10 font-cabin flex items-center'>
+          <div className='gap-2 pt-9 mx-10 font-gilroy flex items-center'>
             <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:</span>
             <span className='mx-3 text-2xl font-normal leading-6'>${specificPool?.PoolMetaData?.PersonalPoolBalance.toLocaleString('en-US')}</span>
           </div>
@@ -156,7 +156,7 @@ const PoolInfo = () => {
             </div>
           </div>
 
-          <div className='font-cabin font-medium text-base md:text-xl lg:text-2xl flex gap-3 md:gap-16 lg:gap-32 mx-4 lg:mx-10 mt-6'>
+          <div className='font-gilroy font-medium text-base md:text-xl lg:text-2xl flex gap-3 md:gap-16 lg:gap-32 mx-4 lg:mx-10 mt-6'>
             {Heading.map((heading, index) => (
               <div className='flex flex-col justify-center text-center items-center gap-2 cursor-pointer' key={index}
                 onClick={() => {
