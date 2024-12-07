@@ -29,7 +29,7 @@ const LiquidityOverview = ({ id }) => {
   }, [LiquidityTableData]);
 
   return (
-    <div className='mt-10 flex flex-col font-cabin'>
+    <div className='mt-10 flex flex-col font-gilroy'>
       <div className='-my-2 overflow-x-auto'>
         <div className='inline-block min-w-full py-2 align-middle md:px-6 lg:px-8'>
           <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5 border border-white bg-[#05071D] border-opacity-65 rounded-lg'>

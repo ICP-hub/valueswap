@@ -196,7 +196,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
     };
 
     return (
-        <div className='fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50 font-cabin'>
+        <div className='fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50 font-gilroy'>
             <div className='relative w-10/12 md:w-2/5 lg:w-1/3 bg-[#010427] px-2 pt-4 h-5/6 sm:h-4/6 border-2 rounded-lg z-50'>
                 <div className='w-full flex justify-end cursor-pointer pr-4 z-50'>
                     <button onClick={() => setOpenWithdraw(false)}>
@@ -204,7 +204,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                     </button>
                 </div>
                 <div className='absolute top-[14%] bottom-0 left-0 right-0 m-auto z-10 flex flex-col gap-y-4 px-8'>
-                    <label htmlFor="number" className='text-lg font-fahkwang font-medium'>Input your LP</label>
+                    <label htmlFor="number" className='text-lg font-gilroy font-medium'>Input your LP</label>
                     <ul className='text-sm font-light list-disc list-inside'>
                         <li>First it shows your coin relative to the LP you input.</li>
                         <li>Then you can withdraw your coin.</li>

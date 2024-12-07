@@ -16,10 +16,17 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { toast } from 'react-toastify';
 import CloseIcon from '@mui/icons-material/Close';
+import BorderGradientButton from '../buttons/BorderGradientButton';
+import DialogBox from './Dialouge';
+
 const Swap = () => {
     const navigate = useNavigate();
     const [PayCoin, setPayCoin] = useState(null);
     const [RecieveCoin, setRecieveCoin] = useState(null);
+    const [Message, setMessage] = useState('');
+    const [show1, setShow1] = useState(false);
+    const [show2, setShow2] = useState(false);
+    const [show3, setShow3] = useState(false);
     const [changePayCoin, setChangePayCoin] = useState("M5 13.5L9 9.5M5 13.5L1 9.5M5 13.5V1");
     const [CoinAmount, setCoinAmount] = useState();
     const [AmountToPay, setAmountToPay] = useState(0.0);
@@ -271,6 +278,10 @@ const Swap = () => {
             });
 
             console.log("Response from compute_swap:", res);
+            if(res.Ok){
+                getSwapValue()
+            }
+            console.log("slipage:", recieveValue);
 
             if (res.Ok == null) {
                 console.log("Swap successful");
@@ -309,7 +320,7 @@ const Swap = () => {
             <div className='flex justify-center my-auto flex-col'>
                 <div className='relative align-middle max-w-[1200px] flex flex-col justify-center mt-12 p-6 bg-gradient-to-b from-[#3E434B] to-[#02060D] border sm:mx-auto rounded-lg '>
                     <div className='w-[64%] sm:w-[58%] place-self-end flex justify-between '>
-                        <span className='font-cabin font-light text-3xl'>{SwapModalData.Heading}</span>
+                        <span className='font-gilroy font-light text-3xl'>{SwapModalData.Heading}</span>
                         <Bolt size={30} className='cursor-pointer' onClick={handleSettings} />
                     </div>
                     {settings && (
@@ -322,7 +333,7 @@ const Swap = () => {
                     )}
                     <div className='mx-auto sm:mx-4 w-full flex justify-between items-center'>
                         {PayCoin ? (
-                            <div className='flex flex-col font-cabin font-normal gap-2'>
+                            <div className='flex flex-col font-gilroy font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.PaySection.Heading}</span>
                                 <span className='text-3xl md:text-4xl'>
                                     <input
@@ -336,7 +347,7 @@ const Swap = () => {
                                 <div>
                                     <span className='text-base font-normal'>
                                         {SwapModalData.PaySection.Balance}: {payCoinBalance !== null ? parseFloat(payCoinBalance) : 'Loading...'}
-                                        <button className='font-cabin ml-1 sm:ml-2 text-orange-400' onClick={() => {
+                                        <button className='font-gilroy ml-1 sm:ml-2 text-orange-400' onClick={() => {
                                             setCoinAmount(parseFloat(payCoinBalance));
                                         }}>
                                             {SwapModalData.PaySection.Max}
@@ -345,7 +356,7 @@ const Swap = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className='flex flex-col font-cabin font-normal gap-2'>
+                            <div className='flex flex-col font-gilroy font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.PaySection.Heading}</span>
                                 <span className='text-3xl md:text-4xl'>0</span>
                                 <span className='text-sm sm:text-base font-medium'>{SwapModalData.PaySection.Balance}: {SwapModalData.PaySection.NoTokenSelectBalanceMessage}</span>
@@ -355,11 +366,11 @@ const Swap = () => {
                         <div>
                             {!PayCoin ? (
                                 <div>
-                                    <div className='flex sm:mr-12 items-center gap-2' onClick={() => {
+                                    <div className='flex sm:mr-12 items-center gap-2 ' onClick={() => {
                                         setId(1);
                                         setSearchToken1(!searchToken1);
                                     }}>
-                                        <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
+                                        <BlueGradientButton customCss={'px-2 md:w-44 sm:px-4 py-1 sm:py-3 font-gilroy md:font-light'}>
                                             <div className='flex text-sm sm:text-base items-center gap-1' >
                                                 {SwapModalData.PaySection.TokenSelectButtonText}
                                                 <span className='cursor-pointer' >
@@ -380,7 +391,7 @@ const Swap = () => {
                                             <img src={PayCoin.ImagePath} alt="" className='h-6 w-6 transform scale-150' />
                                         </BlueGradientButton>
 
-                                        <div className='font-cabin font-normal text-2xl'>
+                                        <div className='font-gilroy font-normal text-2xl'>
                                             {PayCoin.ShortForm}
                                         </div>
                                         {!searchToken1 ? (
@@ -399,7 +410,7 @@ const Swap = () => {
                                         )}
                                         {searchToken1 && <SearchToken setSearchToken={setSearchToken1} setPayToken={setPayCoin} setRecToken={setRecieveCoin} id={id} />}
                                     </div>
-                                    <span className='font-cabin font-normal text-center'>
+                                    <span className='font-gilroy font-normal text-center'>
                                         ${CoinAmount ? (PayCoin.marketPrice * CoinAmount).toLocaleString() : 0}
                                     </span>
                                 </div>
@@ -421,7 +432,7 @@ const Swap = () => {
 
                     <div className='mx-auto sm:mx-4 w-full flex justify-between items-center'>
                         {RecieveCoin ? (
-                            <div className='flex flex-col font-cabin font-normal gap-2'>
+                            <div className='flex flex-col font-gilroy font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.RecieveSection.Heading}</span>
                                 <span className='text-3xl md:text-4xl'>{CoinAmount ? recieveValue.toFixed(8) : 0}</span>
                                 <span className='text-sm sm:text-base font-normal'>
@@ -429,7 +440,7 @@ const Swap = () => {
                                 </span>
                             </div>
                         ) : (
-                            <div className='flex flex-col font-cabin font-normal gap-2'>
+                            <div className='flex flex-col font-gilroy font-normal gap-2'>
                                 <span className='text-base font-medium'>{SwapModalData.RecieveSection.Heading}</span>
                                 <span className='text-3xl md:text-4xl'>0</span>
                                 <span className='text-sm sm:text-base font-normal'> {SwapModalData.RecieveSection.Balance}:  {SwapModalData.RecieveSection.NoTokenSelectBalanceMessage}</span>
@@ -443,7 +454,7 @@ const Swap = () => {
                                         setId(2);
                                         setSearchToken2(!searchToken2);
                                     }}>
-                                        <BlueGradientButton customCss={'px-2 md:w-40 sm:px-4 py-1 sm:py-3 font-cabin md:font-light'}>
+                                        <BlueGradientButton customCss={'px-2 md:w-44 sm:px-4 py-1 sm:py-3 font-gilroy md:font-light'}>
                                             <div className='flex text-sm sm:text-base items-center gap-1'
                                             >
                                                 {SwapModalData.RecieveSection.TokenSelectButtonText}
@@ -464,7 +475,7 @@ const Swap = () => {
                                             <img src={RecieveCoin?.ImagePath} alt="" className='h-6 w-6 transform scale-150' />
                                         </BlueGradientButton>
 
-                                        <div className='font-cabin font-normal text-2xl'>
+                                        <div className='font-gilroy font-normal text-2xl'>
                                             {RecieveCoin?.ShortForm}
                                         </div>
                                         {!searchToken2 ? (
@@ -484,7 +495,7 @@ const Swap = () => {
                                         )}
                                         {searchToken2 && <SearchToken setSearchToken={setSearchToken2} setRecToken={setRecieveCoin} setPayToken={setPayCoin} id={id} />}
                                     </div>
-                                    <span className='font-cabin font-normal text-center'>
+                                    <span className='font-gilroy font-normal text-center'>
                                         ${CoinAmount ? (((PayCoin?.marketPrice * CoinAmount) / RecieveCoin?.marketPrice) * RecieveCoin?.marketPrice).toLocaleString() : 0}
                                     </span>
                                 </div>
@@ -500,7 +511,7 @@ const Swap = () => {
                                     <span>{SwapModalData.bothCoinsPresent.Price}</span>
                                 </div>
 
-                                <div className='font-cabin font-medium text-sm sm:text-base'>
+                                <div className='font-gilroy font-medium text-sm sm:text-base'>
                                     {`1 CT = 0.0025 ETH (12.58$)`}
                                 </div> */}
                             </div>
@@ -511,7 +522,7 @@ const Swap = () => {
                                     <span>{SwapModalData.bothCoinsPresent.GasFees}</span>
                                 </div>
 
-                                <div className='font-cabin font-medium text-sm sm:text-base'>
+                                <div className='font-gilroy font-medium text-sm sm:text-base'>
                                     {`0.000052 ETH  ($0.1656)`}
                                 </div>
                             </div> */}
@@ -525,7 +536,7 @@ const Swap = () => {
                                                 <span>{SwapModalData.ClickedSwapData.MinimumRecieved}</span>
                                             </div>
 
-                                            <div className='font-cabin font-medium text-base'>10.5580 CT</div>
+                                            <div className='font-gilroy font-medium text-base'>10.5580 CT</div>
                                         </div>
                                         <div className='flex justify-between items-center'>
                                             <div className='flex items-center'>
@@ -540,7 +551,7 @@ const Swap = () => {
                                                 <Dot color='#F7931A' />
                                                 <span>{SwapModalData.ClickedSwapData.LiquidityProviderIncentive}</span>
                                             </div>
-                                            <div className='font-cabin font-medium text-base'>
+                                            <div className='font-gilroy font-medium text-base'>
                                                 0.000056 ETH
                                             </div>
                                         </div>
@@ -593,7 +604,7 @@ const Swap = () => {
                 </div>
 
                 {/* {bothCoins && !ClickedSwap && (
-                    <div className='lg:w-4/12 md:w-6/12 flex flex-col gap-4 p-4 mx-auto my-4 rounded-lg'>
+                    <div className='w-full flex flex-col gap-4 p-4 mx-auto my-4 rounded-lg'>
                         <div className='flex justify-between'>
                             <div className='flex items-center gap-1 sm:gap-2'>
                                 <span className='relative custom-text-size-14 sm:text-base'>
@@ -617,7 +628,7 @@ const Swap = () => {
                                 </span>
                             </div>
 
-                            <div className='font-cabin font-medium text-base'>10.5580 CT</div>
+                            <div className='font-gilroy font-medium text-base'>10.5580 CT</div>
                         </div>
                         <div className='flex justify-between'>
                             <div className='flex items-center gap-1 sm:gap-2'>
@@ -669,14 +680,15 @@ const Swap = () => {
                                 </span>
                             </div>
 
-                            <div className='font-cabin font-medium text-base'>0.000056 ETH</div>
+                            <div className='font-gilroy font-medium text-base'>0.000056 ETH</div>
                         </div>
 
                         <BorderGradientButton customCss={`w-full bg-[#000711] z-10`}>{SwapModalData.MainButtonsText.AnalysePair}</BorderGradientButton>
                     </div>
                 )} */}
+                
                 {isModalOpen ? <div className="fixed inset-0  bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="p-6 pb-16 w-11/12 sm:max-w-[40rem] border-2 border-[#86828280] bg-[#182030] mt-10 rounded-lg shadow-lg text-white  mx-auto relative">
+                    <div className="p-6 pb-16 w-11/12 sm:max-w-[1200px] sm:mx-auto  border-2 border-[#86828280] bg-[#182030] mt-10 rounded-lg shadow-lg text-white  mx-auto relative">
                         <div className='ml-9 '>
                         <button
                             className="absolute top-5 right-10 text-gray-400 hover:text-gray-300"
@@ -685,14 +697,14 @@ const Swap = () => {
                             <CloseIcon/>
                         </button>
 
-                        <h2 className="text-xl font-semibold mb-4 font-cabin">Swap Details</h2>
-                        <p className="text-gray-400 mb-6 font-cabin">
+                        <h2 className="text-xl font-semibold mb-4 font-gilroy">Swap Details</h2>
+                        <p className="text-gray-400 mb-6 font-gilroy">
                             You can swap directly without depositing, because you have sufficient balance in the Swap pool.
                         </p>
                         </div>
 
                         <div className='flex flex-col gap-y-6'>
-                            <div className='flex gap-x-4 font-cabin '>
+                            <div className='flex gap-x-4 font-gilroy '>
                                 <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
                                 <div className='flex flex-col border rounded-lg  py-2 border-gray-600 bg-[#30303080]  w-full'>
                                     <div className='flex justify-between px-4 pb-1 w-full '>
@@ -722,7 +734,7 @@ const Swap = () => {
                             </div>
 
 
-                            <div className='flex gap-x-4 font-cabin '>
+                            <div className='flex gap-x-4 font-gilroy '>
                                 <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
                                 <div className='flex flex-col border rounded-lg  py-2 border-gray-600 bg-[#30303080]  w-full'>
                                     <div className='flex justify-between px-4 w-full '>
@@ -754,7 +766,7 @@ const Swap = () => {
                                       
                                           {/*  */}
 
-                            <div className='flex gap-x-4 font-cabin'>
+                            <div className='flex gap-x-4 font-gilroy'>
                                 <div className='flex justify-center items-center'>{swapSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
                                 <div className='flex flex-col border rounded-lg  py-2 border-gray-600 bg-[#30303080] w-full'>
                                     <div className='flex justify-between w-full px-4 '>
@@ -783,7 +795,7 @@ const Swap = () => {
 
 
                             {/* withdraw */}
-                            <div className='flex gap-x-4 font-cabin'>
+                            <div className='flex gap-x-4 font-gilroy'>
                                 <div className='flex justify-center items-center'>{swapSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
                                 <div className='flex flex-col border rounded-lg  py-2 border-gray-600  bg-[#30303080] w-full'>
                                     <div className='flex justify-between px-4 w-full'>

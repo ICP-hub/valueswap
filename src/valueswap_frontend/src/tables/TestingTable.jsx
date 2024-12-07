@@ -6,7 +6,7 @@ const PortfolioDataComponent = () => {
 
       <div className='flex justify-between bg-[#010427] p-2  py-6  rounded-lg mx-auto'>
         <div className='flex justify-between items-center  mx-2  md:mx-16'>
-          <span className='font-cabin text-xl md:text-3xl font-medium'>My Liquidity Pools</span>
+          <span className='font-gilroy text-xl md:text-3xl font-medium'>My Liquidity Pools</span>
         </div>
 
         <div className='mr-4'
@@ -22,7 +22,7 @@ const PortfolioDataComponent = () => {
       <div className='bg-[#05071D] h-fit rounded-lg text-white p-4'>
 
         <div>
-          <div className='grid grid-cols-2 md:grid-cols-6  p-4 font-cabin text-lg font-medium'>
+          <div className='grid grid-cols-2 md:grid-cols-6  p-4 font-gilroy text-lg font-medium'>
             <div className='col-span-2 text-start ml-7'>Tokens Composition</div>
 
             <div className='flex justify-end  items-center'>
@@ -55,7 +55,7 @@ const PortfolioDataComponent = () => {
                         navigate(`/valueswap/portfolio/pool-info/${index}`)
                       }}
                       >
-                      <div className='grid grid-cols-2 md:grid-cols-6  p-4 font-cabin text-base font-medium items-center'>
+                      <div className='grid grid-cols-2 md:grid-cols-6  p-4 font-gilroy text-base font-medium items-center'>
                         <div className='col-span-2 flex items-center gap-4 ml-4'>
                           <div className='flex items-center gap-1'>
                             {
@@ -117,7 +117,7 @@ const PortfolioDataComponent = () => {
               <div className='flex justify-center items-center text-center    '>
                 <div>
                   <img src={NoPortfolioImage} alt="" />
-                  <span className='font-cabin font-medium leading-5 text-[#F7931A]'>
+                  <span className='font-gilroy font-medium leading-5 text-[#F7931A]'>
                     You have not added liquidity yet
                   </span>
                 </div>

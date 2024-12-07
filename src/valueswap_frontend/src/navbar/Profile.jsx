@@ -60,7 +60,7 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
                     <img src="/image/Ellipse.png" alt="" className='' />
                     <div className='w-full flex'>
                         {
-                            isAuthenticated && <div className='flex w-full flex-row items-center justify-between text-center text-white font-cabin text-xl font-normal'>
+                            isAuthenticated && <div className='flex w-full flex-row items-center justify-between text-center text-white font-gilroy text-xl font-normal'>
                                 <span>
                                     {Principal}
                                 </span>
@@ -119,7 +119,7 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
                 <hr />
                 <div className='flex justify-center gap-x-4'>
                     <img src="./image/disconnect.png" alt="disconnect logo" />
-                    <button className='text-base font-cabin font-medium' onClick={() => logout()}>
+                    <button className='text-base font-gilroy font-medium' onClick={() => logout()}>
                         Disconnect Wallet
                     </button>
                 </div>

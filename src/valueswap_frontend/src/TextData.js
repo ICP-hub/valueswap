@@ -76,7 +76,7 @@ export const CommonNavbarData = {
         {
             LinkName: 'Whitepaper',
             
-            LinkPath: 'https://balancer.fi/whitepaper.pdf',
+            LinkPath: '',
             LinkId: 'whitepaper',
         },
     ]

@@ -54,17 +54,17 @@ const SetPoolFees = ({ handleNext, setFixedActiveSetp }) => {
             </div>
             <div className='z-50 w-min md:w-max m-auto flex flex-col gap-4 p-4 sm:p-6 bg-gradient-to-b from-[#3E434B] to-[#02060D] border  rounded-lg'>
                 <div className='w-[75%] sm:w-[65%] place-self-end  flex justify-between'>
-                    <span className='font-cabin font-light text-2xl sm:text-3xl '>Set Fee Tier</span>
+                    <span className='font-gilroy font-light text-2xl sm:text-3xl '>Set Fee Tier</span>
                     {/* <Bolt size={30} className='cursor-pointer' onClick={() => { console.log("settings open") }} /> */}
                 </div>
 
 
 
-                <div className='text-start font-cabin font-semibold text-base sm:text-xl leading-7 tracking-wider '>
+                <div className='text-start font-gilroy font-semibold text-base sm:text-xl leading-7 tracking-wider '>
                     Initial Swap Fee
                 </div>
 
-                <div className='font-normal leading-5 font-cabin text-sm sm:text-base tracking-wide max-w-[600px]'>
+                <div className='font-normal leading-5 font-gilroy text-sm sm:text-base tracking-wide max-w-[600px]'>
                     The ideal swap fee of 0.30% works well for pools with popular tokens. For pools containing less common tokens, consider raising the fee.
                 </div>
 
@@ -92,7 +92,7 @@ const SetPoolFees = ({ handleNext, setFixedActiveSetp }) => {
                 </div>
 
                 <div
-                    className={`font-cabin text-base font-medium `}
+                    className={`font-gilroy text-base font-medium `}
                     onClick={() => {
 
                         if (!ButtonActive) {

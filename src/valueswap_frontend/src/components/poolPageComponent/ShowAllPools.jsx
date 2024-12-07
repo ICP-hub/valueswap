@@ -147,7 +147,7 @@ const ShowAllPools = () => {
       <div className='w-full h-screen text-white mt-4 z-20 mx-auto absolute'>
         <div className='flex justify-between bg-[#010427] p-2 pb-6 pt-6 rounded-t-lg mx-auto'>
           <div className='flex items-center justify-between gap-4 mx-8 md:gap-16 '>
-            <span className='font-medium text-white font-cabin md:text-3xl'>Liquidity Pools</span>
+            <span className='font-medium text-white font-gilroy md:text-3xl'>Liquidity Pools</span>
           </div>
           <div className='mr-4' onClick={() => navigate('/valueswap/pool/create-pool/steps')}>
             <GradientButton CustomCss={`hover:opacity-75 text-xs md:text-base lg:text-base h-[45px] w-[120px] py-2 lg:py-4`}>
@@ -156,7 +156,7 @@ const ShowAllPools = () => {
           </div>
         </div>
 
-        <div className='flex flex-col font-cabin bg-[#05071D]'>
+        <div className='flex flex-col font-gilroy bg-[#05071D]'>
           <div className='-my-2 overflow-x-auto scroll-smooth'>
             <div className='inline-block min-w-full py-2 align-middle'>
               <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5'>

@@ -41,13 +41,13 @@ const PoolPage = () => {
                                             Rewards For Liquidity Providers
                                         </div>
                                         <div className='border-t-2 my-6 border-[#00308E]'></div>
-                                        <span className='font-normal text-base font-cabin leading-5 italic'>
+                                        <span className='font-normal text-base font-gilroy leading-5 italic'>
                                             When you add money to a liquidity pool, you can earn 0.3% of all trades made in that pool. Your earnings are based on how much of the pool you own. Every time someone makes a trade, a small fee is added to the pool, and you can collect your share of those fees whenever you decide to withdraw your money from the pool.
                                             <a href="" className='text-blue-500 underline ml-2'>Learn More</a>
                                         </span>
                                     </div>
                                 ) : (
-                                    <div className='m-14 text-center  font-fahkwang  text-white p-4 font-semibold text-2xl  max-w-72   h-full w-full bg-white-900 rounded-lg bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-100 border border-gray-100'>
+                                    <div className='m-14 text-center  font-gilroy  text-white p-4 font-semibold text-2xl  max-w-72   h-full w-full bg-white-900 rounded-lg bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-100 border border-gray-100'>
                                         {boxText}
                                     </div>
                                 )

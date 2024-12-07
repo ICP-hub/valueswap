@@ -41,7 +41,7 @@ function SwapSetting() {
 
     return (
         <div className='w-full bg-[#05071D] h-fit z-50 rounded-lg border border-[#FFFFFF80] relative'>
-            <h1 className='font-fahkwang text-3xl font-light text-center py-4'>Settings</h1>
+            <h1 className='font-gilroy text-3xl font-light text-center py-4'>Settings</h1>
             {showTooltip && (
                 <div className='absolute right-1 top-6 p-4 bg-[#010427] w-[312px] z-50'>
                     <p className=''>Your Transaction will be roll backed if the price changes by more then choosen tolerance percentage</p>
@@ -49,7 +49,7 @@ function SwapSetting() {
             )}
             <div className='h-[1px] w-full bg-custom-radial ' />
             <div className='flex flex-col items-start justify-start p-4 '>
-                <h1 className='text-2xl font-cabin font-medium pb-3'>Transaction Settings</h1>
+                <h1 className='text-2xl font-gilroy font-medium pb-3'>Transaction Settings</h1>
 
 
                 <div className='flex gap-1 md:flex-row flex-col  md:justify-between w-full items-center gap-y-5 pb-4'>
@@ -66,10 +66,10 @@ function SwapSetting() {
                     </div>
                     <div className='flex items-start w-full md:justify-end gap-x-4'>
                         {/* buttons */}
-                        <button className='h-[40px] w-[87px] button-gradient-wrapper text-white font-[400] text-base font-cabin rounded-lg py-4 px-[1.875rem] hover:opacity-50'><span className="button-gradient-content flex justify-center items-center p-1 ">
+                        <button className='h-[40px] w-[87px] button-gradient-wrapper text-white font-[400] text-base font-gilroy rounded-lg py-4 px-[1.875rem] hover:opacity-50'><span className="button-gradient-content flex justify-center items-center p-1 ">
                             Auto
                         </span></button>
-                        {/* <button className={` h-[39px] w-[92px] button-gradient-wrapper text-white font-[400] text-base font-cabin rounded-lg py-4 px-[1.875rem] hover:opacity-50`} onClick={handleShowInput}>
+                        {/* <button className={` h-[39px] w-[92px] button-gradient-wrapper text-white font-[400] text-base font-gilroy rounded-lg py-4 px-[1.875rem] hover:opacity-50`} onClick={handleShowInput}>
                             <span className="button-border-gradient-content flex justify-center items-center">
                                 Custom
                             </span>
@@ -101,7 +101,7 @@ function SwapSetting() {
                     <div className='flex gap-x-3 items-center justify-start md:justify-end w-full md:w-fit'>
                         {/* buttons */}
 
-                        {/* <div className={` h-[39px] w-[59px] button-gradient-wrapper text-white font-[400] text-base font-cabin rounded-lg py-4 px-[1.875rem] hover:opacity-50`}>
+                        {/* <div className={` h-[39px] w-[59px] button-gradient-wrapper text-white font-[400] text-base font-gilroy rounded-lg py-4 px-[1.875rem] hover:opacity-50`}>
                            
 
                         </div> */}

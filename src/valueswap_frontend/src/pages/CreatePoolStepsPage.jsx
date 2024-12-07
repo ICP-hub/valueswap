@@ -42,7 +42,7 @@ const CreatePoolStepsPage = () => {
              <button onClick={handleStepBack} className="mb-4 p-2 border-[1px] rounded-full inline-block lg:hidden ml-4 sm:ml-10 md:ml-12">
                 <ArrowBackIcon/>
             </button>
-            <div className=" lg:flex-row flex-col py-2 justify-around hidden lg:flex max-w-[1200px] mx-auto font-cabin">
+            <div className=" lg:flex-row flex-col py-2 justify-around hidden lg:flex max-w-[1200px] mx-auto font-gilroy">
                 {steps.map((label, index) => (
                        <div key={index} className= {`flex gap-6 pb-6 w-full justify-center items-center m-auto`} onClick={() => setActiveStep(index <= fixedActiveSetp ? index : fixedActiveSetp)}>
                        <div className={`py-2 px-4 rounded-full  ${activeStep == index  ? "bg-[#F7931A]":"bg-[#00308E]"}`}>{index+ 1}</div>
@@ -53,7 +53,7 @@ const CreatePoolStepsPage = () => {
             </div>
             <div className=''>
                 {/* <div className="text-lg font-semibold mb-2">Step {activeStep + 1}</div> */}
-                <div className='font-cabin'>
+                <div className='font-gilroy'>
                     {getStepContent(activeStep)}
                 </div>
                 {/* <div className="flex mt-4">

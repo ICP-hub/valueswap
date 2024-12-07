@@ -10,16 +10,16 @@ const TransactionComplete = () => {
                 <img src={TransactionCompleteGIF} alt="Transaction Complete" />
             </div>
 
-            <span className='font-cabin font-normal text-2xl '>
+            <span className='font-gilroy font-normal text-2xl '>
                 {TransactionSuccessfullData.TransactionCompleteMessage}
             </span>
 
-            <span className='font-cabin font-normal text-base'>
+            <span className='font-gilroy font-normal text-base'>
                 {TransactionSuccessfullData.TransactionSwapMessageFirstHalf} 0.05 ETH {TransactionSuccessfullData.TransactionSwapMessageSecondHalf} 2.5580 CT
             </span>
 
             <div>
-                <BorderGradientButton customCss={`font-cabin w-full bg-[#000711] font-bold text-base `}>{TransactionSuccessfullData.BackButtonText}</BorderGradientButton>
+                <BorderGradientButton customCss={`font-gilroy w-full bg-[#000711] font-bold text-base `}>{TransactionSuccessfullData.BackButtonText}</BorderGradientButton>
             </div>
         </div>
     )

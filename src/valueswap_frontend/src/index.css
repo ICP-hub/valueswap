@@ -8,13 +8,13 @@ body {
 }
 
 @font-face {
-  font-family: "fahkwang";
-  src: url('./assets/fonts/Fahkwang-Regular.ttf');
+  font-family: "gilroy";
+  src: url('./assets/fonts/gilroy/Gilroy-Regular.ttf');
 }
 
 @font-face {
   font-family: "cabin";
-  src: url('./assets/fonts/Cabin-Regular.ttf');
+  src: url('./assets/fonts/gilroy-Regular.ttf');
 }
 
 @layer utilities {

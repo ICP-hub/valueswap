@@ -106,7 +106,7 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
     <div className='flex z-50 justify-center fixed inset-0 bg-opacity-50 backdrop-blur-sm'>
       <div className='h-fit md:w-[40%] lg:w-[35%] border rounded-xl flex flex-col gap-2 bg-[#05071D] my-auto mx-auto'>
         <div className='w-[90%] flex justify-center mx-4'>
-          <span className='font-fahkwang font-medium mx-auto md:text-2xl text-xl py-4'>
+          <span className='font-cabin font-medium mx-auto md:text-2xl text-xl py-4'>
             {SearchTokenData.Heading}
           </span>
           <span className='cursor-pointer self-center' onClick={() => setSearchToken(false)}>
@@ -144,8 +144,8 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
               const marketPrice = token.current_price || token.market_data?.current_price?.usd || '-';
 
               // Find corresponding metadata if available(mainnet)
-              const CanisterId = canisterIdToken? token.contract_address : null;
-              // const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER;
+              // const CanisterId = canisterIdToken? token.contract_address : null;
+              const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER;
 
 
               // Find the amount based on CanisterId
@@ -169,8 +169,8 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
                         Name: TokenName,
                         ImagePath: ImagePath,
                         ShortForm: ShortForm,
-                        CanisterId: CanisterId,
-                        // CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER,
+                        // CanisterId: CanisterId,
+                        CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER,
                         marketPrice: marketPrice,
                         currencyAmount: marketPrice * TokenAmount,
                       };

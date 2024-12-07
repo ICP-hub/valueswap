@@ -4,13 +4,14 @@ set -e
 
 # Create and use the DevJourney identity
 # dfx identity new default || true --network ic
+
 dfx identity use DevJourney --network ic
 
 # dfx canister create swap
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER=$(dfx identity get-principal --network ic)
+export MINTER="by6od-j4aaa-aaaaa-qaadq-cai"
 echo "MINTER principal: $MINTER"
 
 # Set token details

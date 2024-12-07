@@ -20,10 +20,12 @@ let tokens = [
 const Faucet = () => {
     const [modelOpen, setModelOpen] = useState(false);
     const[selectFauce, setSelectFaucet] = useState([])
-    const {isAuthenticated} = useAuth()
+    const {isAuthenticated, backendActor} = useAuth()
+
+   
     console.log(selectFauce[0])
     return (
-        <section className='mt-16 max-w-[1200px] mx-auto space-y-4 font-cabin px-8 xl:px-0 relative'>
+        <section className='mt-16 max-w-[1200px] mx-auto space-y-4 font-gilroy px-8 xl:px-0 relative'>
             <div>
                 <p className='text-[#FFFFFFBF]'>With our testnet Faucet you can receive free assets to test the Dfinance Protocol. Make sure to switch your wallet provider to the appropriate testnet network, select desired asset, and click ‘Faucet’ to get tokens transferred to your wallet. The assets on our testnet are not “real,” meaning they have no monetary value.</p>
             </div>
@@ -37,7 +39,7 @@ const Faucet = () => {
                 </tr>
                 {
                     tokens.map((token, id) => (
-                        <tr key={id} className='grid grid-cols-3 py-4 items-center border-b-2 cursor-pointer hover:bg-slate-500'>
+                        <tr key={id} className='grid grid-cols-3 py-4 items-center border-b-2 cursor-pointer '>
                             <td className='flex gap-x-2 items-center'>
                                 <img src={token.imgUrl} alt="token image" className='w-10 h-10' />
                                 <p className='font-semibold'>{token.TokenName}</p>
