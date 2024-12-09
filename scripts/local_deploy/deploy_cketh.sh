@@ -10,7 +10,7 @@ dfx identity use default
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER=$(dfx identity get-principal )
+export MINTER="by6od-j4aaa-aaaaa-qaadq-cai"
 echo "MINTER principal: $MINTER"
 
 # Set token details

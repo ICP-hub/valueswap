@@ -15,7 +15,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
     const { createTokenActor, backendActor, principal, getBalance } = useAuth();
 
 
-    const fetchCoinFromLp = () => {
+    const fetchCoinFromLp = () => { 
         setChange(true);
 
         return new Promise((resolve, reject) => {
