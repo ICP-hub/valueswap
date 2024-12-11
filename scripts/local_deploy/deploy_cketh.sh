@@ -1,10 +1,8 @@
 #!/bin/bash
-dfx deploy swap
 set -e
 
 # Create and use the DevJourney identity
-# dfx identity new default || true 
-dfx identity use default 
+# dfx identity use default 
 
 # dfx canister create swap
 # dfx  build --all
@@ -55,7 +53,7 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy cketh_ledger --argument "$DEPLOY_ARGUMENTS" 
+dfx deploy cketh --argument "$DEPLOY_ARGUMENTS" 
 
 
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend

@@ -1,12 +1,12 @@
 #!/bin/bash
-dfx deploy swap --network ic
-./LP.sh 
+dfx deploy swap --network ic --no-wallet
 set -e
+./LP_ledger.sh
 
 
 # Create and use the DevJourney identity
 # dfx identity new default || true --network ic
-dfx identity use DevJourney --network ic
+# dfx identity use DevJourney --network ic
 
 # dfx canister create swap
 # dfx  build --all
@@ -57,14 +57,14 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS" --network ic
+dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS" --network ic --no-wallet
 
 
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
 ./deploy_cketh.sh
-dfx deploy --network ic
+# dfx deploy --network ic
 # dfx deploy valueswap_frontend --network ic
 # dfx deploy valueswap_backend --network ic
 echo "ckBTC got deployed"
