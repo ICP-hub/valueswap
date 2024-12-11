@@ -16,6 +16,11 @@ let tokens = [
         TokenName: "ckETH",
         CanisterId: process.env.CANISTER_ID_CKETH_LEDGER
     },
+    {
+        imgUrl: "/image/ckETH.svg",
+        TokenName: "LP token",
+        CanisterId: process.env.CANISTER_ID_LP_LEDGER_CANISTER
+    },
 ]
 
 const Faucet = () => {
