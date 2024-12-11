@@ -11,7 +11,8 @@ dfx identity use DevJourney --network ic
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER="by6od-j4aaa-aaaaa-qaadq-cai"
+
+export MINTER="ssvsn-2iaaa-aaaal-amg5a-cai"
 echo "MINTER principal: $MINTER"
 
 # Set token details

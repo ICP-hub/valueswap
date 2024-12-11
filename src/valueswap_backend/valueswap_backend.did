@@ -63,6 +63,7 @@ service : () -> {
   decrease_pool_lp : (text, float64) -> ();
   decrease_total_lp : (float64) -> ();
   deposit_tokens : (nat64, principal, principal) -> (Result_3);
+  faucet : (principal, principal, nat64) -> (Result_3);
   get_constant_product_value : () -> (float64) query;
   get_exchange_rates : () -> (Result_4);
   get_lp_tokens : (text) -> (opt float64) query;
