@@ -145,7 +145,7 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
 
               // Find corresponding metadata if available(mainnet)
               const CanisterId = canisterIdToken? token.contract_address : null;
-              // const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER;
+              // const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC;
 
 
               // Find the amount based on CanisterId
@@ -170,7 +170,7 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
                         ImagePath: ImagePath,
                         ShortForm: ShortForm,
                         CanisterId: CanisterId,
-                        // CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER,
+                        // CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC,
                         marketPrice: marketPrice,
                         currencyAmount: marketPrice * TokenAmount,
                       };

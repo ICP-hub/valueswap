@@ -1,14 +1,9 @@
 {
   "canisters": {
-    "ckbtc_ledger": {
+    "ckbtc": {
       "type": "custom",
-      "candid": "https://raw.githubusercontent.com/dfinity/ic/17df8febdb922c3981475035d830f09d9b990a5a/rs/rosetta-api/icrc1/ledger/ledger.did",
-      "wasm": "https://download.dfinity.systems/ic/17df8febdb922c3981475035d830f09d9b990a5a/canisters/ic-icrc1-ledger.wasm.gz",
-      "remote": {
-        "id": {
-          "ic": "mxzaz-hqaaa-aaaar-qaada-cai"
-        }
-      }
+      "candid": "src/ckbtc/icrc1.did",
+      "wasm": "src/ckbtc/icrc1_wasm.gz"
     },
     "LP_ledger_canister": {
       "type": "custom",
@@ -16,15 +11,10 @@
       "wasm": "src/LP_ledger_canister/icrc1_wasm.gz"
       
     },
-    "cketh_ledger": {
+    "cketh": {
       "type": "custom",
-      "candid": "https://raw.githubusercontent.com/dfinity/ic/17df8febdb922c3981475035d830f09d9b990a5a/rs/rosetta-api/icrc1/ledger/ledger.did",
-      "wasm": "https://download.dfinity.systems/ic/17df8febdb922c3981475035d830f09d9b990a5a/canisters/ic-icrc1-ledger.wasm.gz",
-      "remote": {
-        "id": {
-          "ic": "ss2fx-dyaaa-aaaar-qacoq-cai"
-        }
-      }
+      "candid": "src/cketh/icrc1.did",
+      "wasm": "src/cketh/icrc1_wasm.gz"
     },
 
     "xrc": {

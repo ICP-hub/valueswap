@@ -43,16 +43,16 @@ enum TransferResult {
 }
 // #[derive(CandidType, Deserialize, Debug)]
 #[update]
-pub async fn icrc1_transfer(user_principal: Principal, amount: u64) -> Result<BlockIndex, String> {
+pub async fn icrc1_transfer(user_principal: Principal, amount: Nat) -> Result<BlockIndex, String> {
     let canister_id = Principal::from_text(LP_LEDGER_ADDRESS).expect("Invalid ledger canister ID");
-    let amount_nat = Nat::from(amount * 100000000);
+    // let amount_nat = Nat::from(amount * 100000000);
     let args = TransferArg {
         from_subaccount: None,
         to: Account {
             owner: user_principal,
             subaccount: None,
         },
-        amount: amount_nat,
+        amount: amount,
         fee: None,
         memo: None,
         created_at_time: None,
@@ -72,31 +72,36 @@ pub async fn icrc1_transfer(user_principal: Principal, amount: u64) -> Result<Bl
     }
 }
 
+
 #[update]
-pub async fn faucet(ledger_canister: Principal, user_principal: Principal, amount: u64) -> Result<BlockIndex, String> {
-    let amount_nat = Nat::from(amount * 100000000);
+pub async fn faucet(ledger_canister: Principal, user_principal: Principal, amount: Nat) -> Result<Nat, String> {
+    // Define the parameters for the ICRC2 transfer call
+    // let amount_as_u64 = amount * 100000000;
+    // let amount_nat = Nat::from(amount_as_u64);
     let args = TransferArg {
-        from_subaccount: None,
+        from_subaccount: None,          // Optionally specify a subaccount if needed
         to: Account {
-            owner: user_principal,
+            owner: user_principal,      // The recipient of the transfer
             subaccount: None,
         },
-        amount: amount_nat,
-        fee: None,
-        memo: None,
-        created_at_time: None,
+        amount: amount,         // The amount of tokens to transfer
+        fee: None,                      // Specify a fee if required
+        memo: None,                     // Optional memo for the transfer
+        created_at_time: None,          // Optional timestamp
     };
 
+    // Make the call to the ICRC2 token canister with the transfer arguments
     let (result,): (TransferResult,) = call(
-        ledger_canister,
-        "icrc1_transfer",
-        (args,)
+        ledger_canister,               // The canister ID of the token ledger (ICRC2)
+        "icrc1_transfer",          // The method to call
+        (args,)                    // Transfer arguments
     )
     .await
     .map_err(|e| format!("Transfer failed: {:?}", e))?;
 
+    // Check if the call was successful
     match result {
-        TransferResult::Ok(block_index) => Ok(block_index),
+        TransferResult::Ok(balance) => Ok(balance),
         TransferResult::Err(err) => Err(format!("Transfer failed: {:?}", err)),
     }
 }

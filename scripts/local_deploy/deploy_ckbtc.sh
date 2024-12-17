@@ -1,10 +1,11 @@
 #!/bin/bash
 dfx deploy swap
+./LP.sh
 set -e
 
 # Create and use the DevJourney identity
 # dfx identity new default || true 
-dfx identity use default 
+# dfx identity use default 
 
 # dfx canister create swap
 # dfx  build --all
@@ -24,7 +25,7 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use default 
+dfx identity use DevJourney
 export DEFAULT=$(dfx identity get-principal)
 echo "DEFAULT principal: $DEFAULT"
 
@@ -55,7 +56,7 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS" 
+dfx deploy ckbtc --argument "$DEPLOY_ARGUMENTS" 
 
 
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
