@@ -146,7 +146,7 @@
 //             }
         
 
-//     const canisterId = process.env.CANISTER_ID_CKETH_LEDGER
+//     const canisterId = process.env.CANISTER_ID_CKETH
 
 //     // const actor = createActorBackend(canisterId, { agentOptions: { identity } });
 
@@ -199,7 +199,7 @@ import { PlugLogin, StoicLogin, NFIDLogin, IdentityLogin } from "ic-auth";
 import { createActor as ledgerActor, idlFactory as TokenIdl } from "../../../../declarations/ckbtc_ledger/index";
 import {  idlFactory as ckETHIdlFactory } from "../../../../declarations/cketh_ledger/index";
 import { DummyDataTokens } from '../../TextData';
-import { PlugMobileProvider } from '@funded-labs/plug-mobile-sdk'
+// import { PlugMobileProvider } from '@funded-labs/plug-mobile-sdk'
 
 
 const AuthContext = createContext();
@@ -212,7 +212,7 @@ export const useAuthClient = () => {
   const [backendActor, setBackendActor] = useState(null);
   const [balance, setBalance] = useState(null);
   const [provider, setProvider] = useState(null); // Keep track of the provider
-  const isMobile = PlugMobileProvider.isMobileBrowser()
+  // const isMobile = PlugMobileProvider.isMobileBrowser()
   
   useEffect(() => {
 
@@ -239,8 +239,8 @@ export const useAuthClient = () => {
       setProvider(selectedProvider); // Set the provider
       const tokenCanisterIds = DummyDataTokens.Tokens.map(token => token.CanisterId);
       const additionalCanisterIds = [
-        process.env.CANISTER_ID_CKBTC_LEDGER,
-        process.env.CANISTER_ID_CKETH_LEDGER
+        process.env.CANISTER_ID_CKBTC,
+        process.env.CANISTER_ID_CKETH
       ];
 
       // Combine all canister IDs
@@ -255,32 +255,32 @@ export const useAuthClient = () => {
 
       if (selectedProvider === "plug") {
         // Plug login
-        if (isMobile) {
-          const provider = new PlugMobileProvider({
-            debug: true, // If you want to see debug logs in console
-            walletConnectProjectId: '6e2de4a3633b8ad436730aea43901ef3', // Project ID from WalletConnect console
-            window: window,
-          })
-          // setProvider(provider)
-          provider.initialize().catch(console.log)
-          setProvider(provider)
+        // if (isMobile) {
+        //   const provider = new PlugMobileProvider({
+        //     debug: true, // If you want to see debug logs in console
+        //     walletConnectProjectId: '6e2de4a3633b8ad436730aea43901ef3', // Project ID from WalletConnect console
+        //     window: window,
+        //   })
+        //   // setProvider(provider)
+        //   provider.initialize().catch(console.log)
+        //   setProvider(provider)
 
-          if (!provider.isPaired()) {
-            provider.pair().catch(console.log)
-          }
+        //   if (!provider.isPaired()) {
+        //     provider.pair().catch(console.log)
+        //   }
 
          
-            const agent = await provider.createAgent({
-              host: 'https://icp0.io',
-              targets: [whitelist], // List of canister you are planning to call
-            })
+        //     const agent = await provider.createAgent({
+        //       host: 'https://icp0.io',
+        //       targets: [whitelist], // List of canister you are planning to call
+        //     })
         
-        const backendActor = createActorBackend(process.env.CANISTER_ID_VALUESWAP_BACKEND, {agent:agent});
-        const principal = agent.getPrincipal()
-        setBackendActor(backendActor);
-        setPrincipal(principal);
-        setIsAuthenticated(true);
-        }
+        // const backendActor = createActorBackend(process.env.CANISTER_ID_VALUESWAP_BACKEND, {agent:agent});
+        // const principal = agent.getPrincipal()
+        // setBackendActor(backendActor);
+        // setPrincipal(principal);
+        // setIsAuthenticated(true);
+        // }
         // Collect all canister IDs you need to whitelist
        
         // Ensure all canister IDs are valid
@@ -569,8 +569,8 @@ export const useAuth = () => useContext(AuthContext);
 // import { Actor } from "@dfinity/agent";
 
 // const AuthContext = createContext();
-// const canisterID = process.env.CANISTER_ID_CKBTC_LEDGER;
-// const whitelist = [process.env.CANISTER_ID_CKBTC_LEDGER];
+// const canisterID = process.env.CANISTER_ID_CKBTC;
+// const whitelist = [process.env.CANISTER_ID_CKBTC];
 
 // export const useAuthClient = () => {
 //     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -621,7 +621,7 @@ export const useAuth = () => useContext(AuthContext);
 //             const identity = await userObject?.agent?._identity;
 //             const principal = Principal.fromText(userObject?.principal);
            
-//             // const ledgerActor = Actor.createActor(ledgerIdl, { userObject.agent, canisterId: process.env.CANISTER_ID_CKBTC_LEDGER });
+//             // const ledgerActor = Actor.createActor(ledgerIdl, { userObject.agent, canisterId: process.env.CANISTER_ID_CKBTC });
 //             setUserObjects(userObject)
 //             setIsAuthenticated(true);
 //             setPrincipal(principal);

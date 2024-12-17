@@ -17,7 +17,7 @@ pub use utils::types::*;
 thread_local! {
     pub static POOL_DATA: RefCell<BTreeMap<Principal, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
     // pub static LP_SHARE : RefCell<BTreeMap<Principal , f64>> = RefCell::new(BTreeMap::new());
-    pub static POOL_BALANCE : RefCell<BTreeMap<Principal , u64>> = RefCell::new(BTreeMap::new());
+    pub static POOL_BALANCE : RefCell<BTreeMap<Principal , Nat>> = RefCell::new(BTreeMap::new());
 }
 
 // #[update]
@@ -45,23 +45,24 @@ thread_local! {
 
 #[update]
 pub fn pool_balance(user_principal: Principal, params: Pool_Data) {
-    let balance: u64 = params
+    let balance: Nat = params
         .pool_data
         .iter()
         .map(|pool| pool.balance.clone())
-        .sum();
+        .fold(Nat::from(0u128), |acc, x| acc + x);
+        // .sum();
 
     POOL_BALANCE.with(|pool_balance| {
         let mut borrowed_pool_balance = pool_balance.borrow_mut();
         borrowed_pool_balance
             .entry(user_principal)
-            .and_modify(|user_balance| *user_balance += balance)
+            .and_modify(|user_balance| *user_balance += balance.clone())
             .or_insert(balance);
     })
 }
 
 #[query]
-pub fn get_pool_balance(user_principal: Principal) -> Option<u64> {
+pub fn get_pool_balance(user_principal: Principal) -> Option<Nat> {
     POOL_BALANCE.with(|pool_balance| {
         let borrowed_pool_balance = pool_balance.borrow();
         if let Some(balance) = borrowed_pool_balance.get(&user_principal) {
@@ -133,13 +134,13 @@ async fn burn_tokens(
 ) -> Result<(), String> {
     let total_token_balance = match get_pool_balance(user.clone()) {
         Some(balance) => balance,
-        None => 0,
+        None => Nat::from(0u128),
     };
 
     for token in params.pool_data.iter() {
-        let token_amount = token.weight as u64 * total_token_balance;
-        let transfer_amount = token_amount * user_share_ratio as u64;
-        let transfer_result = icrc1_transfer(token.ledger_canister_id, user, transfer_amount).await;
+        let token_amount = token.weight.clone() * total_token_balance.clone();
+        // let transfer_amount = token_amount * user_share_ratio as u64;
+        let transfer_result = icrc1_transfer(token.ledger_canister_id, user, token_amount).await;
 
         if let Err(e) = transfer_result {
             ic_cdk::println!("Transfer failed {:}", e);
@@ -153,14 +154,15 @@ async fn burn_tokens(
 async fn get_burned_tokens(params: Pool_Data, user: Principal, user_share_ratio: f64) -> Vec<f64> {
     let total_token_balance = match get_pool_balance(user.clone()) {
         Some(balance) => balance,
-        None => 0,
+        None => Nat::from(0u128),
     };
 
     let mut result: Vec<f64> = vec![];
     for token in params.pool_data.iter() {
-        let token_amount = token.weight * total_token_balance as f64;
+        let token_amount = token.weight.clone() * total_token_balance.clone() ;
+        let transfer_amount = token_amount.to_string().parse::<f64>().unwrap() / user_share_ratio.to_string().parse::<f64>().unwrap();
 
-        let transfer_amount = user_share_ratio * token_amount;
+        // let transfer_amount = user_share_ratio * token_amount;
         result.push(transfer_amount);
     }
     result
@@ -268,12 +270,12 @@ async fn get_burned_tokens(params: Pool_Data, user: Principal, user_share_ratio:
 
 
 #[update]
-async fn swap(user_principal: Principal, params: SwapParams, amount: f64) -> Result<(), String> {
+async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Result<(), String> {
     // pool canister id
     // let token_canister_id = ic_cdk::api::id();
 
     // Convert f64 to u64
-    let amount_as_u64: u64 = amount as u64;
+    // let amount_as_u64: u64 = amount as u64;
 
     // Convert u64 to Nat
     // let amount_nat = Nat::from(amount_as_u64);
@@ -282,7 +284,7 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: f64) -> Res
     let transfer_result = icrc1_transfer(
         params.ledger_canister_id2,
         user_principal,
-        amount_as_u64.clone(),
+        amount.clone(),
     )
     .await;
 
@@ -306,26 +308,26 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: f64) -> Res
 
     let length = pool_data.len();
 
-    let distribute_amount1 = params.token_amount / length as f64;
-    let distribute_amount2 = amount / length as f64;
+    let distribute_amount1 = params.token_amount / length;
+    let distribute_amount2 = amount / length ;
 
     for (user, pools) in pool_data.iter_mut() {
         for pool in pools {
             for token in &mut pool.pool_data {
                 if token.token_name == params.token1_name {
                     // Ensure sufficient balance
-                    if token.balance < distribute_amount1 as u64 {
+                    if token.balance < distribute_amount1.clone() {
                         return Err(format!(
                             "User {:?} has insufficient balance for token {}",
                              user,  token.token_name
                         ));
                     }
                     // Subtract distributed amount from token
-                    token.balance -= distribute_amount1 as u64;
+                    token.balance -= distribute_amount1.clone() ;
                 }
 
                 if token.token_name == params.token2_name {
-                    token.balance += distribute_amount2 as u64;
+                    token.balance += distribute_amount2.clone();
                 }
             }
         }

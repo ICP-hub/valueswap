@@ -12,7 +12,7 @@ set -e
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER="ssvsn-2iaaa-aaaal-amg5a-cai"
+export MINTER="iuem3-hyaaa-aaaac-aadaq-cai"
 echo "MINTER principal: $MINTER"
 
 # Set token details
@@ -57,7 +57,7 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS" --network ic --no-wallet
+dfx deploy ckbtc --argument "$DEPLOY_ARGUMENTS" --network ic --no-wallet
 
 
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend

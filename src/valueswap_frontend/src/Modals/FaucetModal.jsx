@@ -7,7 +7,7 @@ import { Principal } from '@dfinity/principal'
 const FaucetModal = ({setModelOpen, imgUrl, TokenName}) => {
   const [faucetAmount, setFaucetAmount] = useState(0)
   const {createTokenActor, backendActor, principal, identity  } = useAuth();
-  let faucetList = [{name: "ckBTC", CanisterId: process.env.CANISTER_ID_CKBTC_LEDGER},  {name:"ckETH", CanisterId: process.env.CANISTER_ID_CKETH_LEDGER}, {name:"LP token", CanisterId: process.env.CANISTER_ID_LP_LEDGER_CANISTER}];
+  let faucetList = [{name: "ckBTC", CanisterId: process.env.CANISTER_ID_CKBTC},  {name:"ckETH", CanisterId: process.env.CANISTER_ID_CKETH}, {name:"LP token", CanisterId: process.env.CANISTER_ID_LP_LEDGER_CANISTER}];
   let ledger_canister_id = faucetList?.find((token) => token.name.toLowerCase() == TokenName.TokenName?.toLowerCase() )
    const depositeHandler = async(scaledAmount) =>{
     let ledgerPrincipal = Principal.fromText(ledger_canister_id.CanisterId)

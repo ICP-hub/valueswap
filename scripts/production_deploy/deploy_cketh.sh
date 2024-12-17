@@ -11,7 +11,7 @@ set -e
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER=$(dfx identity get-principal --network ic)
+export MINTER="iuem3-hyaaa-aaaac-aadaq-cai"
 echo "MINTER principal: $MINTER"
 
 # Set token details
@@ -56,9 +56,9 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy cketh_ledger --argument "$DEPLOY_ARGUMENTS" --network ic --no-wallet
+dfx deploy cketh --argument "$DEPLOY_ARGUMENTS" --network ic --no-wallet
 
-dfx deploy valueswap_backend --network ic --no-wallet
+dfx deploy --network ic --no-wallet
 
 
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend

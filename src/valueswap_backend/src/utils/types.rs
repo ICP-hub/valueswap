@@ -47,9 +47,9 @@ impl PoolShare {
 #[derive(CandidType, Deserialize, Serialize, Clone, Debug)]
 pub struct CreatePoolParams{
     pub token_name : String,
-    pub balance : u64,
-    pub weight : f64,
-    pub value : u64,
+    pub balance : Nat,
+    pub weight : Nat,
+    pub value : Nat,
     pub ledger_canister_id: Principal, // Ledger canister ID for the token (e.g., ckBTC, ckETH)
     pub image : String
 }
@@ -57,7 +57,7 @@ pub struct CreatePoolParams{
 #[derive(CandidType, Deserialize, Serialize, Clone , Debug)]
 pub struct Pool_Data{
     pub pool_data : Vec<CreatePoolParams>,
-    pub swap_fee : f64
+    pub swap_fee : Nat
 }
 
 /// Represents the user's share with their token balances.
@@ -241,7 +241,7 @@ pub(crate) struct CreateCanisterArgumentExtended {
 
 pub struct SwapParams {
     pub token1_name : String,
-    pub token_amount : f64,
+    pub token_amount : Nat,
     pub token2_name : String,
     pub ledger_canister_id1 : Principal,
     pub ledger_canister_id2 : Principal

@@ -1,11 +1,20 @@
 {
+  "LP_ledger_canister": {
+    "ic": "i2gbt-4iaaa-aaaac-aadbq-cai"
+  },
+  "ckbtc": {
+    "ic": "ipbq6-5aaaa-aaaac-aadca-cai"
+  },
+  "cketh": {
+    "ic": "iiawk-qyaaa-aaaac-aadcq-cai"
+  },
   "swap": {
-    "ic": "s3wzr-maaaa-aaaal-amg4q-cai"
+    "ic": "i5hhh-rqaaa-aaaac-aadba-cai"
   },
   "valueswap_backend": {
-    "ic": "ssvsn-2iaaa-aaaal-amg5a-cai"
+    "ic": "iuem3-hyaaa-aaaac-aadaq-cai"
   },
   "valueswap_frontend": {
-    "ic": "svuuz-xqaaa-aaaal-amg5q-cai"
+    "ic": "ibd5w-gqaaa-aaaac-aadda-cai"
   }
 }

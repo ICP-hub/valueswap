@@ -30,7 +30,7 @@ pub async fn approve_allowance(
 // Function to handle deposits
 // Function to handle deposits to dynamically created canisters
 #[ic_cdk_macros::update]
-pub async fn deposit_tokens(amount: u64, ledger_canister_id: Principal , target_canister_id: Principal) -> Result<Nat, String> {
+pub async fn deposit_tokens(amount: Nat, ledger_canister_id: Principal , target_canister_id: Principal) -> Result<Nat, String> {
 
     let user_principal = ic_cdk::api::caller();
 
@@ -39,13 +39,13 @@ pub async fn deposit_tokens(amount: u64, ledger_canister_id: Principal , target_
     ic_cdk::println!("Target canister principal for deposit {}", target_canister);
 
 //     ic_cdk::println!("amount{:}", amount.clone());
-    let amount_nat = Nat::from(amount * 100000000);
+    // let amount_nat = Nat::from(amount * 100000000);
 //     ic_cdk::println!("amount_nat{:}", amount_nat.clone());
     transfer_from(
         ledger_canister_id,
         user_principal,
         target_canister,
-        amount_nat,
+        amount,
     )
     .await
 }

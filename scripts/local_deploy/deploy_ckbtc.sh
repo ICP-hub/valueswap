@@ -25,7 +25,7 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use default 
+dfx identity use DevJourney
 export DEFAULT=$(dfx identity get-principal)
 echo "DEFAULT principal: $DEFAULT"
 
@@ -63,7 +63,7 @@ dfx deploy ckbtc --argument "$DEPLOY_ARGUMENTS"
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
 ./deploy_cketh.sh
-dfx deploy valueswap_backend
+dfx deploy
 # 
 
 # dfx deploy valueswap_fontend

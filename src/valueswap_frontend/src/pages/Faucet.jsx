@@ -9,12 +9,12 @@ let tokens = [
     {
         imgUrl: "/image/ckBTC.svg",
         TokenName: "ckBTC",
-        CanisterId: process.env.CANISTER_ID_CKBTC_LEDGER
+        CanisterId: process.env.CANISTER_ID_CKBTC
     },
     {
         imgUrl: "/image/ckETH.svg",
         TokenName: "ckETH",
-        CanisterId: process.env.CANISTER_ID_CKETH_LEDGER
+        CanisterId: process.env.CANISTER_ID_CKETH
     },
     {
         imgUrl: "/image/ckETH.svg",

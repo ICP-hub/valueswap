@@ -313,7 +313,7 @@ fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
             let mut fee_matched = false;
 
             for existing_pool_data in existing_pool_data_vec.iter_mut() {
-                if (existing_pool_data.swap_fee - params.swap_fee).abs() < f64::EPSILON {
+                if (existing_pool_data.swap_fee.clone() - params.swap_fee.clone()) <  Nat::from(0u128) {
                     fee_matched = true;
 
                     for new_token in &params.pool_data {
@@ -322,7 +322,7 @@ fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
                             .iter_mut()
                             .find(|token| token.token_name == new_token.token_name)
                         {
-                            existing_token.balance += new_token.balance;
+                            existing_token.balance += new_token.balance.clone();
                         }
                     }
                 }
@@ -366,17 +366,17 @@ fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
 }
 
 #[update]
-async fn pre_compute_swap(params: SwapParams) -> (String, f64) {
+async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
     let required_pools = match search_swap_pool(params.clone()) {
         Ok(pools) => pools,
         Err(_) => {
             ic_cdk::println!("No matching pools found.");
-            return ("No matching pools found.".to_string(), 0.0);
+            return ("No matching pools found.".to_string(), Nat::from(0u128));
         }
     };
 
     let mut best_pool = None;
-    let mut max_output_amount = 0.0;
+    let mut max_output_amount:Nat = Nat::from(0u128);
 
     // Move the POOL_DATA closure logic outside of the async block
     let pool_data = POOL_DATA.with(|pool| pool.borrow().clone());
@@ -406,10 +406,10 @@ async fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                 .join("");
 
             if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
-                let w_i = tokenA.weight as f64;
-                let w_o = tokenB.weight as f64;
-                let amount_out = params.token_amount as f64;
-                let fee = data.swap_fee;
+                let w_i = tokenA.weight.clone();
+                let w_o = tokenB.weight.clone();
+                let amount_out = params.token_amount.clone();
+                let fee = data.swap_fee.clone();
 
                 // Fetch the pool canister ID asynchronously
                 let pool_canister_id = with_state(|pool| {
@@ -424,25 +424,25 @@ async fn pre_compute_swap(params: SwapParams) -> (String, f64) {
                         continue;
                     },
                 };
-
+                         
                 // Fetch balances asynchronously
                 let b_i = icrc_get_balance(tokenA.ledger_canister_id, pool_canister_id).await.unwrap();
                 let b_o = icrc_get_balance(tokenB.ledger_canister_id, pool_canister_id).await.unwrap();
 
-                let b_i_f64 = convert_nat_to_u64(b_i).unwrap();
-                let b_o_f64 = convert_nat_to_u64(b_o).unwrap();
+                // let b_i_f128 = convert_nat_to_u64(b_i).unwrap();
+                // let b_o_f128 = convert_nat_to_u64(b_o).unwrap();
 
-                let b_i = b_i_f64/10000000.0;
-                let b_o = b_o_f64/10000000.0;
+                //  let b_i = b_i_f128/10000000.0;
+                //  let b_o = b_o_f128/10000000.0;
 
                 ic_cdk::println!("The balance of First token is {}{}", b_i.clone(),b_o.clone());
 
                 // Calculate the required input using the out_given_in formula
-                let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out, fee);
+                let required_input = out_given_in(b_i, w_i , b_o, w_o, amount_out, fee);
 
                 // Ensure the user has enough balance to provide the input
                 if required_input >= max_output_amount {
-                    max_output_amount = f64::max(required_input, max_output_amount);
+                    max_output_amount = max(required_input, max_output_amount);
                     best_pool = Some(pool_key.clone());
                 }
             } else {
@@ -453,7 +453,7 @@ async fn pre_compute_swap(params: SwapParams) -> (String, f64) {
 
     match best_pool {
         Some(pool) => (pool, max_output_amount),
-        None => ("No suitable pool found.".to_string(), 0.0),
+        None => ("No suitable pool found.".to_string(), Nat::from(0u128)),
     }
 }
 
@@ -516,9 +516,9 @@ async fn compute_swap(params: SwapParams) -> Result<(), String> {
     // deposit_tokens(amount_as_u64.clone(), ledger_canister_id, canister_id.clone());
 
     // let user_principal_id = api::caller();
-    let token_amount_u64: u64  = params.token_amount as u64;
+    let token_amount  = params.token_amount.clone();
 
-    deposit_tokens(token_amount_u64, params.ledger_canister_id1.clone(), canister_id.clone()).await?;
+    deposit_tokens(token_amount, params.ledger_canister_id1.clone(), canister_id.clone()).await?;
 
     // ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
     // Proceed with the call using the extracted principal

@@ -6,7 +6,7 @@ set -e
 # dfx identity new DevJourney || true
 # dfx identity use DevJourney
 
-export MINTER="ssvsn-2iaaa-aaaal-amg5a-cai"
+export MINTER="iuem3-hyaaa-aaaac-aadaq-cai"
 echo "MINTER principal (backend canister): $MINTER"
 
 # Get the principal ID for the minter account
@@ -54,7 +54,7 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy LP_ledger_canister --argument "$DEPLOY_ARGUMENTS" --network ic --no-wallet--network ic
+dfx deploy LP_ledger_canister --argument "$DEPLOY_ARGUMENTS" --network ic --no-wallet
 
 echo "LP ledger got deployed"
 
