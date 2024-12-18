@@ -44,7 +44,7 @@ export const LandingPageNavbarData = {
 }
 
 export const CommonNavbarData = {
-    ButtonText: 'Connect Wallet',
+    ButtonText: 'Connect',
     ButtonTextDisconnet: "Disconnect",
     Links: [
         {
@@ -295,16 +295,16 @@ export const SwapModalData = {
         Heading: 'Pay',
         Balance: 'Balance',
         Max: 'Max',
-        NoTokenSelectBalanceMessage: 'Select a Coin to Fetch Balance',
-        TokenSelectButtonText: 'Select a Token',
+        NoTokenSelectBalanceMessage: 'Select Coin to Fetch Balance',
+        TokenSelectButtonText: 'Select Token',
     },
 
     RecieveSection: {
         Heading: 'Recieve',
         Balance: 'Balance',
         Max: 'Max',
-        NoTokenSelectBalanceMessage: 'Select a Coin to Fetch Balance',
-        TokenSelectButtonText: 'Select a Token',
+        NoTokenSelectBalanceMessage: 'Select Coin to Fetch Balance',
+        TokenSelectButtonText: 'Select Token',
     },
     bothCoinsPresent: {
         Price: 'Price',

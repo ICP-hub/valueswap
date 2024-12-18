@@ -31,8 +31,7 @@ const LandingPage = ({ setClickConnectWallet }) => {
                     <WhitePaper />
                 </div>
 
-              
-                <Footer/>
+             
             </div>
         </div>
     )

@@ -10,13 +10,17 @@ import ConnectWallet from './Modals/ConnectWallet';
 import { CommonNavbarData } from './TextData';
 import LandingPage from './pages/LandingPage';
 import { useAuth } from './components/utils/useAuthClient';
+import Footer from './components/footer/Footer';
 function App() {
   const [clickConnectWallet, setClickConnectWallet] = useState(false);
   const [walletClicked, setWalletClicked] = useState(false);
   const { show, type, text } = useSelector((state) => state.alert)
   //  const {login} = useAuth
 
+  //  useEffect(()=>{
 
+  //    console.log("hiii", login("Icp"))
+  //  })
 
   
   return (
@@ -43,6 +47,7 @@ function App() {
             ))}
           </Routes>
         </Suspense>
+        <Footer/>
       </Router>  {/* Close Router */}
     </div>
   );
