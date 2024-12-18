@@ -6,6 +6,7 @@ import Profile from './Profile';
 import { useSelector } from 'react-redux';
 import { Principal } from '@dfinity/principal';
 import { useAuth } from '../components/utils/useAuthClient';
+import BorderGradientButton from '../buttons/BorderGradientButton';
 const options = [
     // { value: 'ethereum', label: 'Ethereum', img: '/src/assets/images/Network/Ethereum.png' },
     // { value: 'bitcoin', label: 'Bitcoin', img: 'images/Bitcoin.png' },
@@ -17,7 +18,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
     const [open, setOpen] = useState(false);
     const [Principal, setPrincipal] = useState()
     const [selectedOption, setSelectedOption] = useState(options[0]);
-    const [isSticky, setIsSticky] = useState(false);
+    const [isSticky, setIsSticky] = useState(true);
 
     let location = useLocation()
 
@@ -60,7 +61,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
 
     useEffect(() => {
         const handleScroll = () => {
-            if (window.scrollY > 0) {
+            if (window.scrollY < 100) {
                 setIsSticky(true);
             } else {
                 setIsSticky(false);
@@ -76,13 +77,16 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
 
 
     // console.log("isAuthenticated", isAuthenticated, principal)
-    console.log("open", open)
+    console.log("open", window.scrollY, isSticky )
 
 
     return (
-        <div className={` transition-all duration-700 ${isSticky ? 'sticky top-0' : 'relative top-4'} z-50 px-4 md:px-8 `}>
+        <div className={`  ${isSticky ? ' sticky top-0 transition-all delay-75 duration-300 ' : ' sticky top-[-150px] delay-300 duration-700'} z-50 px-4 md:px-8 `}>
+
             <div className="flex justify-center  font-gilroy   ">
-                <ul className={`md:hidden md:items-center  md:pb-0 pb-12 absolute md:static rounded-lg left-0 w-full md:w-auto md:pl-0  transition-all duration-500 ease-in gap-2 xl:gap-6 ${open ? 'top-12 bg-[#010427] md:bg-transparent' : 'top-[-510px]'}`}>
+
+                {/* mobile Navbar hamburgur */}
+                <ul className={`md:hidden md:items-center  md:pb-0 pb-12 absolute md:static rounded-lg left-0 w-full md:w-auto md:pl-0  transition-all duration-700 ease-in gap-2 xl:gap-6 ${open ? 'top-12 bg-[#010427] md:bg-transparent' : 'top-[-510px]'}`}>
                     {
                         NavbarData.Links.map((Link, index) => (
                             <li key={index} className='md:ml-2  md:my-0 my-7 font-normal '>
@@ -95,10 +99,10 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
 
                                     }}
                                 >
-                                    <div className='flex flex-col justify-center text-custom-size-14 sm:leading-10 md:text-xl  items-center'>
+                                    <div  className='flex flex-col justify-center text-custom-size-14 sm:leading-10 md:text-xl  items-center'>
                                         {Link?.LinkName}
-                                        <div className={`${activeLink === index ? ' bg-orange-500 w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
-                                        <div className={`${activeLink === Link.LinkPath ? ' bg-orange-500 w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
+                                        <div className={`${activeLink === index ? ' bg-[#F7931A] w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
+                                        <div className={`${activeLink === Link.LinkPath ? ' bg-[#F7931A] w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
                                     </div>
                                 </RouterLink>
                             </li>
@@ -123,13 +127,13 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                     </div>
 
                 </ul>
-
-                <div className="w-full  rounded-2xl  flex justify-between max-w-[1200px] bg-[#686868AB] tracking-wide backdrop-blur-md items-center md:py-4 px-2">
+{/* desktop */}
+                <div className="w-full  rounded-2xl  flex justify-between max-w-[1200px] tracking-wide items-center py-4 md:py-4 px-2">
 
                     <div className='flex items-center justify-between px-2 md:justify-start'>
                         <div className='flex items-center justify-around'>
-                            <img src="./image/valueswap.png" alt="" className='w-20 h-[1.2rem] sm:w-28 sm:h-[1.7rem]' />
-                            <div className="items-center h-12 ml-2 md:ml-4 lg:ml-6 border-l border-white "></div>
+                            <img src="./image/valueswap.png" alt="" className='w-28 h-full sm:w-36  object-contain' />
+                            <div className="items-center hidden md:inline-block h-8 ml-2 md:ml-4 lg:ml-6 border-l border-white "></div>
                         </div>
 
 
@@ -139,20 +143,20 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                             <ul className={`md:flex md:items-center  md:pb-0 pb-12 hidden md:static rounded-lg left-0 w-full md:w-auto md:pl-0  transition-all duration-500 ease-in gap-2 xl:gap-6 ${open ? 'top-12 bg-[#010427] md:bg-transparent' : 'top-[-490px]'}`}>
                                 {
                                     NavbarData.Links.map((Link, index) => (
-                                        <li key={index} className='md:ml-2  md:my-0 my-7 font-normal '>
+                                        <li key={index} id='navLink' className='md:ml-2  md:my-0 my-7 font-normal '>
                                             <RouterLink
                                                 to={Link.LinkPath}
-                                                className='text-white duration-500 hover:text-orange-500'
+                                                className='text-white duration-500 '
                                                 onClick={() => {
                                                     setActiveLink(index)
                                                     setOpen(!open)
 
                                                 }}
                                             >
-                                                <div className='flex flex-col justify-center text-custom-size-14 sm:leading-10 md:text-xl  items-center'>
+                                                <div  className='flex flex-col justify-center text-custom-size-14 sm:leading-10 md:text-xl  items-center  '>
                                                     {Link?.LinkName}
-                                                    <div className={`${activeLink === index ? ' bg-orange-500 w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
-                                                    <div className={`${activeLink === Link.LinkPath ? ' bg-orange-500 w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
+                                                    {/* <div className={ 'bg-[#F7931A] w-full h-[1px] invisible hover:visible' }></div> */}
+                                                    <div className={`${activeLink === Link.LinkPath ? ' bg-[#F7931A] w-full h-[1px] hover:invisible  invisible md:visible' : 'w-1 h-[1px] hover:invisible invisible'}`}></div>
                                                 </div>
                                             </RouterLink>
                                         </li>
@@ -164,7 +168,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
 
                                     <div
                                         onClick={() => {
-                                            if (NavbarData.ButtonText === 'Connect Wallet') {
+                                            if (NavbarData.ButtonText === 'Connect') {
                                                 setClickConnectWallet(true);
                                             }
 
@@ -172,9 +176,9 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                                 navigate('/valueswap/pool')
                                             }
                                         }}>
-                                        <GradientButton
+                                        <BorderGradientButton
                                             CustomCss={`hover:opacity-75 w-[150px]  text-xs md:text-base lg:text-base lg:h-[60px] py-2 lg:py-4 px-2`}
-                                        >{NavbarData.ButtonText}</GradientButton>
+                                        >{NavbarData.ButtonText}</BorderGradientButton>
                                     </div>
                                 </div>
 
@@ -216,14 +220,14 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                     </div>
                     {/* //// */}
                     <div className='hidden pr-1 font-semibold md:my-0 my-7 md:flex md:items-center md:gap-5'>
-                        <div className="h-12 border-l border-white"></div>
+                        {/* <div className="h-12 border-l border-white"></div> */}
                         <div className='flex items-center '>
 
 
-                            {!isAuthenticated ? <GradientButton customCss={`px-2`}
+                            {!isAuthenticated ? <BorderGradientButton customCss={`bg-[#000711] z-10`}
                             >
                                 {
-                                    NavbarData.ButtonText === "Connect Wallet" ? (
+                                    NavbarData.ButtonText === "Connect" ? (
                                         <div
 
                                         >
@@ -244,7 +248,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                         </div>
                                     )
                                 }
-                            </GradientButton> : <Profile Principal={Principal} principal={principal} isAuthenticated={isAuthenticated} logout={logout}/>}
+                            </BorderGradientButton> : <Profile Principal={Principal} principal={principal} isAuthenticated={isAuthenticated} logout={logout}/>}
 
 
                         </div>
