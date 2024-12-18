@@ -15,7 +15,7 @@ const BorderGradientButton = ({ customCss, children }) => {
 
         <div className=" button-wrapper">
           <div className="button-bg"></div>
-          <button className={`${customCss} relative h-[45px] block text-base font-gilroy  tracking-widest py-2 px-4   text-white rounded-lg border-0 cursor-pointer`} type="button">
+          <button className={`${customCss} relative h-[40px] block text-base font-gilroy   py-2 px-2   text-white rounded-lg border-0 cursor-pointer`} type="button">
             {children}
           </button>
         </div>
