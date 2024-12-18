@@ -16,10 +16,7 @@ function App() {
   const { show, type, text } = useSelector((state) => state.alert)
   //  const {login} = useAuth
 
-  //  useEffect(()=>{
 
-  //    console.log("hiii", login("Icp"))
-  //  })
 
   
   return (
