@@ -18,7 +18,8 @@ import { toast } from 'react-toastify';
 import CloseIcon from '@mui/icons-material/Close';
 import BorderGradientButton from '../buttons/BorderGradientButton';
 import DialogBox from './Dialouge';
-
+import SettingsIcon from '@mui/icons-material/Settings';
+import CachedIcon from '@mui/icons-material/Cached'; 
 const Swap = () => {
     const navigate = useNavigate();
     const [PayCoin, setPayCoin] = useState(null);
@@ -830,10 +831,11 @@ const Swap = () => {
         //         </div>
 
 
-        <section className='h-screen flex flex-col gap-y-20'>
-            <h1 className='text-center  text-3xl mt-12 tracking-wider'>Swap</h1>
-            <div>
-                <div className='w-[64%] sm:w-[480px] mb-2 mx-auto  text-[#A3A3A3] w-full bg-gray-700  bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20 border border-gray-100 border-[#FFFFFF66] rounded-2xl p-8'>
+        <section className='h-screen flex flex-col gap-y-12  bg-background-gradient '>
+            <h1 className='text-center  text-3xl mt-4 tracking-wider'>Swap</h1>
+            <div className='relative'>
+
+                <div className='w-[80%] sm:w-[480px] mb-2 mx-auto  text-[#A3A3A3]  bg-gray-700  bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20 border border-gray-100 border-[#FFFFFF66] rounded-2xl p-8'>
                     <div className='flex justify-between'>
                         <div>Pay</div>
                         <div></div>
@@ -876,7 +878,8 @@ const Swap = () => {
                     </div>
                 </div>
                 {/* Receive token */}
-                <div className='w-[80%] sm:w-[480px]  mx-auto  w-full  text-[#A3A3A3] bg-gray-700  bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20 border border-gray-100 border-[#FFFFFF66] rounded-2xl p-8'>
+                <div className='w-[80%] sm:w-[480px]  mx-auto    text-[#A3A3A3] bg-gray-700  bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20 border border-gray-100 border-[#FFFFFF66] rounded-2xl p-8'>
+
                     <div className='flex justify-between'>
                         <div>Receive</div>
                         <div></div>
@@ -900,6 +903,23 @@ const Swap = () => {
                         <div></div>
                     </div>
                 </div>
+{/* token rottate button */}
+                <div class="absolute top-[38%] left-1/2 flex items-center justify-center p-2 cursor-pointer  border border-[#FFFFFF66] rounded-xl bg-gray-700  bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20">  
+                <CachedIcon/>
+                </div>
+
+                {/* buttton */}
+                <div className=' w-[80%] sm:w-[480px]  mx-auto text-center mt-4 flex gap-x-2'>
+
+                    <GradientButton CustomCss={'w-full cursor-pointer disabled opacity-75 font-extrabold text-3xl'}>
+                        Connect wallet
+                    </GradientButton>
+                    <div class="relative flex items-center justify-center p-2 cursor-pointer border border-[#FFFFFF66] rounded-xl bg-gray-700  bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20">
+                        <SettingsIcon />
+                    </div>
+
+                </div>
+
             </div>
         </section>
 
