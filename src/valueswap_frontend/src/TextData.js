@@ -15,11 +15,11 @@ import { nanoid } from 'nanoid';
 export const LandingPageNavbarData = {
     ButtonText: 'Explore Pools',
     Links: [
-        {
-            LinkName: 'Home',
-            LinkId: 'home',
-            LinkPath: '/',
-        },
+        // {
+        //     LinkName: 'Home',
+        //     LinkId: 'home',
+        //     LinkPath: '/',
+        // },
         {
             LinkName: 'Swap',
             LinkId: 'swap',
@@ -47,11 +47,11 @@ export const CommonNavbarData = {
     ButtonText: 'Connect',
     ButtonTextDisconnet: "Disconnect",
     Links: [
-        {
-            LinkName: 'Home',
-            LinkId: 'home',
-            LinkPath: '/',
-        },
+        // {
+        //     LinkName: 'Home',
+        //     LinkId: 'home',
+        //     LinkPath: '/',
+        // },
         {
             LinkName: 'Swap',
             LinkId: 'swap',
