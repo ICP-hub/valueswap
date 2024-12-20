@@ -13,6 +13,7 @@ export default {
           "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
       },
       'background-gradient': 'linear-gradient(180deg, rgba(217, 217, 217, 0.04) 0%, rgba(115, 115, 115, 0) 100%)',
+       "brown-gradient": 'linear-gradient(180deg, rgba(192, 217, 255, 0.16) 0%, rgba(217, 217, 217, 0.16) 100%)',
       
       // backgroundHero: {
       //   "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

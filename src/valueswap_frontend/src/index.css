@@ -223,10 +223,7 @@ animation: moveLeft 5s infinite linear; /* Adjust the duration and timing functi
 
 
 /* width */
-::-webkit-scrollbar {
-display: none;
-  
-}
+
 
 #navLink:after {
   display:block;
