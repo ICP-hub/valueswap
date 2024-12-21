@@ -108,6 +108,8 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
               const ShortForm = token.symbol || "";
               const ImagePath = token.image?.large || token.image || "";
               const marketPrice = token.current_price || "-";
+              // const CanisterId = canisterIdToken? token.contract_address : null;
+              // const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER;
 
               return (
                 <div
@@ -121,7 +123,8 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
                         Name: TokenName,
                         ImagePath: ImagePath,
                         ShortForm: ShortForm,
-                        CanisterId: fetchResult.contract_address,
+                        // CanisterId: fetchResult.contract_address,
+                        CanisterId: ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC,
                         marketPrice: marketPrice,
                       };
                       if (id === 1) setPayToken(tokenData);
