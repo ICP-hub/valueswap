@@ -20,19 +20,19 @@ const PoolPage = () => {
         }
     }, [location])
     return (
-        <div className=' bg-[#000711] '>
+        <div className=''>
             <div className='items-center'>
                 {
-                    location.pathname != '/valueswap/pool/create-pool/steps' ? (
-                        <img src={PoolPageBackGround} alt="" className='-z-0 h-96 w-full absolute top-0' />
+                    location.pathname !== '/valueswap/pool/create-pool/steps' ? (
+                        <img src={PoolPageBackGround} alt="pool-page-background" className='-z-0 h-96 w-full absolute top-0' />
                     ) : (
-                        <div>
-
+                        <div className='mb-7 text-center  font-gilroy  text-white p-4 font-semibold text-2xl  w-full'>
+                            Pool
                         </div>
                     )
                 }
                 {
-                    location.pathname != '/valueswap/pool/create-pool/steps' ? (
+                    location.pathname !== '/valueswap/pool/create-pool/steps' ? (
                         <div className='flex justify-center'>
                             {
                                 boxText == 'Create Pool' ? (
