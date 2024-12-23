@@ -34,12 +34,13 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                     <hr className="border-2 w-3/4 pr-6" />
                 </div>
             </div>
-            <div className='inset-0 bg-opacity-10 m-auto  justify-center z-50 w-max  flex flex-col gap-4 p-3 sm:p-6 bg-gradient-to-b from-[#3E434B] to-[#02060D] border mx-auto rounded-lg'>
+            <div className='inset-0 bg-opacity-10 m-auto  justify-center z-50 w-max  flex flex-col gap-4 p-3 sm:p-6 border mx-auto rounded-lg'> 
 
                 {/* <div className='w-[90%] place-self-end  flex justify-between px-6'>
                     <span className='font-gilroy font-light md:text-3xl '>Select Tokens</span>
                     <Bolt size={30} className='cursor-pointer' onClick={() => { console.log("settings open") }} />
-                </div> */}
+                </div>
+                 */}
 
 
                 <div>
