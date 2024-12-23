@@ -126,6 +126,9 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
     Ok(())
 }
 
+
+// TODO : make ledger calls with state checks for balance to prevent TOCTOU vulnerablities
+
 #[update]
 async fn burn_tokens(
     params: Pool_Data,
@@ -150,6 +153,7 @@ async fn burn_tokens(
     Ok(())
 }
 
+
 #[query]
 async fn get_burned_tokens(params: Pool_Data, user: Principal, user_share_ratio: f64) -> Vec<f64> {
     let total_token_balance = match get_pool_balance(user.clone()) {
@@ -160,7 +164,7 @@ async fn get_burned_tokens(params: Pool_Data, user: Principal, user_share_ratio:
     let mut result: Vec<f64> = vec![];
     for token in params.pool_data.iter() {
         let token_amount = token.weight.clone() * total_token_balance.clone() ;
-        let transfer_amount = token_amount.to_string().parse::<f64>().unwrap() / user_share_ratio.to_string().parse::<f64>().unwrap();
+        let transfer_amount = token_amount.to_string().parse::<f64>().unwrap_or_default() / user_share_ratio.to_string().parse::<f64>().unwrap_or_default();
 
         // let transfer_amount = user_share_ratio * token_amount;
         result.push(transfer_amount);

@@ -9,23 +9,23 @@ use ic_xrc_types::{Asset, AssetClass, GetExchangeRateRequest, GetExchangeRateRes
 
 // Function to approve allowance
 // #[update]
-#[ic_cdk_macros::update]
-pub async fn approve_allowance(
-    ledger_canister_id: Principal,
-    spender_canister_id: Principal,
-    amount: u64,
-) -> Result<Nat, String> {
-    let amount_nat = Nat::from(amount * 100000000); // Convert to smallest unit (e.g., wei for ckETH)
-    let args = (
-        spender_canister_id,
-        amount_nat,
-    );
+// #[ic_cdk_macros::update]
+// pub async fn approve_allowance(
+//     ledger_canister_id: Principal,
+//     spender_canister_id: Principal,
+//     amount: u64,
+// ) -> Result<Nat, String> {
+//     let amount_nat = Nat::from(amount * 100000000); // Convert to smallest unit (e.g., wei for ckETH)
+//     let args = (
+//         spender_canister_id,
+//         amount_nat,
+//     );
 
-    let (result,): (Result<Nat, String>,) =
-        call(ledger_canister_id, "icrc2_approve", args).await.map_err(|e| e.1)?;
+//     let (result,): (Result<Nat, String>,) =
+//         call(ledger_canister_id, "icrc2_approve", args).await.map_err(|e| e.1)?;
 
-    result.map_err(|err| format!("Failed to approve allowance: {:?}", err))
-}
+//     result.map_err(|err| format!("Failed to approve allowance: {:?}", err))
+// }
 
 // Function to handle deposits
 // Function to handle deposits to dynamically created canisters
