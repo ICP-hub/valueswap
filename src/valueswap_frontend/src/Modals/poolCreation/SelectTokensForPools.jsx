@@ -26,15 +26,15 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
 
 
     return (
-        <div className=''>
-                <div className='w-full'>
+        <div className='flex flex-col justify-center px-2'>
+            <div className='w-full'>
                 <div className={`flex gap-6 pb-6 w-[70%] md:w-[60%] justify-between items-center m-auto  lg:hidden`} >
                     <div className={`py-2 px-4 rounded-full bg-[#F7931A]`}>1</div>
                     <p className="text-lg"></p>
                     <hr className="border-2 w-3/4 pr-6" />
                 </div>
             </div>
-            <div className='inset-0 bg-opacity-10 m-auto  justify-center z-50 w-max  flex flex-col gap-4 p-3 sm:p-6 border mx-auto rounded-lg'> 
+            <div className='inset-0 md:min-w-[500px] w-max bg-opacity-10 m-auto justify-center items-center flex flex-col gap-4 p-3 sm:p-6 border mx-auto rounded-xl backdrop-blur-[32px] *:z-50'> 
 
                 {/* <div className='w-[90%] place-self-end  flex justify-between px-6'>
                     <span className='font-gilroy font-light md:text-3xl '>Select Tokens</span>
@@ -42,11 +42,18 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                 </div>
                  */}
 
+                <div className='w-full flex justify-between items-center gap-4'>
+                    <p className='font-gilroy text-2xl font-light'>Choose upto 8 tokens:</p>
+                    <BorderGradientButton customCss={`bg-[#182030] text-xs md:text-light lg:text-base h-[45px] w-[115px] md:w-[140px] `}>
+                        Add Token
+                    </BorderGradientButton>
+                </div>
 
-                <div>
+
+                <div className='flex flex-col items-center space-y-4'>
                     {Tokens.map((token, index) => {
                         return (
-                            <div key={index}>
+                            <div key={index} className='flex items-center align-middle space-x-2'>
                                 <SearchTokenShowData token={token} index={index} HandleSelectCheck={HandleSelectCheck} />
                             </div>
                         );
@@ -64,10 +71,6 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                         }
                     }}
                 >
-                    
-                    <BorderGradientButton customCss={`bg-[#182030] text-xs md:text-light lg:text-base h-[45px] w-[115px] md:w-[140px] `}>
-                        Add Token
-                    </BorderGradientButton>
                 </div>
 
                 <div
@@ -84,11 +87,11 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                         }
                     }}
                 >
-                    <GradientButton CustomCss={`my-4 w-full md:w-full ${ButtonActive ? ' opacity-100 cursor-pointer' : 'opacity-50 cursor-default'}`} >
-                        Next
-                    </GradientButton>
                 </div>
             </div>
+            <GradientButton CustomCss={`my-4 md:min-w-[500px] ${ButtonActive ? ' opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`} >
+                        Next
+            </GradientButton>
         </div>
     )
 }
