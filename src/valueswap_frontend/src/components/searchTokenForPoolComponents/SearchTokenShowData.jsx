@@ -210,7 +210,7 @@ console.log("searchToken", searchToken)
                             percent: token.weights,
                         }))
                     }}>
-                    <LockKeyhole size={18} color="#C16800"/>
+                    <img src="/image/lock.svg" alt="lock-open" loading='lazy' width={24} className='aspect-square'/>
                 </span>
             ) : (
                 <span className='cursor-pointer'
