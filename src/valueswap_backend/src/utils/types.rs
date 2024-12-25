@@ -3,13 +3,12 @@ use candid::CandidType;
 use candid::{Nat, Principal};
 use ic_cdk::{
     api::{
-        call::{call_with_payment128, CallResult},
-        canister_version,
+        // call::{call_with_payment128, CallResult},
+        // canister_version,
         management_canister::main::{CanisterInstallMode, WasmModule},
     },
-    call, api,
+    // call, api,
 };
-use std::collections::{BTreeMap , HashMap};
 // use std::fmt::Display;
 
 /// Represents the pool's share with token balances and weights.
@@ -245,4 +244,20 @@ pub struct SwapParams {
     pub token2_name : String,
     pub ledger_canister_id1 : Principal,
     pub ledger_canister_id2 : Principal
+}
+
+
+#[derive(Debug, PartialEq , CandidType)]
+pub enum CustomError {
+    PoolDataEmpty,
+    AnotherOperationInProgress(String),
+    TokenDepositFailed,
+    CanisterCreationFailed(String),
+    LockAcquisitionFailed,
+    StringConversionFailed(String),
+    UnableToStorePoolData(String),
+    UnableToTransferLP(String),
+    NoCanisterIDFound,
+    SwappingFailed(String),
+
 }

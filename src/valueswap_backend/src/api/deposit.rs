@@ -1,8 +1,8 @@
 // use crate::api::deposit::{transfer_from_ckbtc , transfer_from_cketh};
-use crate::constants::asset_address::*;
+// use crate::constants::asset_address::*;
 use crate::utils::types::*;
 use candid::{Nat, Principal};
-use ic_cdk::{api::call::call_with_payment, call};
+use ic_cdk:: call;
 use ic_xrc_types::{Asset, AssetClass, GetExchangeRateRequest, GetExchangeRateResult};
 
 
