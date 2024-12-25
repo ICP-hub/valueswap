@@ -158,10 +158,10 @@ const PortfolioDataComponent = () => {
                                                                     ))}
                                                                 </span>
                                                                 <span>: :</span>
-                                                                <span>{pool.PoolData[0].WeightedPercentage}</span>
+                                                                <span>{pool.PoolData[0].weights}</span>
                                                                 <span>
                                                                     {pool.PoolData.slice(1).map((token, index) => (
-                                                                        <span key={index}>/{token.WeightedPercentage}</span>
+                                                                        <span key={index}>/{token.weights}</span>
                                                                     ))}
                                                                 </span>
                                                             </span>

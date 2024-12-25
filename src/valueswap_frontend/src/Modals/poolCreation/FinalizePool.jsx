@@ -4,27 +4,86 @@ import { useSelector, useDispatch } from 'react-redux';
 import BlueGradientButton from '../../buttons/BlueGradientButton';
 import { toggleConfirm } from '../../reducer/PoolCreation';
 import GradientButton from '../../buttons/GradientButton';
+import { useAuth } from '../../components/utils/useAuthClient';
 
 
-
-
-const FinalizePool = ({handleCreatePoolClick}) => {
+const FinalizePool = ({ handleCreatePoolClick }) => {
     const { Tokens, Confirmation, TotalAmount, FeeShare } = useSelector((state) => state.pool)
     const dispatch = useDispatch()
     const [confirmPool, setConfirmPool] = useState(false)
     const [poolCreated, setPoolCreated] = useState(false)
     const [final, setFinal] = useState(false)
-
+    const [selectedTokenDetails, setSelectedTokenDetails] = useState()
     useEffect(() => {
         if (confirmPool && poolCreated) {
             setFinal(true)
         }
     }, [confirmPool, poolCreated])
     let InitialToken = Tokens[0]
+
     let RestTokens = Tokens.slice(1)
 
+    const { backendActor, isAuthenticated } = useAuth()
+    // valueswap_backend.create_pools({
+
+    // })\
+
+    const createPoolHandler = async () => {
+        console.log("You clicked to create pool");
+    
+        // Check if Tokens array is valid
+        if (!Tokens || Tokens.length === 0) {
+            console.error("No tokens available to create a pool");
+            return;
+        }
+    
+        // Map tokens data into the required format for pool_data
+        const pool_data = Tokens.map(token => ({
+            weight: parseFloat(token.weights / 100),  // Ensure weight is float64
+            balance: BigInt(token.Amount),  // nat64 requires BigInt in JavaScript
+            value: BigInt(Math.round(token.currencyAmount)),  // nat64 requires BigInt
+            image: token.ImagePath || "",  // Ensure image is a string
+            token_name: token.ShortForm || "Unnamed Token"  // Ensure token name is a string
+        }));
+    
+        // Ensure swap fee is valid and convert it
+        const swap_fee = parseFloat(FeeShare);
+        if (isNaN(swap_fee)) {
+            console.error("Invalid swap fee:", FeeShare);
+            return;
+        }
+    
+        // Combine pool_data and swap_fee into the expected structure
+        const poolDetails = { pool_data, swap_fee };
+        setSelectedTokenDetails(pool_data); // Update state with the pool data
+        console.log("poolDetails:", poolDetails);
+    
+        try {
+            if (!backendActor || !backendActor.create_pools) {
+                console.error("Backend actor is not available or create_pools method is missing");
+                return;
+            }
+    
+            // Call the backend to create the pool
+            const result = await backendActor.create_pools(poolDetails);
+            
+            if (result && result.Ok) {
+                console.log("Pool created successfully");
+                setPoolCreated(true); // Update state on success
+            } else if (result && result.Err) {
+                console.error("Error creating pool:", result.Err); // Log the error message from the backend
+            } else {
+                console.error("Unexpected response from backend:", result); // Log any unexpected response
+            }
+    
+        } catch (error) {
+            console.error("Error while creating pool", error);
+        }
+    };
+    
 
 
+    console.log("isAuthenticated", isAuthenticated)
 
 
     return (
@@ -61,7 +120,7 @@ const FinalizePool = ({handleCreatePoolClick}) => {
                                     </div>
 
                                     <span className='bg-[#3E434B] p-1 rounded-lg px-3'>
-                                        {token.WeightedPercentage}   %
+                                        {token.weights}   %
                                     </span>
                                 </div>
 
@@ -111,11 +170,11 @@ const FinalizePool = ({handleCreatePoolClick}) => {
 
                         <span className='inline mx-1 '>: :</span>
 
-                        <span className='inline'>{InitialToken.WeightedPercentage}</span>
+                        <span className='inline'>{InitialToken.weights}</span>
 
                         {
                             RestTokens.map((token, index) => (
-                                <span key={index}> / {token.WeightedPercentage}</span>
+                                <span key={index}> / {token.weights}</span>
                             ))
                         }
                     </div>
@@ -136,11 +195,11 @@ const FinalizePool = ({handleCreatePoolClick}) => {
 
                         <span className='inline mx-1 '>: :</span>
 
-                        <span className='inline'>{InitialToken.WeightedPercentage}</span>
+                        <span className='inline'>{InitialToken.weights}</span>
 
                         {
                             RestTokens.map((token, index) => (
-                                <span key={index}> / {token.WeightedPercentage}</span>
+                                <span key={index}> / {token.weights}</span>
                             ))
                         }
                     </div>
@@ -160,9 +219,10 @@ const FinalizePool = ({handleCreatePoolClick}) => {
 
                 <div className={`mx-10 mb-4`}>
                     <div className={`${confirmPool ? 'hidden' : 'block'}`}
-                        onClick={() => {
+                        onClick={async () => {
                             setConfirmPool(true)
                             handleCreatePoolClick("ctiya-peaaa-aaaaa-qaaja-cai")
+                            createPoolHandler()
                         }}>
                         <GradientButton CustomCss={` w-full md:w-full`} >
                             Confirm and Create Pool

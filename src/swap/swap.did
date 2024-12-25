@@ -2,14 +2,20 @@ type CreatePoolParams = record {
   weight : float64;
   balance : nat64;
   value : nat64;
+  image : text;
+  ledger_canister_id : principal;
   token_name : text;
 };
-type Pool_Data = record {
-  pool_data : vec CreatePoolParams;
-  swap_fee : float64;
-};
+type PoolData = record { pool_data : vec CreatePoolParams; swap_fee : float64 };
 type Result = variant { Ok; Err : text };
+type SwapParams = record {
+  token_amount : nat64;
+  token2_name : text;
+  token1_name : text;
+};
 service : {
-  add_liquidity_to_pool : (principal, Pool_Data) -> (Result);
-  store_pool_data : (principal, Pool_Data) -> (Result);
+  add_liquidity_to_pool : (principal, PoolData) -> (Result);
+  get_pool_data : (principal) -> (opt vec PoolData) query;
+  store_pool_data : (principal, PoolData) -> (Result);
+  swap : (SwapParams) -> (Result);
 }

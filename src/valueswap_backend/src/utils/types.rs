@@ -10,6 +10,7 @@ use ic_cdk::{
     call, api,
 };
 use std::collections::{BTreeMap , HashMap};
+// use std::fmt::Display;
 
 /// Represents the pool's share with token balances and weights.
 #[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
@@ -28,6 +29,7 @@ impl PoolShare {
             token_balances: balances,
             token_weights: weights,
             token_value: values,
+            
         }
     }
 }
@@ -42,15 +44,17 @@ impl PoolShare {
 //     pub swap_fees: f64,
 // }
 
-#[derive(CandidType, Deserialize, Serialize, Clone)]
+#[derive(CandidType, Deserialize, Serialize, Clone, Debug)]
 pub struct CreatePoolParams{
     pub token_name : String,
     pub balance : u64,
     pub weight : f64,
     pub value : u64,
+    pub ledger_canister_id: Principal, // Ledger canister ID for the token (e.g., ckBTC, ckETH)
+    pub image : String
 }
 
-#[derive(CandidType, Deserialize, Serialize, Clone)]
+#[derive(CandidType, Deserialize, Serialize, Clone , Debug)]
 pub struct Pool_Data{
     pub pool_data : Vec<CreatePoolParams>,
     pub swap_fee : f64
@@ -233,13 +237,11 @@ pub(crate) struct CreateCanisterArgumentExtended {
 // }
 
 
-#[derive(CandidType, Deserialize ,Clone)]
+
+#[derive(CandidType, Deserialize ,Serialize, Clone)]
+
 pub struct SwapParams {
     pub token1_name : String,
-    pub token1_amount : u64,
+    pub token_amount : u64,
     pub token2_name : String,
-    pub token2_amount : u64,
-    pub zero_for_one : bool,
-    pub swap_amount : u64,
-    pub swap_fee : f64
 }

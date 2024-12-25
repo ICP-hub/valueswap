@@ -58,12 +58,12 @@ const PoolInfo = () => {
                 }
                 <span className='mx-1'>:  :</span>
 
-                <span>{TokenData?.PoolData[0].WeightedPercentage}</span>
+                <span>{TokenData?.PoolData[0].weights}</span>
                 {
                   TokenData?.PoolData.slice(1).map((token, index) => (
                     <div key={index} className=''>
                       <span className='mx-0.5'>/</span>
-                      {token.WeightedPercentage}
+                      {token.weights}
                     </div>
                   ))
                 }

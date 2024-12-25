@@ -3,14 +3,14 @@ dfx deploy swap
 set -e
 
 # Create and use the DevJourney identity
-dfx identity new DevJourney || true
-dfx identity use DevJourney
+dfx identity new Bhanu || true
+dfx identity use Bhanu --network ic
 
 # dfx canister create swap
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER=$(dfx identity get-principal)
+export MINTER=$(dfx identity get-principal --network ic)
 echo "MINTER principal: $MINTER"
 
 # Set token details
@@ -24,7 +24,7 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use default
+dfx identity use Nikhilrai --network ic
 export DEFAULT=$(dfx identity get-principal)
 echo "DEFAULT principal: $DEFAULT"
 
@@ -55,18 +55,18 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS"
+dfx deploy ckbtc_ledger --argument "$DEPLOY_ARGUMENTS"  --network ic
 
 
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
 ./deploy_cketh.sh
-dfx deploy
-dfx deploy valueswap_backend
+dfx deploy --network ic --mode reinstall
+# dfx deploy valueswap_backend --network ic
 echo "ckBTC got deployed"
 
 # Check the balance of the default identity
-# balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
-# echo "Balance of the DEFAULT account: $balance"
+balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
+echo "Balance of the DEFAULT account: $balance"
 
