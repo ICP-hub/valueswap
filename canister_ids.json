@@ -1,13 +1,4 @@
 {
-  "LP_ledger_canister": {
-    "ic": "i2gbt-4iaaa-aaaac-aadbq-cai"
-  },
-  "ckbtc": {
-    "ic": "ipbq6-5aaaa-aaaac-aadca-cai"
-  },
-  "cketh": {
-    "ic": "iiawk-qyaaa-aaaac-aadcq-cai"
-  },
   "swap": {
     "ic": "i5hhh-rqaaa-aaaac-aadba-cai"
   },

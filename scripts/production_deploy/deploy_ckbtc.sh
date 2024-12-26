@@ -1,7 +1,13 @@
 #!/bin/bash
+<<<<<<< HEAD
 dfx deploy swap --network ic --no-wallet
+=======
+dfx deploy swap --network ic
+./LP.sh 
+>>>>>>> 26ad3fc (add faucet)
 set -e
 ./LP_ledger.sh
+
 
 
 # Create and use the DevJourney identity

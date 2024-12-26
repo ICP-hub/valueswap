@@ -68,6 +68,72 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
         } else {
             setIsSticky(false);
         }
+
+      
+        if (principal) {
+          getDisplayFunction();
+        }
+      }, [principal]);
+      
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // This effect will run when the location changes
+        setActiveLink(location.pathname);
+    }, [location]);
+
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 0) {
+                setIsSticky(true);
+            } else {
+                setIsSticky(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
+
+    // console.log("isAuthenticated", isAuthenticated, principal)
+    console.log("open", open)
+
+
+    return (
+        <div className={` transition-all duration-700 ${isSticky ? 'sticky top-0' : 'relative top-4'} z-50 px-4 md:px-8 `}>
+            <div className="flex justify-center  font-gilroy   ">
+
+                <ul className={`md:hidden md:items-center  md:pb-0 pb-12 absolute md:static rounded-lg left-0 w-full md:w-auto md:pl-0  transition-all duration-500 ease-in gap-2 xl:gap-6 ${open ? 'top-12 bg-[#010427] md:bg-transparent' : 'top-[-510px]'}`}>
+                    {
+                        NavbarData.Links.map((Link, index) => (
+                            <li key={index} className='md:ml-2  md:my-0 my-7 font-normal '>
+                                <RouterLink
+                                    to={Link.LinkPath}
+                                    className='text-white duration-500 hover:text-orange-500'
+                                    onClick={() => {
+                                        setActiveLink(index)
+                                        setOpen(!open)
+
+                                    }}
+                                >
+                                    <div className='flex flex-col justify-center text-custom-size-14 sm:leading-10 md:text-xl  items-center'>
+                                        {Link?.LinkName}
+                                        <div className={`${activeLink === index ? ' bg-orange-500 w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
+                                        <div className={`${activeLink === Link.LinkPath ? ' bg-orange-500 w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
+                                    </div>
+                                </RouterLink>
+                            </li>
+                        ))
+                    }
+
+                    <div className='block font-semibold text-center my-7 md:hidden '>
+
+
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -180,6 +246,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                     >
                       <div className='flex flex-col justify-center text-custom-size-14 sm:leading-10 md:text-xl  items-center'>
                         {Link?.LinkName}
+
                         <div
                           className={`${
                             activeLink === index

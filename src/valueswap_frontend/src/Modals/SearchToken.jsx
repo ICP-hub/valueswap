@@ -135,6 +135,10 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
                         ImagePath: ImagePath,
                         ShortForm: ShortForm,
 
+//                         CanisterId: CanisterId,
+                        // CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC,
+
+
                         // CanisterId: CanisterId,
                         CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC,
 
