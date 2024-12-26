@@ -7,7 +7,6 @@ use ic_cdk::api::call::CallResult;
 use crate::api::transfer::BlockIndex;
 mod utils;
 pub mod vault;
-mod logic;
 mod api;
 mod constants;
 mod memory;
