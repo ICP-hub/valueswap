@@ -4,7 +4,7 @@ import { useAuth } from '../components/utils/useAuthClient';
 import { toast } from 'react-toastify';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import CircularProgress from '@mui/material/CircularProgress';
-import { idlFactory as tokenIdl } from '../../../declarations/ckbtc_ledger';
+import { idlFactory as tokenIdl } from '../../../declarations/ckbtc';
 import { Principal } from '@dfinity/principal';
 function WithdrawModel({ setOpenWithdraw, poolName }) {
     const [change, setChange] = useState(false);
