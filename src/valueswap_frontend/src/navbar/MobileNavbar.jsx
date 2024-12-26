@@ -81,11 +81,8 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
 
     return (
         <div className={` transition-all duration-700 ${isSticky ? 'sticky top-0' : 'relative top-4'} z-50 px-4 md:px-8 `}>
-<<<<<<< HEAD
             <div className="flex justify-center  font-gilroy   ">
-=======
-            <div className="flex justify-center  font-cabin   ">
->>>>>>> 26ad3fc (add faucet)
+
                 <ul className={`md:hidden md:items-center  md:pb-0 pb-12 absolute md:static rounded-lg left-0 w-full md:w-auto md:pl-0  transition-all duration-500 ease-in gap-2 xl:gap-6 ${open ? 'top-12 bg-[#010427] md:bg-transparent' : 'top-[-510px]'}`}>
                     {
                         NavbarData.Links.map((Link, index) => (
