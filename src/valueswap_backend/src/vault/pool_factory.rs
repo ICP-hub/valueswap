@@ -47,10 +47,10 @@ fn prevent_anonymous() -> Result<(), String> {
 
 #[update(guard = prevent_anonymous)]
 async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
-    if params.pool_data.is_empty() {
-        return Err(CustomError::PoolDataEmpty);
-    }
+    // Validate input data at the very beginning
+    params.validate()?;
 
+    // Existing logic continues from here
     let principal_id = ic_cdk::caller();
     let pool_name = params
         .pool_data
@@ -72,11 +72,24 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
 
     // Ensure lock is released after operation
     let release_lock = || {
-        let mut locks = LOCKS.lock().unwrap_or_else(|e| {
-            panic!("Failed to unlock LOCKS: {}", e);
-        });
-        locks.remove(&pool_name);
+        let result = LOCKS.lock();
+        match result {
+            Ok(mut locks) => {
+                locks.remove(&pool_name);
+                if locks.contains_key(&pool_name) {
+                    log::warn!("Failed to remove the lock for pool: {}", pool_name);
+                }
+            },
+            //Poisoned lock: Thread panicked while holding the lock
+            Err(e) => {
+                log::error!("Failed to unlock LOCKS due to a poisoned lock: {}", e);
+                //can choose to log this and continue, or trigger a recovery process.
+                //for now, just logging. No recovery process of lock is done.
+            }
+        }
     };
+    
+    
 
     let result = async {
         let pool_canister_id = with_state(|pool| {
@@ -86,18 +99,21 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
 
         if let Some(canister_id) = pool_canister_id {
             // Add liquidity and update pool details
-            add_liquidity_curr(params.clone());
-            add_liquidity(params.clone(), canister_id.principal.clone());
+            // This line should replace your current call to add_liquidity_curr
+            add_liquidity_curr(params.clone()).map_err(|e| CustomError::OperationFailed(e))?;
+
+            add_liquidity(params.clone(), canister_id.principal.clone()).await.map_err(|_| CustomError::TokenDepositFailed)?;
 
             increase_pool_lp_tokens(params.clone());
             users_pool(params.clone());
             store_pool_data(params.clone(), canister_id.principal)
-                .await
-                .map_err(|e| CustomError::UnableToStorePoolData(e));
+            .await
+            .map_err(|e| CustomError::UnableToStorePoolData(e))?;
+
 
             users_lp_share(principal_id.clone(), params.clone())
                 .await
-                .map_err(|e| CustomError::UnableToTransferLP(e));
+                .map_err(|e| CustomError::UnableToTransferLP(e))?;
 
             for amount in params.pool_data.iter() {
                 deposit_tokens(
@@ -123,18 +139,19 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                         );
                     });
 
-                    store_pool_data_curr(params.clone());
+                    store_pool_data_curr(params.clone()).map_err(|e| CustomError::UnableToStorePoolData(e))?;
+
 
                     store_pool_data(params.clone(), canister_id_record)
                         .await
-                        .map_err(|e| CustomError::UnableToStorePoolData(e));
+                        .map_err(|e| CustomError::UnableToStorePoolData(e))?;
 
                     increase_pool_lp_tokens(params.clone());
                     users_pool(params.clone());
 
                     users_lp_share(principal_id.clone(), params.clone())
                         .await
-                        .map_err(|e| CustomError::UnableToTransferLP(e));
+                        .map_err(|e| CustomError::UnableToTransferLP(e))?;
 
                     for amount in params.pool_data.iter() {
                         deposit_tokens(
@@ -159,6 +176,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
 
     result
 }
+
 
 #[update]
 // Create canister
