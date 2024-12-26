@@ -15,11 +15,11 @@ import { nanoid } from 'nanoid';
 export const LandingPageNavbarData = {
     ButtonText: 'Explore Pools',
     Links: [
-        {
-            LinkName: 'Home',
-            LinkId: 'home',
-            LinkPath: '/',
-        },
+        // {
+        //     LinkName: 'Home',
+        //     LinkId: 'home',
+        //     LinkPath: '/',
+        // },
         {
             LinkName: 'Swap',
             LinkId: 'swap',
@@ -44,14 +44,14 @@ export const LandingPageNavbarData = {
 }
 
 export const CommonNavbarData = {
-    ButtonText: 'Connect Wallet',
+    ButtonText: 'Connect',
     ButtonTextDisconnet: "Disconnect",
     Links: [
-        {
-            LinkName: 'Home',
-            LinkId: 'home',
-            LinkPath: '/',
-        },
+        // {
+        //     LinkName: 'Home',
+        //     LinkId: 'home',
+        //     LinkPath: '/',
+        // },
         {
             LinkName: 'Swap',
             LinkId: 'swap',
@@ -295,16 +295,16 @@ export const SwapModalData = {
         Heading: 'Pay',
         Balance: 'Balance',
         Max: 'Max',
-        NoTokenSelectBalanceMessage: 'Select a Coin to Fetch Balance',
-        TokenSelectButtonText: 'Select a Token',
+        NoTokenSelectBalanceMessage: 'Select Coin to Fetch Balance',
+        TokenSelectButtonText: 'Select Token',
     },
 
     RecieveSection: {
         Heading: 'Recieve',
         Balance: 'Balance',
         Max: 'Max',
-        NoTokenSelectBalanceMessage: 'Select a Coin to Fetch Balance',
-        TokenSelectButtonText: 'Select a Token',
+        NoTokenSelectBalanceMessage: 'Select Coin to Fetch Balance',
+        TokenSelectButtonText: 'Select Token',
     },
     bothCoinsPresent: {
         Price: 'Price',

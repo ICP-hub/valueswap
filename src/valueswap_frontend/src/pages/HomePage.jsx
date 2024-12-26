@@ -5,6 +5,7 @@ import PoolPage from './PoolPage'
 import PortfolioPage from './PortfolioPage'
 import { Routes, Route } from 'react-router-dom'
 import Faucet from './Faucet'
+import OnWithDraw from './OnWithdraw'
 
 const HomePage = () => {
 
@@ -17,7 +18,7 @@ const HomePage = () => {
                 <Route path="/portfolio/*" element={<PortfolioPage />} />
                 <Route path="/pool/*" element={<PoolPage />} />
                 <Route path='/faucet' element={<Faucet/>}/>
-
+                <Route path="/on-withdraw" element={<OnWithDraw/>} />
             </Routes>
         </div>
     )

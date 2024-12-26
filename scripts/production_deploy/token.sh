@@ -64,10 +64,10 @@
 # }
 
 # # Deploy ckBTC
-# deploy_token "ckBTC" "ckBTC" "ckbtc_ledger"
+# deploy_token "ckBTC" "ckBTC" "ckbtc"
 
 # # Switch back to DevJourney for the next token deployment
 # dfx identity use DevJourney
 
 # # Deploy ckETH
-# deploy_token "ckETH" "ckETH" "cketh_ledger"
+# deploy_token "ckETH" "ckETH" "cketh"
