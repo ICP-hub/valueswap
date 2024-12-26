@@ -8,7 +8,7 @@ SOURCE_CANISTER="be2us-64aaa-aaaaa-qaabq-cai"
 RECEIVER_PRINCIPAL="rgtib-ktq4g-rjiya-aishg-mv2om-ey54m-jhyut-2tuaf-tvjyz-ml54r-lae"
 
 # Set the ledger canister ID (replace this with your actual ledger canister ID)
-LEDGER_CANISTER_ID=$(dfx canister id ckbtc_ledger)
+LEDGER_CANISTER_ID=$(dfx canister id ckbtc)
 
 # Set the amount to transfer (10,000 tokens)
 AMOUNT=10000000  # Adjust the amount as per ledger decimals
