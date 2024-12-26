@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react'
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom'
 import GradientButton from '../buttons/GradientButton'
@@ -6,6 +7,7 @@ import Profile from './Profile'
 import { useSelector } from 'react-redux'
 import { Principal } from '@dfinity/principal'
 import { useAuth } from '../components/utils/useAuthClient'
+
 const options = [
   // { value: 'ethereum', label: 'Ethereum', img: '/src/assets/images/Network/Ethereum.png' },
   // { value: 'bitcoin', label: 'Bitcoin', img: 'images/Bitcoin.png' },
@@ -13,6 +15,7 @@ const options = [
 ]
 
 const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
+
   const [activeLink, setActiveLink] = useState()
   const [open, setOpen] = useState(false)
   const [Principal, setPrincipal] = useState()
@@ -218,6 +221,8 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
               </ul>
             </div>
 
+  
+
             {/* drop down Network*/}
             {/* {location.pathname === "/valueswap" && <div className="relative inline-block ">
                             <div
@@ -249,6 +254,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                 ))}
                             </div>
                         </div>} */}
+
           </div>
           {/* //// */}
           <div className='hidden pr-1 font-semibold md:my-0 my-7 md:flex md:items-center md:gap-5'>
@@ -265,6 +271,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                           }}
                         >
                           {NavbarData.ButtonText}
+    
                         </div>
                       )}
                     </div>

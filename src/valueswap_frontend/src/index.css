@@ -3,8 +3,10 @@
 @tailwind utilities;
 
 body {
-  background-color: #000711;
-  color: white
+  background-image: url(/image/bg_1.png);
+  color: white;
+  background-color: #000;
+ 
 }
 
 @font-face {
@@ -221,7 +223,13 @@ animation: moveLeft 5s infinite linear; /* Adjust the duration and timing functi
 
 
 /* width */
-::-webkit-scrollbar {
-display: none;
-  
+
+
+#navLink:after {
+  display:block;
+  content: '';
+  border-bottom: solid 1px #F7931A;  
+  transform: scaleX(0);  
+  transition: transform 250ms ease-in-out;
 }
+#navLink:hover:after { transform: scaleX(1); }
