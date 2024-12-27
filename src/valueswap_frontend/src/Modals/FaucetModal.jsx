@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import React, { useState } from 'react'
 import { X } from 'lucide-react'
 import GradientButton from '../buttons/GradientButton'
@@ -12,7 +11,7 @@ const FaucetModal = ({setModelOpen, imgUrl, TokenName}) => {
   let ledger_canister_id = faucetList?.find((token) => token.name.toLowerCase() == TokenName.TokenName?.toLowerCase() )
    const depositeHandler = async(scaledAmount) =>{
     let ledgerPrincipal = Principal.fromText(ledger_canister_id.CanisterId)
-    console.log("called")
+    console.log("called", ledgerPrincipal, principal, BigInt(scaledAmount))
     const res = await backendActor?.faucet(ledgerPrincipal, principal, BigInt(scaledAmount) );
     console.log("res", res)
     if(res.Ok){
@@ -21,15 +20,8 @@ const FaucetModal = ({setModelOpen, imgUrl, TokenName}) => {
    }
 
   console.log("TokenName", TokenName.TokenName)
-=======
-import React from 'react'
-import { X } from 'lucide-react'
-import GradientButton from '../buttons/GradientButton'
-const FaucetModal = ({setModelOpen, imgUrl, TokenName}) => {
-  console.log("TokenName", TokenName)
->>>>>>> 26ad3fc (add faucet)
   return (
-  <div className='fixed top-[12%] left-0 w-full h-full bg-opacity-50 backdrop-blur-sm'>
+  <div className='fixed top-0 left-0 w-full h-full bg-opacity-50 backdrop-blur-sm'>
       <div className='  max-w-[480px] h-[300px] mt-36 mx-auto  bg-[#182030] rounded-lg  p-8'>
         <div className='flex justify-between'>
           <h1 className='text-2xl font-semibold'>
@@ -41,11 +33,7 @@ const FaucetModal = ({setModelOpen, imgUrl, TokenName}) => {
         <div>Transaction overview</div>
         <div className='flex justify-between'>
          <div className='my-auto'>
-<<<<<<< HEAD
          <input type="number" className='bg-transparent p-2 border-2 border-[#3c3f44] active:border-[#3c3f44] focus:outline-none rounded-md' onChange={(e)=> setFaucetAmount(e.target.value)}/>
-=======
-         <input type="number" className='bg-transparent p-2 border-2 border-[#3c3f44] active:border-[#3c3f44] focus:outline-none rounded-md'/>
->>>>>>> 26ad3fc (add faucet)
          </div>
           <div className='space-y-4'>
             <div className='flex gap-x-2 items-center'>
@@ -59,11 +47,7 @@ const FaucetModal = ({setModelOpen, imgUrl, TokenName}) => {
           </div>
         </div>
 
-<<<<<<< HEAD
           <GradientButton CustomCss={` w-full md:w-full`} onClick={() =>depositeHandler(faucetAmount)}>
-=======
-          <GradientButton CustomCss={` w-full md:w-full`}>
->>>>>>> 26ad3fc (add faucet)
          Faucet {TokenName.TokenName}
         </GradientButton>
         </div>
