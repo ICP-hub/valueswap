@@ -1,9 +1,5 @@
-use candid::{CandidType, Deserialize, Nat, Principal};
-use ic_cdk::caller;
+use candid::{ Nat, Principal};
 use ic_cdk_macros::*;
-use serde::de::value::Error;
-use std::borrow::Borrow;
-use std::cell::Ref;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
@@ -16,31 +12,9 @@ pub use utils::types::*;
 
 thread_local! {
     pub static POOL_DATA: RefCell<BTreeMap<Principal, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
-    // pub static LP_SHARE : RefCell<BTreeMap<Principal , f64>> = RefCell::new(BTreeMap::new());
     pub static POOL_BALANCE : RefCell<BTreeMap<Principal , Nat>> = RefCell::new(BTreeMap::new());
 }
 
-// #[update]
-// fn increase_total_lp(params : Pool_Data)  {
-//     TOTAL_LP.with(|lp|{
-//         let mut total_lp = lp.borrow_mut().clone();
-//         for amount in params.pool_data{
-//             let temp = amount.balance as f64 * amount.value as f64;
-//             total_lp += temp.borrow();
-//         }
-//         total_lp
-//     });
-// }
-
-// #[query]
-// fn get_total_lp() -> f64 {
-//     TOTAL_LP.with(|lp|{ lp.borrow().clone()})
-// }
-
-// #[update]
-// pub fn cmm_algorithm(){
-
-// }
 
 
 #[update]
@@ -127,7 +101,25 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
 }
 
 
+#[update]
+pub async fn lp_rollback(user: Principal, pool_data: Pool_Data) -> Result<(), String> {
+    for amount in pool_data.pool_data.iter() {
+        let transfer_result = icrc1_transfer(amount.ledger_canister_id , user, amount.balance.clone()).await;
+        if let Err(e) = transfer_result {
+            ic_cdk::trap(&format!(
+                "Rollback failed for user {} on token {}: {}",
+                user, amount.token_name, e
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+
+
 // TODO : make ledger calls with state checks for balance to prevent TOCTOU vulnerablities
+// TODO : make use of user_share_ratio
 
 #[update]
 async fn burn_tokens(
@@ -172,117 +164,9 @@ async fn get_burned_tokens(params: Pool_Data, user: Principal, user_share_ratio:
     result
 }
 
-// fn pre_swap(params: SwapParams) -> Result<(), SwapError> {
-//     let entered_token: u64 = if params.zero_for_one {
-//         params.token1
-//     } else {
-//         params.token2
-//     };
-
-//     if entered_token <= 0 {
-//         return Err(SwapError::InvalidAmount);
-//     }
-//     Ok(())
-// }
-
-// #[update]
-// fn swap(params : SwapParams) -> Result<() , String>{
-
-// }
-
-// #[query]
-// fn pre_compute_swap(params: SwapParams) -> (String, f64) {
-//     // let required_pools = match search_swap_pool(params.clone()) {
-//     //     Ok(pools) => pools,
-//     //     Err(_) => {
-//     //         ic_cdk::println!("No matching pools found.");
-//     //         return ("No matching pools found.".to_string(), 0.0);
-//     //     }
-//     // };
-
-//     // let mut best_pool = None;
-//     // let mut max_output_amount = 0.0;
-
-//     POOL_DATA.with(|pool_data| {
-//         let pool_data = pool_data.borrow();
-
-//         for pool_key in required_pools {
-//             let pool_entries = match pool_data.get(&pool_key) {
-//                 Some(entries) => entries,
-//                 None => {
-//                     ic_cdk::println!("Pool key {} not found in POOL_DATA.", pool_key);
-//                     continue;
-//                 }
-//             };
-
-//             for data in pool_entries {
-//                 // Find the tokenA (input) and tokenB (output) from the pool data
-//                 let tokenA_data = data
-//                     .pool_data
-//                     .iter()
-//                     .find(|p| p.token_name == params.token1_name);
-//                 let tokenB_data = data 
-//                     .pool_data
-//                     .iter()
-//                     .find(|p| p.token_name == params.token2_name);
-
-//                 // ic_cdk::println!(
-//                 //     "Testing pool_key {} with tokenA_data: {:?}, tokenB_data: {:?}",
-//                 //     pool_key,
-//                 //     tokenA_data,
-//                 //     tokenB_data
-//                 // );
-
-//                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
-//                     let b_i = tokenA.balance as f64;
-//                     let w_i = tokenA.weight as f64;
-//                     let b_o = tokenB.balance as f64;
-//                     let w_o = tokenB.weight as f64;
-//                     // ic_cdk::println!("Argument for swap {:?} , {:?} , {:?} , {:?}",b_i,w_i,b_o,w_o);
-
-//                     let amount_out = params.token_amount as f64;
-//                     let fee = data.swap_fee;
-//                     // ic_cdk::println!("{:?}, {:?} ",amount_out , fee);
-
-//                     // Calculate the required input using the in_given_out formula
-//                     let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out, fee);
-//                     // ic_cdk::println!("The required output is {:?}", required_input);
-//                     // ic_cdk::println!("Required Input {:}", required_input);
-
-//                     // Ensure the user has enough balance to provide the input
-//                     if required_input >= max_output_amount {
-//                         max_output_amount = f64::max(required_input, max_output_amount);
-
-//                         best_pool = Some(pool_key.clone());
-//                         // Check if the current pool gives a better output
-//                         // if calculated_output > max_output_amount {
-//                         //     max_output_amount = calculated_output;
-//                         // }
-//                     }
-//                 } else {
-//                     ic_cdk::println!("Either tokenA or tokenB was not found in pool.");
-//                 }
-//             }
-//         }
-//     });
-
-//     match best_pool {
-//         Some(pool) => (pool, max_output_amount),
-//         None => ("No suitable pool found.".to_string(), 0.0),
-//     }
-// }
-
 
 #[update]
 async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Result<(), String> {
-    // pool canister id
-    // let token_canister_id = ic_cdk::api::id();
-
-    // Convert f64 to u64
-    // let amount_as_u64: u64 = amount as u64;
-
-    // Convert u64 to Nat
-    // let amount_nat = Nat::from(amount_as_u64);
 
     // Example usage within your swap function
     let transfer_result = icrc1_transfer(
@@ -307,8 +191,8 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Res
     // let mut user_pool_data = pool_data.unwrap();
 
     // Check if user has enough balance and liquidity
-    let mut has_sufficient_balance = false;
-    let mut has_sufficient_liquidity = false;
+    let has_sufficient_balance = false;
+    let has_sufficient_liquidity = false;
 
     let length = pool_data.len();
 
@@ -354,39 +238,5 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Res
     Ok(())
 }
 
-// fn pre_swap_for_all(params: SwapParams, operator: Principal) -> Result<Nat, SwapError> {
-//     // let swap_result = match compute_swap(args.clone(), operator, false) {
-//     //     Ok(result) => result,
-//     //     Err(code) => return Err(SwapError::InternalError(format!("preswap {:?}", code))),
-//     // };
-
-//     let mut effective_amount = 0;
-//     let mut swap_amount = 0;
-
-//     // if params.zero_for_one && swap_result.amount1 < 0 {
-//     //     swap_amount = Nat::from((-swap_result.amount1) as u64);
-//     //     effective_amount = Nat::from(swap_result.amount0 as u64);
-//     // }
-
-// //     if !args.zero_for_one && swap_result.amount0 < 0 {
-// //         swap_amount = Nat::from((-swap_result.amount0) as u64);
-// //         effective_amount = Nat::from(swap_result.amount1 as u64);
-// //     }
-
-//     if swap_amount <= Nat::from(0) {
-//         return Err(SwapError::InternalError(
-//             "The amount of input token is too small.".to_string(),
-//         ));
-// } else if params.amount_in.parse::<i64>().unwrap_or(0) > effective_amount.to_u64().unwrap_or(0)
-//         && effective_amount > Nat::from(0)
-//     {
-//         return Err(SwapError::InternalError(format!(
-//             "The maximum amount of input tokens is {:?}",
-//             effective_amount
-// //         )));
-//     } else {
-//         return Ok(swap_amount);
-//     }
-// }
 
 export_candid!();

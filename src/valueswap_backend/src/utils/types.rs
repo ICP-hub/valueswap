@@ -59,6 +59,52 @@ pub struct Pool_Data{
     pub swap_fee : Nat
 }
 
+impl Pool_Data {
+    pub fn validate(&self) -> Result<(), CustomError> {
+        
+        if self.pool_data.is_empty() {
+            return Err(CustomError::PoolDataEmpty);
+        }
+
+        // Validate each pool data entry
+        for pool in &self.pool_data {
+            // Ensure token name is not empty
+            if pool.token_name.trim().is_empty() {
+                return Err(CustomError::InvalidInput("Token name cannot be empty".to_string()));
+            }
+
+            // Ensure balances, weights, and values are not zero
+            if pool.balance == Nat::from(0u64) || pool.weight == Nat::from(0u64) || pool.value == Nat::from(0u64) {
+                return Err(CustomError::InvalidInput("Balance, weight, and value must be greater than zero".to_string()));
+            }
+
+            // Validate the ledger canister ID
+            if pool.ledger_canister_id.to_text().is_empty() {
+                return Err(CustomError::InvalidInput("Ledger canister ID cannot be empty".to_string()));
+            }
+
+            // Optionally, validate image URL format or content if applicable
+            if !self.is_valid_image_url(&pool.image) {
+                return Err(CustomError::InvalidInput("Invalid image URL".to_string()));
+            }
+        }
+
+        // Validate swap fee is not zero if applicable
+        // Use Nat::from(0u64) here as well
+        if self.swap_fee == Nat::from(0u64) {
+            return Err(CustomError::InvalidInput("Swap fee cannot be zero".to_string()));
+        }
+
+        Ok(())
+    }
+
+    // Example URL validation method (simplified)
+    fn is_valid_image_url(&self, url: &str) -> bool {
+        url.starts_with("http://") || url.starts_with("https://")
+    }
+}
+
+
 /// Represents the user's share with their token balances.
 #[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
 pub struct UserShare {
@@ -259,5 +305,7 @@ pub enum CustomError {
     UnableToTransferLP(String),
     NoCanisterIDFound,
     SwappingFailed(String),
-
+    InvalidInput(String),
+    OperationFailed(String),
+    UnableToRollbackLP(String),
 }

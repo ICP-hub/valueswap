@@ -39,19 +39,6 @@ impl From<String> for SwapError {
     }
 }
 
-// // Utility functions for Nat and Int conversions
-// pub mod utils {
-//     use candid::Nat;
-
-//     pub fn int_to_nat(val: i64, bits: u32) -> Nat {
-//         Nat::from(val as u64)
-//     }
-
-//     // pub fn nat_to_int(val: Nat) -> i64 {
-//     //     val.0.to_u64().unwrap_or(0) as i64
-//     // }
-// }
-
 #[derive(CandidType, Deserialize, Serialize, Clone, Debug)]
 pub struct CreatePoolParams{
     pub token_name : String,
