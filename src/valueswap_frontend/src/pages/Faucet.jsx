@@ -1,5 +1,5 @@
 import { Wallet } from 'lucide-react'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import BorderGradientButton from '../buttons/BorderGradientButton'
 import GradientButton from '../buttons/GradientButton'
 import FaucetModal from '../Modals/FaucetModal'
@@ -9,7 +9,7 @@ let tokens = [
     {
         imgUrl: "/image/ckBTC.svg",
         TokenName: "ckBTC",
-        CanisterId: process.env.CANISTER_ID_CKBTC
+        WalletBalance: "0"
     },
     {
         imgUrl: "/image/ckETH.svg",

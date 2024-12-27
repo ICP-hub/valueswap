@@ -17,7 +17,11 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
+<<<<<<< HEAD
 dfx identity use DevJourney 
+=======
+dfx identity use Harshit
+>>>>>>> f77b7ce (add spinner in withdraw)
 export DEFAULT=$(dfx identity get-principal )
 echo "DEFAULT principal: $DEFAULT"
 
@@ -30,7 +34,7 @@ export NUM_OF_BLOCK_TO_ARCHIVE=1000
 export CYCLE_FOR_ARCHIVE_CREATION=10000000000000
 export FEATURE_FLAGS=true
 
-# Deploy the ckbtc_ledger canister with the specified initialization arguments
+# Deploy the ckbtc canister with the specified initialization arguments
 DEPLOY_ARGUMENTS="(variant {Init = record {
   token_symbol = \"${TOKEN_SYMBOL}\";
   token_name = \"${TOKEN_NAME}\";

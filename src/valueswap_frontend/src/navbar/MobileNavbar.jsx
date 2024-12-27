@@ -131,14 +131,10 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                 <div className="w-full  rounded-2xl  flex justify-between max-w-[1200px] tracking-wide items-center py-4 md:py-4 px-2">
 
                     <div className='flex items-center justify-between px-2 md:justify-start'>
-                      <RouterLink
-                      to="/"
-                      >
-                      <div className='flex items-center justify-around'>
+                        <div className='flex items-center justify-around'>
                             <img src="./image/valueswap.png" alt="" className='w-28 h-full sm:w-36  object-contain' />
                             <div className="items-center hidden md:inline-block h-8 ml-2 md:ml-4 lg:ml-6 border-l border-white "></div>
                         </div>
-                      </RouterLink>
 
 
                     </div>
