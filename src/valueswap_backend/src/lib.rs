@@ -2,7 +2,6 @@ use ic_cdk::export_candid;
 use std::collections::{HashMap,BTreeMap};
 use candid::{Principal, Nat};
 use std::cell::RefCell;
-use ic_cdk::api::call::CallResult;
 // use ic_xrc_types::GetExchangeRateResult;
 use crate::api::transfer::BlockIndex;
 mod utils;

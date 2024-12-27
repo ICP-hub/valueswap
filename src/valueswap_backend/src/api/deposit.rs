@@ -84,49 +84,49 @@ pub async fn transfer_from(
 
 
 // to get exchange rates
-// #[ic_cdk::update]
-// pub async fn get_exchange_rates() -> Result<(f64, u64), String>  {
-//     // let x = GetExchangeRateRequest {
+#[ic_cdk::update]
+pub async fn get_exchange_rate(
+    base_asset_symbol: String, 
+    quote_asset_symbol: String
+) -> Result<(f64, u64), String> {
 
-//     // }
+    let args = GetExchangeRateRequest {
+        timestamp: None,
+        quote_asset: Asset {
+            class: AssetClass::Cryptocurrency,
+            symbol: quote_asset_symbol.clone(),
+        },
+        base_asset: Asset {
+            class: AssetClass::Cryptocurrency,
+            symbol: base_asset_symbol.clone(),
+        },
+    };
 
-//     let args = GetExchangeRateRequest {
-//         timestamp: None,
-//         quote_asset: Asset {
-//             class: AssetClass::Cryptocurrency,
-//             symbol: "USDT".to_string(),
-//         },
-//         base_asset: Asset {
-//             class: AssetClass::Cryptocurrency,
-//             symbol: "ICP".to_string(),
-//         },
-//     };
+    let res: Result<(GetExchangeRateResult,), (ic_cdk::api::call::RejectionCode, String)> = 
+        ic_cdk::api::call::call_with_payment128(
+            Principal::from_text(crate::constants::asset_address::CANISTER_ID_XRC).unwrap(), 
+            "get_exchange_rate", 
+            (args,), 
+            1_000_000_000
+        ).await;
 
-//     let res: Result<(GetExchangeRateResult,), (ic_cdk::api::call::RejectionCode, String)> 
-//     = ic_cdk::api::call::call_with_payment128(Principal::from_text(crate::constants::asset_address::CANISTER_ID_XRC).unwrap(), "get_exchange_rate", (args, ), 1_000_000_000).await;
-
-
-//     match res {
-//         Ok(res_value) => {
-//             match res_value.0 {
-//                 GetExchangeRateResult::Ok(v) => {
-
-//                     let quote = v.rate;
-//                     let pow = 10usize.pow(v.metadata.decimals);
-//                     let res = quote as f64 / pow as f64;
-//                     let time = ic_cdk::api::time();
-//                     return Ok((res,time));
-//                     //return Ok((price, time));
-//                 },
-//                 GetExchangeRateResult::Err(e) => {
-//                     return Err(format!("ERROR :: {:?}", e));
-//                 }
-//             }
-//         },
-//         Err(error) => {
-      
-//             return Err(format!("Could not get USD/ICP Rate - {:?} - {}", error.0, error.1));
-//         },
-//     }
-
-// }
+    match res {
+        Ok(res_value) => {
+            match res_value.0 {
+                GetExchangeRateResult::Ok(v) => {
+                    let quote = v.rate;
+                    let pow = 10usize.pow(v.metadata.decimals);
+                    let res = quote as f64 / pow as f64;
+                    let time = ic_cdk::api::time();
+                    Ok((res, time))
+                },
+                GetExchangeRateResult::Err(e) => {
+                    Err(format!("ERROR :: {:?}", e))
+                }
+            }
+        },
+        Err(error) => {
+            Err(format!("Could not get {}/{} Rate - {:?} - {}", base_asset_symbol, quote_asset_symbol, error.0, error.1))
+        },
+    }
+}

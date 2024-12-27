@@ -1,9 +1,5 @@
-use candid::{CandidType, Deserialize, Nat, Principal};
-use ic_cdk::caller;
+use candid::{ Nat, Principal};
 use ic_cdk_macros::*;
-use serde::de::value::Error;
-use std::borrow::Borrow;
-use std::cell::Ref;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
@@ -105,7 +101,25 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
 }
 
 
+#[update]
+pub async fn lp_rollback(user: Principal, pool_data: Pool_Data) -> Result<(), String> {
+    for amount in pool_data.pool_data.iter() {
+        let transfer_result = icrc1_transfer(amount.ledger_canister_id , user, amount.balance.clone()).await;
+        if let Err(e) = transfer_result {
+            ic_cdk::trap(&format!(
+                "Rollback failed for user {} on token {}: {}",
+                user, amount.token_name, e
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+
+
 // TODO : make ledger calls with state checks for balance to prevent TOCTOU vulnerablities
+// TODO : make use of user_share_ratio
 
 #[update]
 async fn burn_tokens(
@@ -177,8 +191,8 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Res
     // let mut user_pool_data = pool_data.unwrap();
 
     // Check if user has enough balance and liquidity
-    let mut has_sufficient_balance = false;
-    let mut has_sufficient_liquidity = false;
+    let has_sufficient_balance = false;
+    let has_sufficient_liquidity = false;
 
     let length = pool_data.len();
 

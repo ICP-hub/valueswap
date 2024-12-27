@@ -1,9 +1,8 @@
 use candid::{Nat, Principal};
-use ic_cdk::api::call;
-use ic_cdk::{api, call};
+use ic_cdk:: call;
 use ic_cdk_macros::{query, update};
-use std::cell::{Ref, RefCell};
-use std::collections::{BTreeMap, HashMap};
+use std::cell:: RefCell;
+use std::collections::BTreeMap;
 
 use crate::api::deposit::deposit_tokens;
 use crate::api::transfer::icrc1_transfer;
@@ -92,7 +91,7 @@ fn get_users_pool(user: Principal) -> Option<Vec<String>> {
 
 // To get all lp tokens
 
-#[update]
+#[query]
 fn total_lp_tokens() {
     let mut total_supply: Nat = Nat::from(0u128);
     POOL_LP_SHARE.with(|share| {
@@ -126,7 +125,8 @@ fn get_lp_tokens(pool_name: String) -> Option<Nat> {
 }
 
 #[update]
-pub async fn users_lp_share(user: Principal, params: Pool_Data) -> Result<(), String> {
+pub async fn users_lp_share( params: Pool_Data) -> Result<(), String> {
+    let user = ic_cdk::caller();
     let mut users_contribution: Nat = Nat::from(1u128);
     USERS_LP.with(|share| {
         for amount in params.pool_data {
@@ -140,22 +140,24 @@ pub async fn users_lp_share(user: Principal, params: Pool_Data) -> Result<(), St
 
         ic_cdk::spawn(async move {
             let mut attempts = 0;
-            let max_retries = 2;
+            let max_retries = 3;
+            let mut success = false;
 
             while attempts < max_retries {
                 let transfer_result = icrc1_transfer(user, amount.clone()).await;
                 if transfer_result.is_ok() {
+                    success = true;
                     break; // Exit the loop if transfer is successful
                 } else {
                     attempts += 1;
                     if attempts == max_retries {
-                        ic_cdk::trap(&format!(
-                            "Transfer failed after {} attempts: {}",
-                            attempts,
-                            transfer_result.unwrap_err()
-                        ));
+                        log::error!("Transfer failed after {} attempts", attempts);
                     }
                 }
+            }
+
+            if !success {
+                // Rollback logic: Return tokens to the user if LP transfer fails
             }
         });
 
@@ -305,11 +307,11 @@ fn decrease_pool_lp(pool_name: String, amount: Nat) {
 }
 
 #[update]
-fn decrease_total_lp(LP: Nat) {
+fn decrease_total_lp(lp: Nat) {
     TOTAL_LP_SUPPLY.with(|total_lp| {
         let mut borrowed_lp = total_lp.borrow_mut();
-        if (*borrowed_lp > Nat::from(0u128)) {
-            *borrowed_lp -= LP;
+        if *borrowed_lp > Nat::from(0u128) {
+            *borrowed_lp -= lp;
         } else {
             ic_cdk::trap(&format!("Insufficient LP tokens"));
         }

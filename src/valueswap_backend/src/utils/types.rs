@@ -307,4 +307,5 @@ pub enum CustomError {
     SwappingFailed(String),
     InvalidInput(String),
     OperationFailed(String),
+    UnableToRollbackLP(String),
 }

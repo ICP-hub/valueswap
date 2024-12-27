@@ -1,13 +1,7 @@
 use crate::with_state;
-use candid::{ Nat, Principal};
-use core::panic;
-use ic_cdk_macros::*;
-use std::borrow::Borrow;
-use std::cell::RefCell;
-use std::collections::{BTreeMap, HashMap};
-use std::sync::Mutex;
+use candid::{Nat, Principal};
 use core::cmp::max;
-use once_cell::sync::Lazy;
+use core::panic;
 use ic_cdk::{
     api,
     api::{
@@ -17,6 +11,12 @@ use ic_cdk::{
     },
     call,
 };
+use ic_cdk_macros::*;
+use once_cell::sync::Lazy;
+use std::borrow::Borrow;
+use std::cell::RefCell;
+use std::collections::{BTreeMap, HashMap};
+use std::sync::Mutex;
 
 use crate::api::balance::*;
 use crate::api::deposit::deposit_tokens;
@@ -25,6 +25,7 @@ use crate::utils::types::*;
 use crate::vault::lp_tokens::*;
 
 static LOCKS: Lazy<Mutex<HashMap<String, bool>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+static LOCKS1 : Lazy<Mutex<HashMap<Principal, bool>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 
 thread_local! {
     pub static POOL_DATA: RefCell<BTreeMap<String, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
@@ -77,7 +78,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                 if locks.contains_key(&pool_name) {
                     log::warn!("Failed to remove the lock for pool: {}", pool_name);
                 }
-            },
+            }
             //Poisoned lock: Thread panicked while holding the lock
             Err(e) => {
                 log::error!("Failed to unlock LOCKS due to a poisoned lock: {}", e);
@@ -86,8 +87,6 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
             }
         }
     };
-    
-    
 
     let result = async {
         let pool_canister_id = with_state(|pool| {
@@ -98,21 +97,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
         if let Some(canister_id) = pool_canister_id {
             // Add liquidity and update pool details
             // This line should replace your current call to add_liquidity_curr
-            add_liquidity_curr(params.clone()).map_err(|e| CustomError::OperationFailed(e))?;
-
-            add_liquidity(params.clone(), canister_id.principal.clone()).await.map_err(|_| CustomError::TokenDepositFailed)?;
-
-            increase_pool_lp_tokens(params.clone());
-            users_pool(params.clone());
-            store_pool_data(params.clone(), canister_id.principal)
-            .await
-            .map_err(|e| CustomError::UnableToStorePoolData(e))?;
-
-
-            users_lp_share(principal_id.clone(), params.clone())
-                .await
-                .map_err(|e| CustomError::UnableToTransferLP(e))?;
-
+            
             for amount in params.pool_data.iter() {
                 deposit_tokens(
                     amount.balance.clone(),
@@ -122,6 +107,45 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                 .await
                 .map_err(|_| CustomError::TokenDepositFailed)?;
             }
+
+            if let Err(e) = users_lp_share(params.clone()).await {
+                ic_cdk::call::<_, ()>(
+                    canister_id.principal,
+                    "lp_rollback",
+                    (principal_id, params.pool_data.clone()),
+                )
+                .await
+                .map_err(|rollback_err| {
+                    log::error!(
+                        "LP rollback failed for user {}: {:?}",
+                        principal_id,
+                        rollback_err
+                    );
+                    CustomError::UnableToRollbackLP(format!(
+                        "LP rollback failed: {:?}, original error: {}",
+                        rollback_err, e
+                    ))
+                })?;
+                return Err(CustomError::UnableToTransferLP(e));
+            }
+
+            add_liquidity_curr(params.clone()).map_err(|e| CustomError::OperationFailed(e))?;
+
+            add_liquidity(params.clone(), canister_id.principal.clone())
+                .await
+                .map_err(|_| CustomError::TokenDepositFailed)?;
+            
+            increase_pool_lp_tokens(params.clone());
+
+            users_pool(params.clone());
+
+            store_pool_data(params.clone(), canister_id.principal)
+                .await
+                .map_err(|e| CustomError::UnableToStorePoolData(e))?;
+
+                // Release the lock
+                    release_lock();
+
             Ok(())
         } else {
             // Create a new canister for the pool
@@ -137,20 +161,6 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                         );
                     });
 
-                    store_pool_data_curr(params.clone()).map_err(|e| CustomError::UnableToStorePoolData(e))?;
-
-
-                    store_pool_data(params.clone(), canister_id_record)
-                        .await
-                        .map_err(|e| CustomError::UnableToStorePoolData(e))?;
-
-                    increase_pool_lp_tokens(params.clone());
-                    users_pool(params.clone());
-
-                    users_lp_share(principal_id.clone(), params.clone())
-                        .await
-                        .map_err(|e| CustomError::UnableToTransferLP(e))?;
-
                     for amount in params.pool_data.iter() {
                         deposit_tokens(
                             amount.balance.clone(),
@@ -160,6 +170,42 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                         .await
                         .map_err(|_| CustomError::TokenDepositFailed)?;
                     }
+                    
+                    // users_lp_share(principal_id.clone(), params.clone())
+                    //     .await
+                    //     .map_err(|e| CustomError::UnableToTransferLP(e))?;
+                    
+                    if let Err(e) = users_lp_share( params.clone()).await {
+                        ic_cdk::call::<_, ()>(
+                            canister_id,
+                            "lp_rollback",
+                            (principal_id, params.pool_data.clone()),
+                        )
+                        .await
+                        .map_err(|rollback_err| {
+                            log::error!(
+                                "LP rollback failed for user {}: {:?}",
+                                principal_id,
+                                rollback_err
+                            );
+                            CustomError::UnableToRollbackLP(format!(
+                                "LP rollback failed: {:?}, original error: {}",
+                                rollback_err, e
+                            ))
+                        })?;
+                        return Err(CustomError::UnableToTransferLP(e));
+                    }
+
+                    store_pool_data(params.clone(), canister_id_record)
+                        .await
+                        .map_err(|e| CustomError::UnableToStorePoolData(e))?;
+
+                    increase_pool_lp_tokens(params.clone());
+
+                    users_pool(params.clone());
+
+                    store_pool_data_curr(params.clone())
+                        .map_err(|e| CustomError::UnableToStorePoolData(e))?;
 
                     Ok(())
                 }
@@ -169,14 +215,9 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
     }
     .await;
 
-    // Release the lock
-    release_lock();
-
     result
 }
 
-
-#[update(guard = prevent_anonymous)]
 // Create canister
 async fn create_canister(arg: CreateCanisterArgument) -> CallResult<(CanisterIdRecord,)> {
     let extended_arg = CreateCanisterArgumentExtended {
@@ -224,7 +265,6 @@ async fn install_code(arg: InstallCodeArgument) -> CallResult<()> {
     )
     .await
 }
-
 
 async fn create() -> Result<Principal, String> {
     let arg = CreateCanisterArgument { settings: None };
@@ -395,7 +435,7 @@ fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
 }
 
 // take swap elements in the vector
-#[update]
+#[query]
 fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
     let mut search_tokens = Vec::new();
     search_tokens.push(params.token1_name);
@@ -529,8 +569,6 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
 
     let pool_data = POOL_DATA.with(|pool| pool.borrow().clone());
 
-
-
     // Collect async tasks for fetching balances
     let mut fetch_tasks = vec![];
 
@@ -637,7 +675,7 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<()
 fn get_pool_canister_id(token1: String, token2: String) -> Option<Principal> {
     let pool_name = format!("{}{}", token1, token2);
     let canister_id = with_state(|pool| {
-        let  pool_borrowed = &mut pool.TOKEN_POOLS;
+        let pool_borrowed = &mut pool.TOKEN_POOLS;
         // Extract the principal if available
         pool_borrowed
             .get(&pool_name)
@@ -646,25 +684,24 @@ fn get_pool_canister_id(token1: String, token2: String) -> Option<Principal> {
     canister_id
 }
 
-
 // TODO 18 assign unique id for each swap PHASE 2
 #[update]
 async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
-    let user = ic_cdk::caller().to_string();
+    let user = ic_cdk::caller();
 
     {
-        let mut locks = LOCKS
+        let mut locks = LOCKS1
             .lock()
             .map_err(|_| CustomError::LockAcquisitionFailed)?;
         if locks.get(&user).copied().unwrap_or(false) {
-            return Err(CustomError::AnotherOperationInProgress(user));
+            return Err(CustomError::AnotherOperationInProgress(user.to_string()));
         }
         locks.insert(user.clone(), true);
     }
 
     // Ensure lock is released after operation
     let release_lock = || {
-        let mut locks = LOCKS.lock().unwrap_or_else(|e| {
+        let mut locks = LOCKS1.lock().unwrap_or_else(|e| {
             panic!("Failed to unlock LOCKS: {}", e);
         });
         locks.remove(&user);
@@ -758,8 +795,3 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
     // deposit_tokens(params.token_amount.clone(), params.ledger_canister_id2.clone(), canister_id.clone()).await?;
     Ok(())
 }
-
-
-
-
-
