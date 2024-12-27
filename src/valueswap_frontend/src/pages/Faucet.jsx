@@ -57,9 +57,13 @@ const Faucet = () => {
     };
 
     return (
-        <section className='mt-16 max-w-[1200px] mx-auto space-y-4 font-gilroy px-8 xl:px-0 relative'>
-            <div>
-                <p className='text-[#FFFFFFBF]'>
+        <section className=' max-w-[1200px] mx-auto space-y-10 font-gilroy px-8 xl:px-0 relative pb-12'>
+         
+          <h1 className='text-center text-3xl pt-10'>Faucet</h1>
+          
+          
+            <div className='w-full '>
+                <p className='text-[#FFFFFFBF] max-w-[1000px] text-center mx-auto '>
                     With our testnet Faucet, you can receive free assets to test the Dfinance Protocol.
                     Make sure to switch your wallet provider to the appropriate testnet network, select the desired asset, and click ‘Faucet’ to get tokens transferred to your wallet.
                     The assets on our testnet are not “real,” meaning they have no monetary value.
@@ -67,11 +71,11 @@ const Faucet = () => {
             </div>
 
             {isAuthenticated ? (
-                <div>
-                    <div className='font-semibold text-xl'>Test Assets</div>
-                    <table className='w-full'>
+                <div className='h-screen  bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl p-8 mb-8'>
+                    {/* <div className='font-semibold text-xl'>Test Assets</div> */}
+                    <table className='w-full '>
                         <thead>
-                            <tr className='flex justify-between items-center text-[#FFFFFFBF]'>
+                            <tr className='flex justify-between items-center text-[#FFFFFFBF] border-b-[2px] py-4'>
                                 <th>Asset</th>
                                 <th>Wallet Balance</th>
                                 <th></th>
@@ -79,7 +83,7 @@ const Faucet = () => {
                         </thead>
                         <tbody>
                             {tokens.map((token, id) => (
-                                <tr key={id} className='grid grid-cols-3 py-4 items-center border-b-2 cursor-pointer'>
+                                <tr key={id} className='grid grid-cols-3 py-4 items-center border-b-[0.5px] cursor-pointer '>
                                     <td className='flex gap-x-2 items-center'>
                                         <img src={token.imgUrl} alt="token image" className='w-10 h-10' />
                                         <p className='font-semibold'>{token.TokenName}</p>
@@ -102,14 +106,16 @@ const Faucet = () => {
                             ))}
                         </tbody>
                     </table>
-                    {modelOpen && <FaucetModal setModelOpen={setModelOpen} TokenName={selectFaucet[1]} imgUrl={selectFaucet[0]} />}
+                   
                 </div>
             ) : (
                 <div className='my-auto w-full text-center'>
                     <h2 className='text-2xl'> Please, connect your wallet</h2>
                     <p> Please connect your wallet to get free testnet assets</p>
                 </div>
-            )}
+            )} 
+            
+            {modelOpen && <FaucetModal setModelOpen={setModelOpen} TokenName={selectFaucet[1]} imgUrl={selectFaucet[0]} />}
         </section>
     );
 }

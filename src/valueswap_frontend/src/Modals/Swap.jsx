@@ -7,6 +7,7 @@ import BorderGradientButton from "../buttons/BorderGradientButton";
 import GradientButton from "../buttons/GradientButton";
 import SearchToken from "./SearchToken";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { SwapModalData } from '../TextData';
 const Swap = () => {
     const { backendActor, getBalance, createTokenActor, isAuthenticated } = useAuth();
 
@@ -18,31 +19,36 @@ const Swap = () => {
     const [receiveCoinBalance, setReceiveCoinBalance] = useState(0);
     const [approvalSuccess, setApprovalSuccess] = useState(false);
     const [swapSuccess, setSwapSuccess] = useState(false);
+    const [poolNotFound, setPoolNotFound] = useState(false); 
+    const [ClickedSwap, setClickSwap] = useState(false);
     const [searchToken1, setSearchToken1] = useState(false);
     const [searchToken2, setSearchToken2] = useState(false);
-    const [Id, setId] = useState()
+    const [recieveValue, setReciveValue] = useState(0)
+    const [balance, setBalance] = useState(0)
+    const [Id, setId] = useState(0)
     // Fetch balances whenever payCoin or receiveCoin changes
     useEffect(() => {
-        if (payCoin) fetchBalance(payCoin, setPayCoinBalance);
-        if (receiveCoin) fetchBalance(receiveCoin, setReceiveCoinBalance);
+        if (payCoin) {
+          getBalance(payCoin.CanisterId).then(balance => {
+            setPayCoinBalance(Number(balance)/100000000)
+          }).catch(err => console.log(err))
+        };
+        if (receiveCoin) {
+            getBalance(receiveCoin?.CanisterId).then(balance => {
+                setReceiveCoinBalance(Number(balance) / 100000000);
+            }).catch((err) => console.log(err));;
+        }
     }, [payCoin, receiveCoin]);
 
     // Helper to fetch balance
-    const fetchBalance = async (token, setBalance) => {
-        try {
-            const balance = await getBalance(token.CanisterId);
-            setBalance(Number(balance) / 1e8); // Convert to human-readable format
-        } catch (err) {
-            console.error(`Error fetching balance for ${token.ShortForm}:`, err);
-        }
-    };
-
+   
 
     useEffect(() => {
         const getSwapValue = async () => {
 
             if (coinAmount) {
                 const amount = parseFloat(coinAmount)
+             
                 const swapValue = await backendActor.pre_compute_swap({
                     token1_name: payCoin.ShortForm,
                     token_amount: amount,
@@ -50,18 +56,26 @@ const Swap = () => {
                     ledger_canister_id1: Principal.fromText(receiveCoin.CanisterId),
                     ledger_canister_id2: Principal.fromText(receiveCoin.CanisterId)
                 })
-                console.log("swapValue", swapValue)
+                console.log("swapValue", swapValue.length)
+                if(swapValue.length == 2){
+                    setPoolNotFound(true);
+                }
                 setReciveValue(swapValue[1])
 
             } else {
                 console.log("no coin Amount enter")
+                setPoolNotFound(false);
+              
             }
             if (payCoin) {
                 getBalance(payCoin.CanisterId)
                     .then(balance => {
                         setPayCoinBalance(Number(balance) / 100000000);
                     })
-                    .catch((err) => console.log(err));
+                    .catch((err) =>
+                         console.log(err)
+                
+                );
                 // console.log("Balance", payCoinBalance);
             }
         }
@@ -72,7 +86,7 @@ const Swap = () => {
     useEffect(() => {
         if (receiveCoin) {
             getBalance(receiveCoin?.CanisterId).then(balance => {
-                setRecieveCoinBalance(Number(balance) / 100000000);
+                setReceiveCoinBalance(Number(balance) / 100000000);           
             }).catch((err) => console.log(err));;
         }
     }, [receiveCoin, getBalance]);
@@ -279,16 +293,16 @@ const Swap = () => {
             )}
             <div className="relative">
                 {/* Pay Section */}
-                <div className="w-[80%] sm:w-[480px] mb-2 mx-auto text-[#A3A3A3] bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20 border border-gray-100 border-[#FFFFFF66] rounded-2xl p-8">
+                <div className="w-[80%] sm:w-[480px] mb-2 mx-auto text-[#A3A3A3] bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20 border  border-[#FFFFFF66] rounded-2xl p-8">
                     <div className="flex justify-between">
                         <div>Pay</div>
                     </div>
-                    <div className="flex justify-between">
+                    <div className={`flex justify-between ${coinAmount>payCoinBalance ? "text-red": ""}`}>
                         <input
                             type="number"
                             className="bg-transparent w-1/2 outline-none hide-arrows text-4xl"
                             placeholder="0"
-                           min="0"
+                             min="0"
                             onChange={handleAmountChange}
                         />
                         <BorderGradientButton customCss={`bg-gray-700 `}>
@@ -322,6 +336,7 @@ const Swap = () => {
                                 className="font-gilroy ml-1 sm:ml-2 text-orange-400 text-base font-normal"
                                 onClick={() => setCoinAmount(payCoinBalance)}
                             >
+                                
                                 {payCoinBalance ? `${payCoinBalance} Max` : ""}
                             </button>
                         </div>
@@ -329,14 +344,14 @@ const Swap = () => {
                 </div>
 
                 {/* Receive Section */}
-                <div className="w-[80%] sm:w-[480px] z-0 mx-auto text-[#A3A3A3] bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20 border border-gray-100 border-[#FFFFFF66] rounded-2xl p-8">
+                <div className="w-[80%] sm:w-[480px] z-0 mx-auto text-[#A3A3A3] bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20 border border-[#FFFFFF66] rounded-2xl p-8">
                     <div className="flex justify-between">
                         <div>Receive</div>
                     </div>
                     <div className="flex justify-between">
                         <div className="text-4xl w-1/2 overflow-x-auto  scroll-smooth">
                             {coinAmount && payCoin && receiveCoin
-                                ? (coinAmount / payCoin.marketPrice) * receiveCoin.marketPrice
+                                ? coinAmount * (payCoin?.marketPrice / receiveCoin?.marketPrice )
                                 : 0}
                         </div>
                         <BorderGradientButton customCss={`bg-gray-700 z-10`}>
@@ -359,7 +374,20 @@ const Swap = () => {
                             </div>
                         </BorderGradientButton>
                     </div>
-
+                    <div className="flex justify-between mt-2">
+                        <div>${  
+                          coinAmount > 0 ?  coinAmount * payCoin?.marketPrice : 0
+                            
+                            }</div>
+                        <div>
+                            <button
+                                className="font-gilroy ml-1 sm:ml-2 text-orange-400 text-base font-normal"
+                                onClick={() => setCoinAmount(receiveCoinBalance)}
+                            >
+                                {receiveCoinBalance ? `${receiveCoinBalance} Max` : ""}
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Swap Button */}
@@ -371,61 +399,71 @@ const Swap = () => {
 
                 {/* Action Buttons */}
                 <div className="w-[80%] sm:w-[480px] mx-auto text-center mt-4 flex gap-x-2">
-                    {isAuthenticated ? (
-                        <div className="w-full">
-                            {(payCoinBalance <= 0 && receiveCoinBalance <= 0) || coinAmount > payCoinBalance ? (
-                                <GradientButton
-                                    CustomCss="w-full md:w-full cursor-auto disabled opacity-75 font-extrabold text-3xl"
-                                >
-                                    {SwapModalData.MainButtonsText.InsufficientBalance}
-                                </GradientButton>
-                            ) : (
-                                <div className="w-full">
-                                    {ClickedSwap ? (
-                                        <div
-                                            onClick={async () => {
-                                                setApprovalSuccess();
-                                                setSwapSuccess();
-                                                openModalWithSteps();
-                                                const res = await handleSwapApproval(payCoin, backendCanisterID);
-                                                setApprovalSuccess(res);
-                                                if (res.success === true) {
-                                                    const swapRes = await swapHandler();
-                                                    setSwapSuccess(swapRes);
-                                                }
-                                            }}
-                                        >
-                                            {/* Approval button */}
-                                            <GradientButton CustomCss="w-full md:w-full font-extrabold text-3xl">
-                                                {SwapModalData.MainButtonsText.ConfirmSwapping}
-                                            </GradientButton>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            onClick={() => {
-                                                setClickSwap(true);
-                                            }}
-                                        >
-                                            <GradientButton CustomCss="w-full md:w-full font-extrabold text-3xl">
-                                                {SwapModalData.MainButtonsText.SwapNow}
-                                            </GradientButton>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+    {isAuthenticated ? (
+        <div className="w-full">
+            {(payCoinBalance <= 0 && receiveCoinBalance <= 0) || coinAmount > payCoinBalance ? (
+                <GradientButton
+                    CustomCss="w-full md:w-full cursor-auto disabled opacity-75 font-extrabold text-3xl"
+                >
+                    {SwapModalData.MainButtonsText.InsufficientBalance}
+                </GradientButton>
+            ) : poolNotFound ? (
+                <div>
+                    <GradientButton
+                        CustomCss="w-full md:w-full disabled opacity-75 font-extrabold text-3xl"
+                        onClick={() => {
+                            toast.error("No pool found for the selected pair. Please create one.");
+                        }}
+                    >
+                        No Pool Found
+                    </GradientButton>
+                </div>
+            ) : (
+                <div className="w-full">
+                    {ClickedSwap ? (
+                        <div
+                            onClick={async () => {
+                                setApprovalSuccess();
+                                setSwapSuccess();
+                                openModalWithSteps();
+                                const res = await handleSwapApproval(payCoin, backendCanisterID);
+                                setApprovalSuccess(res);
+                                if (res.success === true) {
+                                    const swapRes = await swapHandler();
+                                    setSwapSuccess(swapRes);
+                                }
+                            }}
+                        >
+                            <GradientButton CustomCss="w-full md:w-full font-extrabold text-3xl">
+                                {SwapModalData.MainButtonsText.ConfirmSwapping}
+                            </GradientButton>
                         </div>
                     ) : (
-                        <GradientButton
-                            CustomCss="w-full md:w-full cursor-auto disabled opacity-75 font-extrabold text-3xl"
+                        <div
+                            onClick={() => {
+                                setClickSwap(true);
+                            }}
                         >
-                            Connect wallet
-                        </GradientButton>
+                            <GradientButton CustomCss="w-full md:w-full font-extrabold text-3xl">
+                                {SwapModalData.MainButtonsText.SwapNow}
+                            </GradientButton>
+                        </div>
                     )}
-
-                    <div className="relative flex items-center justify-center p-2 cursor-pointer border border-[#FFFFFF66] rounded-xl bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20">
-                        <SettingsIcon />
-                    </div>
                 </div>
+            )}
+        </div>
+    ) : (
+        <GradientButton
+            CustomCss="w-full md:w-full cursor-auto disabled opacity-75 font-extrabold text-3xl"
+        >
+            Connect wallet
+        </GradientButton>
+    )}
+
+    <div className="relative flex items-center justify-center p-2 cursor-pointer border border-[#FFFFFF66] rounded-xl bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20">
+        <SettingsIcon />
+    </div>
+</div>
             </div>
             {searchToken2 && (
                 <SearchToken
