@@ -2,8 +2,8 @@
 const TOKENS = [
     {
         token: {
-            symbol: "CT",
-            img: "",
+            symbol: "BTC",
+            img: "/image/ckBTC.svg",
             weights: 50,
             weightsLocked: false
         },
@@ -11,8 +11,8 @@ const TOKENS = [
     },
     {
         token: {
-            symbol: "LTC",
-            img: "",
+            symbol: "ETH",
+            img: "/image/ckETH.svg",
             weights: 50,
             weightsLocked: false
         },
@@ -21,24 +21,16 @@ const TOKENS = [
 ]
 const TokenDisplay = () => {
     return (
-        <div className="flex flex-col justify-center space-y-6 mt-2">
+        <div className="flex flex-col justify-center space-y-2">
             {
                 TOKENS.map((token, idx) => (
-                    <div className="flex flex-row-reverse justify-between items-center w-full font-cabin">
-                        <div className="flex items-center space-x-2">
-                            <span className="bg-[#3E434B] py-1 rounded-lg px-1 md:px-3 relative inline-block">
-                                <input
-                                    type="number"
-                                    className="bg-transparent w-5 focus:outline-none focus:cursor-n-resize text-xs hide-arrows"
-                                    value={token.token.weights}
-                                    disabled={true}
-                                />
-                                <span className='text-xs'>%</span>
-                            </span>
-                            <p className="tracking-widest">{token.unit.toPrecision(5)}</p>
+                    <div className="flex flex-row justify-between items-center w-full font-gilroy md:py-8 md:px-6 backdrop-blur-[32px] rounded-lg border-2 border-white border-opacity-50">
+                        <div className="flex flex-col gap-1">
+                               <p className="md:text-5xl sm:text-3xl text-2xl">{token.unit.toPrecision(5)}</p>
+                                <p className="tracking-widest">{token.token.weights}%</p>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <span className="w-[40px] aspect-square rounded-lg bg-[#3D3F47] border border-white">
+                            <span className="w-[40px] aspect-square rounded-full">
                                 <img src={token.token.img} alt={token.token.symbol} />
                             </span>
                             <p className="md:text-2xl">{token.token.symbol}</p>
