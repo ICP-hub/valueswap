@@ -74,9 +74,6 @@ fn get_tokens() -> Result<HashMap<String, PoolShare>, CustomError> {
 }
 
 
-
-
-
 // Query to get the constant product value
 #[query]
 fn get_constant_product_value() -> f64 {
