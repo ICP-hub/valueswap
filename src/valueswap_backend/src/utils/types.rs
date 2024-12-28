@@ -1,3 +1,5 @@
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 use candid::CandidType;
 use candid::{Nat, Principal};
@@ -61,48 +63,62 @@ pub struct Pool_Data{
 
 impl Pool_Data {
     pub fn validate(&self) -> Result<(), CustomError> {
-        
+        // Check if pool_data is empty
         if self.pool_data.is_empty() {
             return Err(CustomError::PoolDataEmpty);
         }
 
         // Validate each pool data entry
         for pool in &self.pool_data {
-            // Ensure token name is not empty
-            if pool.token_name.trim().is_empty() {
-                return Err(CustomError::InvalidInput("Token name cannot be empty".to_string()));
+            // Validate token name
+            if pool.token_name.trim().is_empty() || pool.token_name.len() > 100 {
+                return Err(CustomError::InvalidInput(
+                    "Token name cannot be empty or exceed 100 characters".to_string(),
+                ));
             }
 
-            // Ensure balances, weights, and values are not zero
-            if pool.balance == Nat::from(0u64) || pool.weight == Nat::from(0u64) || pool.value == Nat::from(0u64) {
-                return Err(CustomError::InvalidInput("Balance, weight, and value must be greater than zero".to_string()));
+            // Validate balances, weights, and values
+            if pool.balance == Nat::from(0u64) || pool.balance > Nat::from(1_000_000_000u64) {
+                return Err(CustomError::InvalidInput(
+                    "Balance must be greater than zero and less than 1 billion".to_string(),
+                ));
+            }
+            if pool.weight == Nat::from(0u64) || pool.value == Nat::from(0u64) {
+                return Err(CustomError::InvalidInput(
+                    "Weight and value must be greater than zero".to_string(),
+                ));
             }
 
-            // Validate the ledger canister ID
+            // Validate ledger canister ID
             if pool.ledger_canister_id.to_text().is_empty() {
-                return Err(CustomError::InvalidInput("Ledger canister ID cannot be empty".to_string()));
+                return Err(CustomError::InvalidInput(
+                    "Ledger canister ID cannot be empty".to_string(),
+                ));
             }
 
-            // Optionally, validate image URL format or content if applicable
+            // Validate image URL format
             if !self.is_valid_image_url(&pool.image) {
                 return Err(CustomError::InvalidInput("Invalid image URL".to_string()));
             }
         }
 
-        // Validate swap fee is not zero if applicable
-        // Use Nat::from(0u64) here as well
-        if self.swap_fee == Nat::from(0u64) {
-            return Err(CustomError::InvalidInput("Swap fee cannot be zero".to_string()));
+        // Validate swap fee
+        if self.swap_fee == Nat::from(0u64) || self.swap_fee > Nat::from(100u64) {
+            return Err(CustomError::InvalidInput(
+                "Swap fee must be greater than zero and less than or equal to 100".to_string(),
+            ));
         }
 
         Ok(())
     }
 
-    // Example URL validation method (simplified)
+    // Enhanced URL validation
     fn is_valid_image_url(&self, url: &str) -> bool {
-        url.starts_with("http://") || url.starts_with("https://")
+        (url.starts_with("http://") || url.starts_with("https://"))
+            && (url.ends_with(".png") || url.ends_with(".jpg") || url.ends_with(".jpeg"))
     }
 }
+
 
 
 /// Represents the user's share with their token balances.
@@ -272,6 +288,30 @@ pub(crate) struct CreateCanisterArgumentExtended {
     pub sender_canister_version: Option<u64>,
 }
 
+#[derive(Debug,CandidType)]
+pub enum CreateCanisterError {
+    CreateError(String),
+    DepositError(String),
+    InstallError(String),
+}
+
+impl std::fmt::Display for CreateCanisterError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::CreateError(e) => write!(f, "Canister creation failed: {}", e),
+            Self::DepositError(e) => write!(f, "Deposit cycles failed: {}", e),
+            Self::InstallError(e) => write!(f, "Install code failed: {}", e),
+        }
+    }
+}
+
+#[derive(Debug,CandidType)]
+pub enum InstallError {
+    InvalidArgument(String),
+    Rejection(ic_cdk::api::call::RejectionCode, String),
+    Unexpected(String),
+}
+
 
 // #[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
 // pub struct TokenData{
@@ -308,4 +348,5 @@ pub enum CustomError {
     InvalidInput(String),
     OperationFailed(String),
     UnableToRollbackLP(String),
+    InvalidSwapParams(String), 
 }
