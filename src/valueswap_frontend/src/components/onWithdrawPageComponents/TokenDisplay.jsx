@@ -24,7 +24,7 @@ const TokenDisplay = () => {
         <div className="flex flex-col justify-center space-y-2">
             {
                 TOKENS.map((token, idx) => (
-                    <div className="flex flex-row justify-between items-center w-full font-gilroy md:py-8 md:px-6 backdrop-blur-[32px] rounded-lg border-2 border-white border-opacity-50">
+                    <div className="flex flex-row justify-between items-center w-full font-gilroy md:py-6 md:px-4 py-3 px-2 backdrop-blur-[32px] rounded-lg border-2 border-white border-opacity-50">
                         <div className="flex flex-col gap-1">
                                <p className="md:text-5xl sm:text-3xl text-2xl">{token.unit.toPrecision(5)}</p>
                                 <p className="tracking-widest">{token.token.weights}%</p>
