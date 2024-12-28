@@ -191,7 +191,7 @@ impl Default for UserShare {
 // }
 
 // Define the transfer_from arguments and result types
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize,Debug)]
 pub struct TransferFromArgs {
     pub to: TransferAccount,
     pub fee: Option<u64>,
@@ -202,13 +202,13 @@ pub struct TransferFromArgs {
     pub amount: Nat,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize,Debug)]
 pub struct TransferAccount {
     pub owner: Principal,
     pub subaccount: Option<Vec<u8>>,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize,Debug)]
 pub enum TransferFromResult {
     Ok(Nat),
     Err(TransferFromError),
