@@ -1,4 +1,4 @@
-use candid::{Nat, CandidType};
+use candid::Nat;
 
 /**********************************************************************************************
 // constantProduct                                                                           //
@@ -37,9 +37,9 @@ pub fn constant_product(balances: &[f64], weights: &[f64]) -> f64 {
 // sF = swapFee                                                                              //
 **********************************************************************************************/
 
-pub fn spot_price(b_i: f64, w_i: f64, b_o: f64, w_o: f64, fee: f64) -> f64 {
-    (b_i  / (w_i)) / (b_o / w_o) * (1.0 / (1.0 - fee))
-}
+// pub fn spot_price(b_i: f64, w_i: f64, b_o: f64, w_o: f64, fee: f64) -> f64 {
+//     (b_i  / (w_i)) / (b_o / w_o) * (1.0 / (1.0 - fee))
+// }
 
 /**********************************************************************************************
 // calcOutGivenIn                                                                            //
@@ -53,7 +53,7 @@ pub fn spot_price(b_i: f64, w_i: f64, b_o: f64, w_o: f64, fee: f64) -> f64 {
 **********************************************************************************************/
 
 pub fn out_given_in(b_i: Nat, w_i: Nat, b_o: Nat, w_o: Nat, amount_in: Nat, fee: Nat) -> Nat {
-    let temp = (b_i.clone() / (b_i + amount_in * (Nat::from(1u128) - fee/Nat::from(100u128))));
+    let temp = b_i.clone() / (b_i + amount_in * (Nat::from(1u128) - fee/Nat::from(100u128)));
     let exp = w_i/w_o;
     b_o * (Nat::from(1u128) - power_of(temp, exp))
 }
@@ -69,9 +69,9 @@ pub fn out_given_in(b_i: Nat, w_i: Nat, b_o: Nat, w_o: Nat, amount_in: Nat, fee:
 // sF = swapFee                                                                              //
 **********************************************************************************************/
 
-pub fn in_given_out(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_out: f64, fee: f64) -> f64 {
-    b_i * (((b_o / (b_o - amount_out)).powf(w_o / w_i)) - 1.0) / (1.0 - fee)
-}
+// pub fn in_given_out(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_out: f64, fee: f64) -> f64 {
+//     b_i * (((b_o / (b_o - amount_out)).powf(w_o / w_i)) - 1.0) / (1.0 - fee)
+// }
 
 /**********************************************************************************************
 // calcAllAssetWithdraw                                                                      //
@@ -106,30 +106,17 @@ pub fn in_given_out(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_out: f64, fee
 //     b_t * (1.0 - (1.0 - redeemed / supply).powf(1.0 / w_t))
 // }
 
-// #[ic_cdk::query]
-// fn process_nat(input: Nat) -> String {
-//     match convert_nat_to_u64(input) {
-//         Ok(u64_value) => format!("Converted value: {}", u64_value),
-//         Err(e) => format!("Conversion error: {}", e),
+
+// pub fn convert_nat_to_u64(nat: Nat) -> Result<f64, &'static str> {
+//     // Convert the Nat to a string
+//     let nat_str = nat.to_string();
+
+//     // Try to parse the string as a u64
+//     match nat_str.parse::<f64>() {
+//         Ok(value) => Ok(value),
+//         Err(_) => Err("Nat value is too large for u64"),
 //     }
 // }
-
-// fn convert_nat_to_u64(nat: Nat) -> Result<u64, &'static str> {
-//     u64::try_from(nat).map_err(|_| "Nat value is too large for u64")
-// }
-
-
-
-pub fn convert_nat_to_u64(nat: Nat) -> Result<f64, &'static str> {
-    // Convert the Nat to a string
-    let nat_str = nat.to_string();
-
-    // Try to parse the string as a u64
-    match nat_str.parse::<f64>() {
-        Ok(value) => Ok(value),
-        Err(_) => Err("Nat value is too large for u64"),
-    }
-}
 
 fn power_of(base: Nat, exponent: Nat) -> Nat {
     let mut result = Nat::from(1u128); 

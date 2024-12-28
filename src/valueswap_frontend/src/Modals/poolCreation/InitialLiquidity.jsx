@@ -10,7 +10,7 @@ import { useAuth } from '../../components/utils/useAuthClient';
 import { Principal } from '@dfinity/principal';
 import { searchCoinGeckoById } from '../../components/utils/fetchCoinGeckoData';
 import { toast } from 'react-toastify';
-import { idlFactory as tokenIdl } from '../../../../declarations/ckbtc_ledger';
+import { idlFactory as tokenIdl } from '../../../../declarations/ckbtc';
 import { IOSSwitch } from '../../buttons/SwitchButton';
 
 const InitialLiquidity = () => {
@@ -63,10 +63,10 @@ const InitialLiquidity = () => {
    }
 
   const handleOptimize = () =>{
-    let onePercentPrice = Tokens[0].currencyAmount / Tokens[0].weights; 
+    let onePercentPrice = Tokens[0].marketPrice / Tokens[0].weights; 
       Tokens.slice(1).forEach((token, index) => {
         let totalPrice = token.weights * onePercentPrice
-         console.log("token.currencyAmount", totalPrice, token.currencyAmount )
+         console.log("token.marketPrice", totalPrice, token.marketPrice )
          //  console.log(totalPrice / token.marketPrice)
          let newValue = totalPrice / token.marketPrice
          let newIndex = 1 + index
@@ -366,7 +366,7 @@ const InitialLiquidity = () => {
               </span>
             </div>
             <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-              ${InitialToken.currencyAmount.toLocaleString() || 0}
+              ${InitialToken.marketPrice.toLocaleString() || 0}
             </span>
           </div>
         </div>
@@ -407,7 +407,7 @@ const InitialLiquidity = () => {
                       </span>
                     </div>
                     <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-                      ${token.currencyAmount.toLocaleString() || 0}
+                      ${token.marketPrice.toLocaleString() || 0}
 
                     </span>
                   </div>

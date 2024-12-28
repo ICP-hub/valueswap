@@ -11,7 +11,7 @@ const FaucetModal = ({setModelOpen, imgUrl, TokenName}) => {
   let ledger_canister_id = faucetList?.find((token) => token.name.toLowerCase() == TokenName.TokenName?.toLowerCase() )
    const depositeHandler = async(scaledAmount) =>{
     let ledgerPrincipal = Principal.fromText(ledger_canister_id.CanisterId)
-    console.log("called")
+    console.log("called", ledgerPrincipal, principal, BigInt(scaledAmount))
     const res = await backendActor?.faucet(ledgerPrincipal, principal, BigInt(scaledAmount) );
     console.log("res", res)
     if(res.Ok){
@@ -21,7 +21,7 @@ const FaucetModal = ({setModelOpen, imgUrl, TokenName}) => {
 
   console.log("TokenName", TokenName.TokenName)
   return (
-  <div className='fixed top-[12%] left-0 w-full h-full bg-opacity-50 backdrop-blur-sm'>
+  <div className='fixed top-0 left-0 w-full h-full bg-opacity-50 backdrop-blur-sm'>
       <div className='  max-w-[480px] h-[300px] mt-36 mx-auto  bg-[#182030] rounded-lg  p-8'>
         <div className='flex justify-between'>
           <h1 className='text-2xl font-semibold'>

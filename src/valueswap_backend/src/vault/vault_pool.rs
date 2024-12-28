@@ -1,10 +1,9 @@
-use ic_cdk_macros::{init , query , update};
+use ic_cdk_macros::{init , query };
 use std::cell::RefCell;
 use std::collections::HashMap;
 
 use crate::utils::maths::*;
-use crate::utils::types::{PoolShare, UserShare , CreatePoolParams};
-use crate::Pool_Data;
+use crate::utils::types::{PoolShare, UserShare };
 
 thread_local! {
     // Pool token balances, weights, and names

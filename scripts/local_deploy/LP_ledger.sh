@@ -21,7 +21,7 @@ export PRE_MINTED_TOKENS=10_000_000_000_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-dfx identity use default
+dfx identity use DevJourney
 export DEFAULT=$(dfx identity get-principal)
 echo "DEFAULT principal: $DEFAULT"
 
@@ -34,7 +34,7 @@ export NUM_OF_BLOCK_TO_ARCHIVE=1000
 export CYCLE_FOR_ARCHIVE_CREATION=10000000000000
 export FEATURE_FLAGS=true
 
-# Deploy the cketh_ledger canister with the specified initialization arguments
+# Deploy the cketh canister with the specified initialization arguments
 DEPLOY_ARGUMENTS="(variant {Init = record {
   token_symbol = \"${TOKEN_SYMBOL}\";
   token_name = \"${TOKEN_NAME}\";
@@ -70,4 +70,6 @@ echo "Balance of the DEFAULT account: $balance"
 #     amount = 500000000;
 # })"
 # echo "Approved backend canister to transfer tokens on behalf of the DEFAULT account"
+
+
 

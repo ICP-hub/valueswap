@@ -17,7 +17,7 @@ const LandingPage = ({ setClickConnectWallet }) => {
     return (
         <div className=''>
 
-            <div className='md:mx-8 mx-4'>
+            <div className='md:mx-8 mx-4 '>
                 <div className=' relative'>
                     <Hero setClickConnectWallet={setClickConnectWallet} />
                 </div>

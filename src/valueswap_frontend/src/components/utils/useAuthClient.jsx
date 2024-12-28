@@ -4,7 +4,7 @@
 //     createActor as createActorBackend, 
 // } from '../../../../declarations/valueswap_backend/index';
 // // import { Actor, HttpAgent } from "@dfinity/agent";
-// import { createActor as ledgerActor, idlFactory as TokenIdl} from "../../../../declarations/ckbtc_ledger/index"
+// import { createActor as ledgerActor, idlFactory as TokenIdl} from "../../../../declarations/ckbtc/index"
 
 
 // const AuthContext = createContext();
@@ -196,8 +196,8 @@ import { HttpAgent } from "@dfinity/agent";
 import { Principal } from "@dfinity/principal";
 import { createActor as createActorBackend, idlFactory } from '../../../../declarations/valueswap_backend/index';
 import { PlugLogin, StoicLogin, NFIDLogin, IdentityLogin } from "ic-auth";
-import { createActor as ledgerActor, idlFactory as TokenIdl } from "../../../../declarations/ckbtc_ledger/index";
-import {  idlFactory as ckETHIdlFactory } from "../../../../declarations/cketh_ledger/index";
+import { createActor as ledgerActor, idlFactory as TokenIdl } from "../../../../declarations/ckbtc/index";
+import {  idlFactory as ckETHIdlFactory } from "../../../../declarations/cketh/index";
 import { DummyDataTokens } from '../../TextData';
 // import { PlugMobileProvider } from '@funded-labs/plug-mobile-sdk'
 
@@ -563,7 +563,7 @@ export const useAuth = () => useContext(AuthContext);
 // import React, { createContext, useContext, useEffect, useState } from "react";
 // import { PlugLogin, StoicLogin, NFIDLogin, IdentityLogin, Types, CreateActor } from 'ic-auth';
 // // import { idlFactory,createActor} from "../../declarations/loginme_backend/index";
-// import { createActor, idlFactory } from "../../../../declarations/ckbtc_ledger/index"
+// import { createActor, idlFactory } from "../../../../declarations/ckbtc/index"
 // import { Principal } from "@dfinity/principal";
 // import { AuthClient } from "@dfinity/auth-client";
 // import { Actor } from "@dfinity/agent";

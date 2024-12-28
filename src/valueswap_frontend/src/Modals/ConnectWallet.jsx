@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { ConnectWalletData } from '../TextData';
-import { idlFactory as TokenIdl } from "../../../declarations/ckbtc_ledger/index";
+import { idlFactory as TokenIdl } from "../../../declarations/ckbtc/index";
 import { idlFactory as backendIDL } from "../../../declarations/valueswap_backend/index"
 import { useDispatch, useSelector } from 'react-redux';
 import { showAlert, hideAlert } from '../reducer/Alert';
 
-// import { idlFactory } from '../../../declarations/ckbtc_ledger';
+// import { idlFactory } from '../../../declarations/ckbtc';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { useAuth } from '../components/utils/useAuthClient';
