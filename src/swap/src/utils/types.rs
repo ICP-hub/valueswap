@@ -65,6 +65,83 @@ pub struct Pool_Data {
     pub swap_fee: Nat,
 }
 
+impl Pool_Data {
+    pub fn validate(&self) -> Result<(), CustomError> {
+        // Check if pool_data is empty
+        if self.pool_data.is_empty() {
+            return Err(CustomError::PoolDataEmpty);
+        }
+
+        // Validate each pool data entry
+        for pool in &self.pool_data {
+            // Validate token name
+            if pool.token_name.trim().is_empty() || pool.token_name.len() > 100 {
+                return Err(CustomError::InvalidInput(
+                    "Token name cannot be empty or exceed 100 characters".to_string(),
+                ));
+            }
+
+            // Validate balances, weights, and values
+            if pool.balance == Nat::from(0u64) || pool.balance > Nat::from(1_000_000_000u64) {
+                return Err(CustomError::InvalidInput(
+                    "Balance must be greater than zero and less than 1 billion".to_string(),
+                ));
+            }
+            if pool.weight == Nat::from(0u64) || pool.value == Nat::from(0u64) {
+                return Err(CustomError::InvalidInput(
+                    "Weight and value must be greater than zero".to_string(),
+                ));
+            }
+
+            // Validate ledger canister ID
+            if pool.ledger_canister_id.to_text().is_empty() {
+                return Err(CustomError::InvalidInput(
+                    "Ledger canister ID cannot be empty".to_string(),
+                ));
+            }
+
+            // Validate image URL format
+            if !self.is_valid_image_url(&pool.image) {
+                return Err(CustomError::InvalidInput("Invalid image URL".to_string()));
+            }
+        }
+
+        // Validate swap fee
+        if self.swap_fee == Nat::from(0u64) || self.swap_fee > Nat::from(100u64) {
+            return Err(CustomError::InvalidInput(
+                "Swap fee must be greater than zero and less than or equal to 100".to_string(),
+            ));
+        }
+
+        Ok(())
+    }
+
+    // Enhanced URL validation
+    fn is_valid_image_url(&self, url: &str) -> bool {
+        (url.starts_with("http://") || url.starts_with("https://"))
+            && (url.ends_with(".png") || url.ends_with(".jpg") || url.ends_with(".jpeg"))
+    }
+}
+
+#[derive(Debug, PartialEq , CandidType)]
+pub enum CustomError {
+    PoolDataEmpty,
+    AnotherOperationInProgress(String),
+    TokenDepositFailed,
+    CanisterCreationFailed(String),
+    LockAcquisitionFailed,
+    StringConversionFailed(String),
+    UnableToStorePoolData(String),
+    UnableToTransferLP(String),
+    NoCanisterIDFound,
+    SwappingFailed(String),
+    InvalidInput(String),
+    OperationFailed(String),
+    UnableToRollbackLP(String),
+    InvalidSwapParams(String), 
+    VaultEmpty(String),
+}
+
 #[derive(CandidType , Deserialize , Clone)]
 pub struct SwapResult{
     pub amount1 : f64,
