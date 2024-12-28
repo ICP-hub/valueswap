@@ -844,7 +844,7 @@ fn get_pool_canister_id(token1: String, token2: String) -> Result<Principal, Str
 // TODO 18 assign unique id for each swap PHASE 2
 #[update]
 async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
-    // Validate SwapParams fields
+    
     if params.token1_name.trim().is_empty() {
         return Err(CustomError::InvalidSwapParams("token1_name cannot be empty".to_string()));
     }
