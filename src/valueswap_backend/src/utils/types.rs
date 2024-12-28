@@ -349,4 +349,5 @@ pub enum CustomError {
     OperationFailed(String),
     UnableToRollbackLP(String),
     InvalidSwapParams(String), 
+    VaultEmpty(String),
 }
