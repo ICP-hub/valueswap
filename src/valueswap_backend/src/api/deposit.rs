@@ -83,22 +83,22 @@ pub async fn transfer_from(
 
 
 
-// to get exchange rates
+// // to get exchange rates
 #[ic_cdk::update]
 pub async fn get_exchange_rate(
-    base_asset_symbol: String, 
-    quote_asset_symbol: String
+    base_asset: String, 
+    quote_asset: String
 ) -> Result<(f64, u64), String> {
 
     let args = GetExchangeRateRequest {
         timestamp: None,
         quote_asset: Asset {
             class: AssetClass::Cryptocurrency,
-            symbol: quote_asset_symbol.clone(),
+            symbol: quote_asset.clone(),
         },
         base_asset: Asset {
             class: AssetClass::Cryptocurrency,
-            symbol: base_asset_symbol.clone(),
+            symbol: base_asset.clone(),
         },
     };
 
@@ -107,7 +107,7 @@ pub async fn get_exchange_rate(
             Principal::from_text(crate::constants::asset_address::CANISTER_ID_XRC).unwrap(), 
             "get_exchange_rate", 
             (args,), 
-            1_000_000_000
+            10_000_000_000
         ).await;
 
     match res {
@@ -126,7 +126,62 @@ pub async fn get_exchange_rate(
             }
         },
         Err(error) => {
-            Err(format!("Could not get {}/{} Rate - {:?} - {}", base_asset_symbol, quote_asset_symbol, error.0, error.1))
+            Err(format!("Could not get {}/{} Rate - {:?} - {}", base_asset, quote_asset, error.0, error.1))
         },
     }
 }
+
+
+#[ic_cdk::update]
+pub async fn get_exchange_rates1() -> Result<(f64, u64), String> {
+    // Construct the request for the exchange rate
+    let args = GetExchangeRateRequest {
+        timestamp: None, // No specific timestamp, fetch latest rate
+        quote_asset: Asset {
+            class: AssetClass::Cryptocurrency,
+            symbol: "ICP".to_string(),
+        },
+        base_asset: Asset {
+            class: AssetClass::FiatCurrency,
+            symbol: "USD".to_string(),
+        },
+    };
+
+    // Perform the inter-canister call with payment
+    let res: Result<(GetExchangeRateResult,), (ic_cdk::api::call::RejectionCode, String)> = 
+        ic_cdk::api::call::call_with_payment128(
+            Principal::from_text(crate::constants::asset_address::CANISTER_ID_XRC).unwrap(),
+            "get_exchange_rate",
+            (args,),
+            10_000_000_000,
+        ).await;
+
+    match res {
+        // Handle successful response
+        Ok(res_value) => {
+            match res_value.0 {
+                GetExchangeRateResult::Ok(v) => {
+                    // Calculate the exchange rate as f64
+                    let quote = v.rate;
+                    let pow = 10usize.pow(v.metadata.decimals);
+                    let rate = quote as f64 / pow as f64;
+
+                    // Capture the current time
+                    let time = ic_cdk::api::time();
+                    Ok((rate, time))
+                },
+                // Handle domain-specific errors from the XRC
+                GetExchangeRateResult::Err(e) => {
+                    Err(format!("ERROR :: {:?}", e))
+                }
+            }
+        },
+        // Handle call rejection or failure
+        Err(error) => {
+            Err(format!("Could not get USD/ICP Rate - {:?} - {}", error.0, error.1))
+        },
+    }
+}
+
+
+

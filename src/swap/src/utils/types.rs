@@ -66,7 +66,7 @@ pub struct Pool_Data {
 }
 
 #[derive(CandidType , Deserialize , Clone)]
-pub struct swap_result{
+pub struct SwapResult{
     pub amount1 : f64,
     pub amount2 : f64
 }

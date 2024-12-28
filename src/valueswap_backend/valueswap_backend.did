@@ -1,12 +1,3 @@
-type CanisterIdRecord = record { canister_id : principal };
-type CanisterSettings = record {
-  freezing_threshold : opt nat;
-  controllers : opt vec principal;
-  reserved_cycles_limit : opt nat;
-  memory_allocation : opt nat;
-  compute_allocation : opt nat;
-};
-type CreateCanisterArgument = record { settings : opt CanisterSettings };
 type CreatePoolParams = record {
   weight : nat;
   balance : nat;
@@ -15,6 +6,21 @@ type CreatePoolParams = record {
   ledger_canister_id : principal;
   token_name : text;
 };
+type CustomError = variant {
+  UnableToRollbackLP : text;
+  InvalidInput : text;
+  OperationFailed : text;
+  LockAcquisitionFailed;
+  NoCanisterIDFound;
+  UnableToStorePoolData : text;
+  StringConversionFailed : text;
+  CanisterCreationFailed : text;
+  UnableToTransferLP : text;
+  PoolDataEmpty;
+  AnotherOperationInProgress : text;
+  TokenDepositFailed;
+  SwappingFailed : text;
+};
 type PoolShare = record {
   token_weights : vec float64;
   token_value : vec float64;
@@ -22,26 +28,13 @@ type PoolShare = record {
   token_names : vec text;
 };
 type Pool_Data = record { pool_data : vec CreatePoolParams; swap_fee : nat };
-type RejectionCode = variant {
-  NoError;
-  CanisterError;
-  SysTransient;
-  DestinationInvalid;
-  Unknown;
-  SysFatal;
-  CanisterReject;
-};
 type Result = variant { Ok; Err : text };
-type Result_1 = variant { Ok : nat; Err : text };
-type Result_2 = variant { Ok : principal; Err : text };
-type Result_3 = variant {
-  Ok : record { CanisterIdRecord };
-  Err : record { RejectionCode; text };
-};
-type Result_4 = variant { Ok : record { float64; nat64 }; Err : text };
-type Result_5 = variant { Ok : vec Pool_Data; Err : text };
-type Result_6 = variant { Ok : vec float64; Err : text };
-type Result_7 = variant { Ok : vec text; Err : text };
+type Result_1 = variant { Ok; Err : CustomError };
+type Result_2 = variant { Ok : nat; Err : text };
+type Result_3 = variant { Ok : record { float64; nat64 }; Err : text };
+type Result_4 = variant { Ok : vec Pool_Data; Err : text };
+type Result_5 = variant { Ok : vec float64; Err : text };
+type Result_6 = variant { Ok : vec text; Err : text };
 type SwapParams = record {
   token_amount : nat;
   ledger_canister_id1 : principal;
@@ -52,36 +45,34 @@ type SwapParams = record {
 service : () -> {
   add_liquidity : (Pool_Data, principal) -> (Result);
   add_liquidity_curr : (Pool_Data) -> (Result);
-  approve_allowance : (principal, principal, nat64) -> (Result_1);
   burn_lp_tokens : (Pool_Data, text, nat) -> (Result);
-  compute_swap : (SwapParams) -> (Result);
-  create : () -> (Result_2);
-  create_canister : (CreateCanisterArgument) -> (Result_3);
-  create_pools : (Pool_Data) -> (Result);
+  compute_swap : (SwapParams) -> (Result_1);
+  create_pools : (Pool_Data) -> (Result_1);
   decrease_pool_lp : (text, nat) -> ();
   decrease_total_lp : (nat) -> ();
-  deposit_tokens : (nat, principal, principal) -> (Result_1);
-  faucet : (principal, principal, nat) -> (Result_1);
+  deposit_tokens : (nat, principal, principal) -> (Result_2);
+  faucet : (principal, principal, nat) -> (Result_2);
   get_constant_product_value : () -> (float64) query;
-  get_exchange_rates : () -> (Result_4);
-  get_lp_tokens : (text) -> (opt nat) query;
+  get_exchange_rate : (text, text) -> (Result_3);
+  get_exchange_rates1 : () -> (Result_3);
   get_pool_canister_id : (text, text) -> (opt principal) query;
   get_pool_data : () -> (vec record { text; vec Pool_Data }) query;
-  get_specific_pool_data : (text) -> (Result_5) query;
+  get_pool_lp_tokens : (text) -> (nat) query;
+  get_specific_pool_data : (text) -> (Result_4) query;
   get_tokens : () -> (vec record { text; PoolShare }) query;
   get_total_lp : () -> (nat) query;
-  get_user_share_ratio : (Pool_Data, text, nat) -> (Result_6);
+  get_user_share_ratio : (Pool_Data, text, nat) -> (Result_5);
   get_users_lp : (principal) -> (opt nat) query;
   get_users_pool : (principal) -> (opt vec text) query;
-  icrc1_transfer : (principal, nat) -> (Result_1);
-  icrc_get_balance : (principal, principal) -> (Result_1);
+  icrc1_transfer : (principal, nat) -> (Result_2);
+  icrc_get_balance : (principal, principal) -> (Result_2);
   increase_pool_lp_tokens : (Pool_Data) -> ();
   install_wasm_on_new_canister : (principal) -> (Result);
   pre_compute_swap : (SwapParams) -> (text, nat);
-  search_swap_pool : (SwapParams) -> (Result_7);
+  search_swap_pool : (SwapParams) -> (Result_6) query;
   store_pool_data : (Pool_Data, principal) -> (Result);
   store_pool_data_curr : (Pool_Data) -> (Result);
-  total_lp_tokens : () -> ();
-  users_lp_share : (principal, Pool_Data) -> (Result);
+  total_lp_tokens : () -> () query;
+  users_lp_share : (Pool_Data) -> (Result);
   users_pool : (Pool_Data) -> ();
 }

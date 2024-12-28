@@ -125,7 +125,7 @@ pub async fn lp_rollback(user: Principal, pool_data: Pool_Data) -> Result<(), St
 async fn burn_tokens(
     params: Pool_Data,
     user: Principal,
-    user_share_ratio: f64,
+    mut user_share_ratio: f64,
 ) -> Result<(), String> {
     let total_token_balance = match get_pool_balance(user.clone()) {
         Some(balance) => balance,
@@ -134,7 +134,11 @@ async fn burn_tokens(
 
     for token in params.pool_data.iter() {
         let token_amount = token.weight.clone() * total_token_balance.clone();
-        // let transfer_amount = token_amount * user_share_ratio as u64;
+        user_share_ratio = user_share_ratio * 10.0;
+        let user_share_ratio_u64 = user_share_ratio as u64;
+        let ratio = Nat::from(user_share_ratio_u64);
+        let mut transfer_amount = token_amount.clone() * ratio;
+        transfer_amount = transfer_amount / Nat::from(10u128);
         let transfer_result = icrc1_transfer(token.ledger_canister_id, user, token_amount).await;
 
         if let Err(e) = transfer_result {
