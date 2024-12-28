@@ -689,6 +689,27 @@ fn get_pool_canister_id(token1: String, token2: String) -> Option<Principal> {
 // TODO 18 assign unique id for each swap PHASE 2
 #[update]
 async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
+    
+    if params.token1_name.trim().is_empty() {
+        return Err(CustomError::InvalidSwapParams("token1_name cannot be empty".to_string()));
+    }
+    if params.token2_name.trim().is_empty() {
+        return Err(CustomError::InvalidSwapParams("token2_name cannot be empty".to_string()));
+    }
+    if params.token_amount == Nat::from(0u32) {
+        return Err(CustomError::InvalidSwapParams("token_amount must be greater than zero".to_string()));
+    }
+    if params.ledger_canister_id1 == Principal::anonymous() {
+        return Err(CustomError::InvalidSwapParams(
+            "ledger_canister_id1 cannot be an anonymous principal".to_string(),
+        ));
+    }
+    if params.ledger_canister_id2 == Principal::anonymous() {
+        return Err(CustomError::InvalidSwapParams(
+            "ledger_canister_id2 cannot be an anonymous principal".to_string(),
+        ));
+    }
+
     let user = ic_cdk::caller();
 
     {
