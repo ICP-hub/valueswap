@@ -210,7 +210,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                     
                     Ok(())
                 }
-                Err(err_string) => Err(CustomError::CanisterCreationFailed(err_string)),
+                Err(err_string) => Err(CustomError::CanisterCreationFailed(err_string.to_string())),
             }
         }
     }
@@ -267,56 +267,41 @@ async fn install_code(arg: InstallCodeArgument) -> CallResult<()> {
     )
     .await
 }
-
-async fn create() -> Result<Principal, String> {
+#[update]
+pub async fn create() -> Result<Principal, CreateCanisterError> {
     let arg = CreateCanisterArgument { settings: None };
 
-    let (canister_id_record,) = match create_canister(arg).await {
-        Ok(id) => id,
-        Err((_, err_string)) => {
-            ic_cdk::println!("Error in creating canister: {}", err_string);
-            return Err(format!("Error: {}", err_string));
-        }
-    };
+    let (canister_id_record,) = create_canister(arg).await
+        .map_err(|(_, err)| CreateCanisterError::CreateError(err))?;
 
-    let canister_id = canister_id_record.canister_id;
-
-    let _add_cycles: Result<(), String> =
-        match deposit_cycles(canister_id_record, 500_000_000_000).await {
-            Ok(_) => Ok(()),
-            Err((_, err_string)) => {
-                ic_cdk::println!("Error in depositing cycles: {}", err_string);
-                return Err(format!("Error: {}", err_string));
-            }
-        };
+    deposit_cycles(canister_id_record, 500_000_000_000).await
+        .map_err(|(_, err)| CreateCanisterError::DepositError(err))?;
 
     let arg1 = InstallCodeArgument {
         mode: CanisterInstallMode::Install,
-        canister_id,
+        canister_id: canister_id_record.canister_id,
         wasm_module: vec![],
         arg: Vec::new(),
     };
 
-    let _install_code: Result<(), String> = match install_code(arg1).await {
-        Ok(_) => Ok(()),
-        Err(_) => {
-            panic!("Not able to install code");
-        }
-    };
+    install_code(arg1).await
+        .map_err(|err| CreateCanisterError::InstallError(format!("{:?}", err)))?;
 
-    ic_cdk::println!("Canister ID: {:?}", canister_id.to_string());
-    Ok(canister_id)
+    ic_cdk::println!("Canister ID: {:?}", canister_id_record.canister_id.to_string());
+    Ok(canister_id_record.canister_id)
 }
 
+
 #[update(guard = prevent_anonymous)]
-async fn install_wasm_on_new_canister(canister_id: Principal) -> Result<(), String> {
+async fn install_wasm_on_new_canister(canister_id: Principal) -> Result<(), InstallError> {
     let install_code_args = InstallCodeArgument {
         mode: CanisterInstallMode::Install,
-        canister_id: canister_id,
+        canister_id,
         wasm_module: include_bytes!("../../../../.dfx/local/canisters/swap/swap.wasm").to_vec(),
-        arg: vec![], // Optional: Arguments for the canister init method
+        arg: vec![],
     };
 
+    // Perform the install_code call
     let result: Result<(), (ic_cdk::api::call::RejectionCode, String)> = call(
         Principal::management_canister(),
         "install_code",
@@ -324,9 +309,20 @@ async fn install_wasm_on_new_canister(canister_id: Principal) -> Result<(), Stri
     )
     .await;
 
+    // Handle result
     match result {
-        Ok(_) => Ok(()),
-        Err((_, err_msg)) => Err(err_msg),
+        Ok(_) => {
+            ic_cdk::println!("Successfully installed WASM on canister: {}", canister_id);
+            Ok(())
+        }
+        Err((rejection_code, err_msg)) => {
+            ic_cdk::println!(
+                "Failed to install WASM on canister {}: {}",
+                canister_id,
+                err_msg
+            );
+            Err(InstallError::Rejection(rejection_code, err_msg))
+        }
     }
 }
 
@@ -334,30 +330,66 @@ async fn install_wasm_on_new_canister(canister_id: Principal) -> Result<(), Stri
 
 #[update]
 async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), String> {
+    // Validate input parameters
+    params.validate().map_err(|e| format!("Validation Error: {:?}", e))?;
+
+    // Validate the canister ID
+    if canister_id.as_slice().is_empty() || canister_id == Principal::anonymous() {
+        return Err("Invalid canister ID: null or empty principal is not allowed.".to_string());
+    }
+
+    // Construct and log pool name (optional)
     let _pool_name = params
         .pool_data
         .iter()
         .map(|pool| pool.token_name.clone())
         .collect::<Vec<String>>()
         .join("");
+    ic_cdk::println!("Constructed pool name: {}", _pool_name);
 
-    // let key = format!("{},{}", pool_name, params.swap_fee);
-
+    // Call the target canister
     let result: Result<(), String> =
         call(canister_id, "store_data_inpool", (api::caller(), params))
             .await
-            .map_err(|e| format!("Failed to add liquidity: {:?}", e));
+            .map_err(|(rejection_code, err_message)| match rejection_code {
+                ic_cdk::api::call::RejectionCode::DestinationInvalid => {
+                    format!(
+                        "Invalid destination canister: {}, Method: store_data_inpool",
+                        canister_id
+                    )
+                }
+                ic_cdk::api::call::RejectionCode::CanisterError => {
+                    format!(
+                        "Canister method failed: {}, Method: store_data_inpool, Error: {}",
+                        canister_id, err_message
+                    )
+                }
+                _ => format!(
+                    "Unexpected error: {}, RejectionCode: {:?}, Method: store_data_inpool",
+                    err_message, rejection_code
+                ),
+            });
 
+    // Log errors for debugging
     if let Err(e) = result {
+        ic_cdk::println!("[ERROR] add_liquidity: {:?}", e);
         return Err(e);
     }
+
     Ok(())
 }
+
+
+
 
 // Adding liquidity to the specific pool
 
 #[update]
 fn store_pool_data_curr(params: Pool_Data) -> Result<(), String> {
+    // Validate input data
+    params.validate().map_err(|e| format!("Validation Error: {:?}", e))?;
+
+    // Construct the key from token names
     let key = params
         .pool_data
         .iter()
@@ -365,35 +397,80 @@ fn store_pool_data_curr(params: Pool_Data) -> Result<(), String> {
         .collect::<Vec<String>>()
         .join("");
 
+    // Ensure the key is valid (this might still be necessary if the key generation logic needs validation)
+    if key.is_empty() {
+        return Err("Validation Error: Generated key is empty.".to_string());
+    }
+
+    // Store the pool data
     POOL_DATA.with(|pool| {
         let mut borrowed_pool = pool.borrow_mut();
         borrowed_pool
-            .entry(key)
+            .entry(key.clone())
             .or_insert_with(Vec::new)
             .push(params.clone());
     });
+
+    ic_cdk::println!("Successfully stored pool data for key: {}", key);
     Ok(())
 }
 
+
 #[query]
-fn get_pool_data() -> BTreeMap<String, Vec<Pool_Data>> {
-    POOL_DATA.with(|pool| pool.borrow().clone())
+fn get_pool_data() -> Result<BTreeMap<String, Vec<Pool_Data>>, String> {
+    ic_cdk::println!("Accessing POOL_DATA...");
+
+    POOL_DATA.with(|pool| {
+        match pool.try_borrow() {
+            Ok(borrowed_pool) => {
+                if borrowed_pool.is_empty() {
+                    ic_cdk::println!("POOL_DATA is empty.");
+                    Err("No pool data available.".to_string())
+                } else {
+                    ic_cdk::println!("Successfully retrieved POOL_DATA.");
+                    Ok(borrowed_pool.clone())
+                }
+            }
+            Err(err) => {
+                ic_cdk::println!("Failed to access POOL_DATA: {:?}", err);
+                Err("Failed to access pool data.".to_string())
+            }
+        }
+    })
 }
+
 
 #[query]
 fn get_specific_pool_data(key: String) -> Result<Vec<Pool_Data>, String> {
+    // Validate the key
+    if key.trim().is_empty() {
+        return Err("Validation Error: Key cannot be empty or whitespace.".to_string());
+    }
+
     POOL_DATA.with(|pool| {
-        let borrored_pool = pool.borrow();
-        if let Some(pool_data) = borrored_pool.get(&key) {
-            Ok(pool_data.clone())
-        } else {
-            Err("Pool not found".to_string())
+        match pool.try_borrow() {
+            Ok(borrowed_pool) => {
+                if let Some(pool_data) = borrowed_pool.get(&key) {
+                    ic_cdk::println!("Successfully retrieved pool data for key: {}", key);
+                    Ok(pool_data.clone())
+                } else {
+                    ic_cdk::println!("Pool data not found for key: {}", key);
+                    Err(format!("Pool not found for key: {}", key))
+                }
+            }
+            Err(e) => {
+                ic_cdk::println!("Failed to access POOL_DATA: {:?}", e);
+                Err("Internal Error: Failed to access pool data.".to_string())
+            }
         }
     })
 }
 
 #[update]
 fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
+    params.validate().map_err(|e| format!("Validation Error: {:?}", e))?;
+
+   
     let key = params
         .pool_data
         .iter()
@@ -401,16 +478,25 @@ fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
         .collect::<Vec<String>>()
         .join("");
 
+    if key.is_empty() {
+        return Err("Validation Error: Generated key is empty.".to_string());
+    }
+
     POOL_DATA.with(|pool| {
-        let mut borrowed_pool = pool.borrow_mut();
+        let mut borrowed_pool = match pool.try_borrow_mut() {
+            Ok(pool) => pool,
+            Err(e) => {
+                ic_cdk::println!("Error accessing POOL_DATA: {:?}", e);
+                return Err("Failed to access pool data.".to_string());
+            }
+        };
 
         if let Some(existing_pool_data_vec) = borrowed_pool.get_mut(&key) {
             let mut fee_matched = false;
 
             for existing_pool_data in existing_pool_data_vec.iter_mut() {
-                if (existing_pool_data.swap_fee.clone() - params.swap_fee.clone())
-                    < Nat::from(0u128)
-                {
+            
+                if (existing_pool_data.swap_fee.clone() - params.swap_fee.clone()) >= Nat::from(0u128) {
                     fee_matched = true;
 
                     for new_token in &params.pool_data {
@@ -420,47 +506,77 @@ fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
                             .find(|token| token.token_name == new_token.token_name)
                         {
                             existing_token.balance += new_token.balance.clone();
+                            ic_cdk::println!(
+                                "Updated balance for token {}: {}",
+                                new_token.token_name,
+                                existing_token.balance
+                            );
                         }
                     }
                 }
             }
 
             if !fee_matched {
+                ic_cdk::println!("No matching fee found, adding a new pool entry.");
                 existing_pool_data_vec.push(params);
             }
         } else {
+            ic_cdk::println!("Key not found, creating a new pool entry.");
             borrowed_pool.insert(key, vec![params]);
         }
-    });
+        Ok(())
+    })?;
 
     Ok(())
 }
 
-// take swap elements in the vector
+
 #[query]
 fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
-    let mut search_tokens = Vec::new();
-    search_tokens.push(params.token1_name);
-    search_tokens.push(params.token2_name);
+    if params.token1_name.trim().is_empty() || params.token2_name.trim().is_empty() {
+        return Err("Validation Error: Token names cannot be empty.".to_string());
+    }
+
+    let search_tokens = vec![
+        params.token1_name.trim().to_string(),
+        params.token2_name.trim().to_string(),
+    ];
 
     POOL_DATA.with(|pool| {
-        let borrowed_pool = pool.borrow();
+        let borrowed_pool = match pool.try_borrow() {
+            Ok(pool) => pool,
+            Err(e) => {
+                ic_cdk::println!("Failed to access POOL_DATA: {:?}", e);
+                return Err("Internal Error: Unable to access pool data.".to_string());
+            }
+        };
+
         let mut matching_keys = Vec::new();
 
         for key in borrowed_pool.keys() {
-            // Check if all search tokens are present in the key
             if search_tokens.iter().all(|token| key.contains(token)) {
                 matching_keys.push(key.clone());
             }
         }
 
         if !matching_keys.is_empty() {
+            ic_cdk::println!("Found matching pools: {:?}", matching_keys);
             Ok(matching_keys)
         } else {
-            Err("No matching pools found.".to_string())
+            ic_cdk::println!(
+                "No matching pools found for tokens: {:?}",
+                search_tokens
+            );
+            Err(format!(
+                "No matching pools found for tokens: {:?}",
+                search_tokens
+            ))
         }
     })
 }
+
+
+
 
 // #[update]
 // async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
@@ -556,12 +672,28 @@ fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
 
 #[update]
 async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
-    // Search for required pools based on the provided parameters
 
+    if params.token1_name.trim().is_empty() || params.token2_name.trim().is_empty() {
+        return ("Token names cannot be empty.".to_string(), Nat::from(0u128));
+    }
+
+    if params.token1_name == params.token2_name {
+        return ("Token names must be different.".to_string(), Nat::from(0u128));
+    }
+
+    if params.token_amount == Nat::from(0u128) {
+        return ("Token amount must be greater than zero.".to_string(), Nat::from(0u128));
+    }
+
+    if params.ledger_canister_id1 == Principal::anonymous() || params.ledger_canister_id2 == Principal::anonymous() {
+        return ("Ledger canister IDs must be valid and not anonymous.".to_string(), Nat::from(0u128));
+    }
+
+    // Continue with existing logic for searching swap pools
     let required_pools = match search_swap_pool(params.clone()) {
-        Ok(pools) => pools,
-        Err(_) => {
-            println!("No matching pools found.");
+        Ok(pools) if !pools.is_empty() => pools,
+        _ => {
+            println!("No matching pools found or an error occurred during the search.");
             return ("No matching pools found.".to_string(), Nat::from(0u128));
         }
     };
@@ -654,27 +786,47 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
     }
 }
 
+
+
+
 // Adding liquidity to the specific pool
 #[update]
 async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<(), String> {
-    // Call the canister's add_liquidity function with the provided data
+    match params.validate() {
+        Ok(_) => println!("store_pool_data: Validation successful."),
+        Err(e) => {
+            println!("store_pool_data: Validation failed: {:?}", e);
+            return Err(format!("store_pool_data: Validation error: {:?}", e));
+        }
+    }
+
+    println!("store_pool_data: Calling add_liquidity_to_pool on canister ID: {}", canister_id);
     let result: Result<(), String> = call(
         canister_id,
         "add_liquidity_to_pool",
         (api::caller(), params),
     )
     .await
-    .map_err(|e| format!("Failed to store token data: {:?}", e));
+    .map_err(|e| {
+        println!("store_pool_data: Failed to store token data: {:?}", e);
+        format!("store_pool_data: Failed to store token data: {:?}", e)
+    });
 
-    if let Err(e) = result {
-        return Err(e);
-    }
-
-    Ok(())
+    result
 }
 
+
+
 #[query]
-fn get_pool_canister_id(token1: String, token2: String) -> Option<Principal> {
+fn get_pool_canister_id(token1: String, token2: String) -> Result<Principal, String> {
+    if token1.trim().is_empty() || token2.trim().is_empty() {
+        return Err("Token names cannot be empty.".to_string());
+    }
+
+    if token1.len() > 100 || token2.len() > 100 {
+        return Err("Token names cannot exceed 100 characters.".to_string());
+    }
+
     let pool_name = format!("{}{}", token1, token2);
     let canister_id = with_state(|pool| {
         let pool_borrowed = &mut pool.token_pools;
@@ -683,8 +835,13 @@ fn get_pool_canister_id(token1: String, token2: String) -> Option<Principal> {
             .get(&pool_name)
             .map(|user_principal| user_principal.principal)
     });
-    canister_id
+
+    match canister_id {
+        Some(id) => Ok(id),
+        None => Err(format!("No canister ID found for the pool named '{}'.", pool_name))
+    }
 }
+
 
 // TODO 18 assign unique id for each swap PHASE 2
 #[update]
@@ -731,13 +888,12 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
     };
 
     let (pool_name, _) = pre_compute_swap(params.clone()).await;
-    let (_, amount) = pre_compute_swap(params.clone()).await;
-
-    if pool_name == "No suitable pool found.".to_string()
-        || pool_name == "No matching pools found.".to_string()
-    {
+    if pool_name == "No suitable pool found.".to_string() || pool_name == "No matching pools found.".to_string() {
+        release_lock();
         return Err(CustomError::NoCanisterIDFound);
     }
+
+    let (_, amount) = pre_compute_swap(params.clone()).await;
 
     let canister_id = with_state(|pool| {
         let pool_borrowed = &mut pool.token_pools;
@@ -749,7 +905,10 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
 
     let canister_id = match canister_id {
         Some(id) => id,
-        None => return Err(CustomError::NoCanisterIDFound),
+        None => {
+            release_lock();
+            return Err(CustomError::NoCanisterIDFound);
+        }
     };
 
     ic_cdk::println!("swap pool canister's canister_id {:}", canister_id.clone());
@@ -781,7 +940,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
         Ok(_) => {
             println!("Token deposit successful, resuming process...");
 
-            let result: Result<(), String> = call(
+            let swap_result: Result<(), String> = call(
                 canister_id.clone(),
                 "swap",
                 (api::caller(), params.clone(), amount),
@@ -789,7 +948,8 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
             .await
             .map_err(|e| format!("Failed to perform swap: {:?}", e));
 
-            if let Err(e) = result {
+            if let Err(e) = swap_result {
+                release_lock();
                 return Err(CustomError::SwappingFailed(e));
             }
         }
@@ -798,17 +958,25 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
                 "Error during token deposit: {:?}. Initiating rollback...",
                 err
             );
-            // rollback code here
 
-            let _result: Result<(), String> = call(
+            let rollback_result: Result<(), String> = call(
                 canister_id,
                 "icrc1_transfer",
                 (canister_id, api::caller(), token_amount),
             )
             .await
             .map_err(|e| format!("Failed to perform rollback: {:?}", e));
+
+            if let Err(rollback_err) = rollback_result {
+                ic_cdk::println!("Rollback failed: {:?}", rollback_err);
+            }
+
+            release_lock();
+            return Err(CustomError::TokenDepositFailed);
         }
     }
+
+    release_lock();
 
     // ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
     // Proceed with the call using the extracted principal
@@ -823,8 +991,8 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
     // if let Err(e) = result {
     //     return Err(e);
     // }
-    release_lock();
 
-    // deposit_tokens(params.token_amount.clone(), params.ledger_canister_id2.clone(), canister_id.clone()).await?;
     Ok(())
 }
+
+
