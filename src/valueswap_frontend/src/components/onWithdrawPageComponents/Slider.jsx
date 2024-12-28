@@ -17,7 +17,7 @@ const Slider = () => {
                                 aria-pressed={value === option}
                                 type="button"
                                 key={option}
-                                className="group relative flex md:h-10 md:w-24 h-5 w-12 items-center justify-center"
+                                className="group relative flex md:h-10 md:w-24 h-5 w-12 items-center justify-center focus:outline-none"
                             >
                                 <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-100/20 to-white/20 opacity-0 blur-md group-aria-pressed:opacity-100 transition-opacity duration-300 ease-in" />
                                 <div className="relative flex h-full w-full items-center justify-center rounded-lg bg-gray-900 ring-1 ring-gray-700/50">
