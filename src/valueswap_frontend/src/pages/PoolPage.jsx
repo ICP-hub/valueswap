@@ -20,9 +20,17 @@ const PoolPage = () => {
         }
     }, [location])
     return (
-        <div className=' bg-[#000711] '>
+        <div className='  '>
             <div className='items-center'>
-                
+                {
+                    location.pathname != '/valueswap/pool/create-pool/steps' ? (
+                       ""
+                    ) : (
+                        <div>
+
+                        </div>
+                    )
+                }
                 {
                     location.pathname != '/valueswap/pool/create-pool/steps' ? (
                         <div className='flex justify-center'>
@@ -39,8 +47,8 @@ const PoolPage = () => {
                                         </span>
                                     </div>
                                 ) : (
-                                    <div className='m-14 text-center  font-gilroy  text-white p-4 font-semibold text-2xl  max-w-72   h-full w-full bg-white-900 rounded-lg bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-100 border border-gray-100'>
-                                        {boxText}
+                                    <div className='text-center  font-gilroy  text-white  font-semibold text-2xl mt-6 max-w-72   h-full w-full '>
+                                       Liquidity Pools
                                     </div>
                                 )
                             }
