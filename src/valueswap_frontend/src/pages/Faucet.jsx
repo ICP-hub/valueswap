@@ -9,7 +9,8 @@ let tokens = [
     {
         imgUrl: "/image/ckBTC.svg",
         TokenName: "ckBTC",
-        WalletBalance: "0"
+        WalletBalance: "0",
+        CanisterId: process.env.CANISTER_ID_CKBTC
     },
     {
         imgUrl: "/image/ckETH.svg",

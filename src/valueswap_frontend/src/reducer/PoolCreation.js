@@ -21,7 +21,8 @@ const initialState = {
             marketPrice: 0,
             currencyAmount: 0,
             weightsLocked: false,
-            CanisterId: null
+            CanisterId: null,
+            metaData: 0,
         },
         {
             id: "",
@@ -35,7 +36,8 @@ const initialState = {
             marketPrice: 0,
             currencyAmount: 0,
             weightsLocked: false,
-            CanisterId: null
+            CanisterId: null,
+            metaData: 0,
         }
     ],
 
@@ -66,6 +68,7 @@ const Pool = createSlice({
                     marketPrice: 0,
                     currencyAmount: 0,
                     weightsLocked: false,
+                    metaData: 0,
                 }
             )
             state.Tokens.forEach((token) => {
@@ -131,6 +134,7 @@ const Pool = createSlice({
             state.Tokens[index]. marketPrice = action.payload.TokenData.marketPrice;
             state.Tokens[index].currencyAmount = action.payload.TokenData.currencyAmount;
             state.Tokens[index].Selected = true;
+            state.Tokens[index].metaData = action.payload.TokenData.metaData;
             state.TotalAmount = SumUpValue(state.Tokens)
         },
         SetFeeShare: (state, action) => {
