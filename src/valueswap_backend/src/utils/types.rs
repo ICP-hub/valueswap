@@ -1,4 +1,3 @@
-use std::fmt;
 
 use serde::{Deserialize, Serialize};
 use candid::CandidType;
@@ -77,12 +76,6 @@ impl Pool_Data {
                 ));
             }
 
-            // Validate balances, weights, and values
-            if pool.balance == Nat::from(0u64) || pool.balance > Nat::from(1_000_000_000u64) {
-                return Err(CustomError::InvalidInput(
-                    "Balance must be greater than zero and less than 1 billion".to_string(),
-                ));
-            }
             if pool.weight == Nat::from(0u64) || pool.value == Nat::from(0u64) {
                 return Err(CustomError::InvalidInput(
                     "Weight and value must be greater than zero".to_string(),
@@ -102,21 +95,17 @@ impl Pool_Data {
             }
         }
 
-        // Validate swap fee
-        if self.swap_fee == Nat::from(0u64) || self.swap_fee > Nat::from(100u64) {
-            return Err(CustomError::InvalidInput(
-                "Swap fee must be greater than zero and less than or equal to 100".to_string(),
-            ));
-        }
 
         Ok(())
     }
 
     // Enhanced URL validation
     fn is_valid_image_url(&self, url: &str) -> bool {
-        (url.starts_with("http://") || url.starts_with("https://"))
-            && (url.ends_with(".png") || url.ends_with(".jpg") || url.ends_with(".jpeg"))
+        let lower_url = url.to_lowercase();
+        (lower_url.starts_with("http://") || lower_url.starts_with("https://"))
+            && (lower_url.contains(".png?") || lower_url.contains(".jpg?") || lower_url.contains(".jpeg?") || lower_url.ends_with(".png") || lower_url.ends_with(".jpg") || lower_url.ends_with(".jpeg"))
     }
+    
 }
 
 
