@@ -16,9 +16,6 @@ thread_local! {
     static USERS_LP : RefCell<BTreeMap<Principal, Nat>> = RefCell::new(BTreeMap::new());
     static USERS_POOL : RefCell<BTreeMap<Principal , Vec<String>>> = RefCell::new(BTreeMap::new());
 }
-
-// To map pool with their LP tokens
-
 #[update]
 pub fn increase_pool_lp_tokens(params: Pool_Data) {
     POOL_LP_SHARE.with(|lp_share| {
@@ -113,13 +110,13 @@ fn get_total_lp() -> Nat {
 // Query to get LP tokens for a specific pool
 
 #[query]
-fn get_lp_tokens(pool_name: String) -> Option<Nat> {
+pub fn get_pool_lp_tokens(pool_name: String) -> Nat {
     POOL_LP_SHARE.with(|share| {
         let temp: BTreeMap<String, Nat> = share.borrow().clone();
         if let Some(key) = temp.get(&pool_name) {
-            Some(key.clone())
+            key.clone()
         } else {
-            None
+            Nat::from(0u128)
         }
     })
 }
@@ -141,12 +138,12 @@ pub async fn users_lp_share( params: Pool_Data) -> Result<(), String> {
         ic_cdk::spawn(async move {
             let mut attempts = 0;
             let max_retries = 3;
-            let mut success = false;
+            // let mut success = false;
 
             while attempts < max_retries {
                 let transfer_result = icrc1_transfer(user, amount.clone()).await;
                 if transfer_result.is_ok() {
-                    success = true;
+                    // success = true;
                     break; // Exit the loop if transfer is successful
                 } else {
                     attempts += 1;
@@ -154,10 +151,6 @@ pub async fn users_lp_share( params: Pool_Data) -> Result<(), String> {
                         log::error!("Transfer failed after {} attempts", attempts);
                     }
                 }
-            }
-
-            if !success {
-                // Rollback logic: Return tokens to the user if LP transfer fails
             }
         });
 
@@ -186,7 +179,7 @@ async fn burn_lp_tokens(params: Pool_Data, pool_name: String, amount: Nat) -> Re
     }
 
     let canister_id = with_state(|pool| {
-        let pool_borrowed = &mut pool.TOKEN_POOLS;
+        let pool_borrowed = &mut pool.token_pools;
         // Extract the principal if available
         pool_borrowed
             .get(&pool_name)
@@ -261,7 +254,7 @@ async fn get_user_share_ratio(
 
     // Retrieve the canister ID for the pool
     let canister_id = with_state(|pool| {
-        let pool_borrowed = &mut pool.TOKEN_POOLS;
+        let pool_borrowed = &mut pool.token_pools;
         pool_borrowed
             .get(&pool_name)
             .map(|user_principal| user_principal.principal)

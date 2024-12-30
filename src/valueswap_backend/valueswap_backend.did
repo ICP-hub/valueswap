@@ -54,9 +54,10 @@ service : () -> {
   faucet : (principal, principal, nat) -> (Result_2);
   get_constant_product_value : () -> (float64) query;
   get_exchange_rate : (text, text) -> (Result_3);
-  get_lp_tokens : (text) -> (opt nat) query;
+  get_exchange_rates1 : () -> (Result_3);
   get_pool_canister_id : (text, text) -> (opt principal) query;
   get_pool_data : () -> (vec record { text; vec Pool_Data }) query;
+  get_pool_lp_tokens : (text) -> (nat) query;
   get_specific_pool_data : (text) -> (Result_4) query;
   get_tokens : () -> (vec record { text; PoolShare }) query;
   get_total_lp : () -> (nat) query;
