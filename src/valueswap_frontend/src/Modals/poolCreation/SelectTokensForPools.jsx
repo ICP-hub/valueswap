@@ -34,7 +34,7 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                     <hr className="border-2 w-3/4 pr-6" />
                 </div>
             </div>
-            <div className='inset-0 md:min-w-[500px] w-max bg-opacity-10 m-auto justify-center items-center flex flex-col gap-4 p-3 sm:p-6 border mx-auto rounded-xl backdrop-blur-[32px] *:z-50'> 
+            <div className='inset-0 md:min-w-[500px] w-max bg-opacity-10 m-auto justify-center items-center flex flex-col gap-4 p-3 sm:p-6 border mx-auto rounded-xl backdrop-blur-[32px]'> 
 
                 {/* <div className='w-[90%] place-self-end  flex justify-between px-6'>
                     <span className='font-gilroy font-light md:text-3xl '>Select Tokens</span>
@@ -72,9 +72,9 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                     }}
                 >
                 </div>
-
+            </div>
                 <div
-                    className={`font-gilroy text-base font-medium `}
+                    className={`font-gilroy text-base font-medium md:min-w-[500px]`}
                     onClick={() => {
 
                         if (!ButtonActive) {
@@ -83,15 +83,13 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                         } else {
                             setFixedActiveSetp(1)
                             handleNext()
-
                         }
                     }}
                 >
-                </div>
-            </div>
-            <GradientButton CustomCss={`my-4 md:min-w-[500px] ${ButtonActive ? ' opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`} >
+            <GradientButton CustomCss={`my-4 w-full ${ButtonActive ? ' opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`} >
                         Next
             </GradientButton>
+            </div>
         </div>
     )
 }
