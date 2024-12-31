@@ -31,7 +31,7 @@ console.log("searchToken", searchToken)
 
     return (
         <>
-        <div id={`selectToken${token.id}`} className='flex justify-between border border-dashed rounded-xl backdrop-blur-[48px] p-2 gap-8 custom-400:gap-8 custom-450:gap-16 sm:gap-32 items-center mt-4 z-10' key={token.id}>
+        <div id={`selectToken${token?.Name}`} className='flex justify-between border border-dashed rounded-xl p-2 gap-8 custom-400:gap-8 custom-450:gap-16 sm:gap-32 items-center mt-4 z-10' key={token.id}>
              <div>
                 {token.Selected ? (
                     <div className='flex flex-col gap-1'>
@@ -39,7 +39,7 @@ console.log("searchToken", searchToken)
                             <BlueGradientButton customCss={'disabled px-2 py-2  normal-cursor'}>
                                 <img src={token.ImagePath} alt="" className='h-3 w-3 md:h-4 md:w-4 transform scale-150' />
                             </BlueGradientButton>
-
+                            
                             <div className='flex items-center gap-1'
                                 onClick={() => {
                                     setSearchToken(!searchToken);
@@ -55,9 +55,7 @@ console.log("searchToken", searchToken)
                                     }}><ChevronUp size={18} /></span>
                                 )}
                             </div>
-                            <div className=''>
                                 {searchToken && <SearchToken setSearchToken={setSearchToken} searchToken={searchToken} setTokenData={setTokenData} set id={3} />}
-                            </div>
                             <div className='hidden'>
                                 {HandleData(index, TokenData)}
                                 {HandleSelectCheck()}
