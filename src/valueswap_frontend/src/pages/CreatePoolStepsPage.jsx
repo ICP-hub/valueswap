@@ -11,6 +11,7 @@ const CreatePoolStepsPage = () => {
    const [fixedActiveSetp, setFixedActiveSetp] = useState(0)
    console.log("setFixedActiveSetp", fixedActiveSetp)
     const handleNext = () => {
+        console.log("CLicked")
         if (!isLastStep) {
             setActiveStep(current => current + 1);
         }
