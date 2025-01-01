@@ -326,17 +326,7 @@ const InitialLiquidity = () => {
           <hr className="border-2 w-3/4 pr-6" />
         </div>
       </div>
-      <div className='z-50 w-max m-auto flex flex-col gap-4 p-3 sm:p-6 bg-gradient-to-b from-[#3E434B] to-[#02060D] border mx-auto rounded-lg'>
-        <div className='w-[78%] sm:w-[74%] place-self-end  flex justify-between'>
-          <span className='font-gilroy font-light text-base sm:text-3xl '>Set Initial Liquidity</span>
-          <div className='sm:hidden block'>
-            {/* <Bolt size={22} className='cursor-pointer' onClick={() => { console.log("settings open") }} /> */}
-          </div>
-          <div className='sm:block hidden'>
-            {/* <Bolt size={30} className='cursor-pointer' onClick={() => { console.log("settings open") }} /> */}
-          </div>
-        </div>
-
+      <div className='z-50 w-max m-auto flex flex-col gap-4 p-3 sm:p-6'>
         <div className='flex justify-between gap-12 items-center font-gilroy'>
           <div className='flex flex-col'>
             <div>
@@ -350,7 +340,8 @@ const InitialLiquidity = () => {
               />
             </div>
             <span className='text-sm sm:text-base font-normal'>
-              Balance: {initialTokenBalance.toLocaleString()}
+              Balance: 800
+              {/* {initialTokenBalance.toLocaleString()} */}
             </span>
           </div>
           <div className='flex flex-col justify-center'>
@@ -366,13 +357,13 @@ const InitialLiquidity = () => {
               </span>
             </div>
             <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-              ${InitialToken.currencyAmount.toLocaleString() || 0}
+              ${InitialToken.currencyAmount?.toLocaleString() || 0}
             </span>
           </div>
         </div>
 
         <div>
-          {RestTokens.map((token, index) => {
+          { RestTokens && RestTokens.map((token, index) => {
             const balance = restTokensBalances[index];
 
             return (
