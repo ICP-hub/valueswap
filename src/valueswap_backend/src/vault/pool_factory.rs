@@ -69,7 +69,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
         if let Some(canister_id) = pool_canister_id {
             // Add liquidity and update pool details
             // This line should replace your current call to add_liquidity_curr
-            
+
             for amount in params.pool_data.iter() {
                 deposit_tokens(
                     amount.balance.clone(),

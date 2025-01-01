@@ -20,7 +20,7 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
   const [allTokens, setAllTokens] = useState([]);
   const [filteredTokens, setFilteredTokens] = useState([]);
   const [canisterIdToken, setCanisterIdToken] = useState([]);
-
+  const [metaData, setMetadata] = useState(0)
   const HandleClickToken = (index) => {
     SetTokenOption(TokenOption === index ? null : index);
   };
@@ -56,20 +56,50 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
     }
   }, [searchQuery, allTokens]);
 
+  
+  const fetchMetadata = async (CanisterId) => {
+    try {
+      const ledgerActor = await createTokenActor(CanisterId);
+      const result = await ledgerActor?.icrc1_metadata();
+      console.log("Fetched metadata:", result);
+  
+      // Extract decimals and symbol from the metadata
+      const decimalsEntry = result.find(([key]) => key === "icrc1:decimals");
+      const symbolEntry = result.find(([key]) => key === "icrc1:symbol");
+  
+      const decimals = decimalsEntry ? Number(decimalsEntry[1]?.Nat) : null; // Convert BigInt to Number
+      const symbol = symbolEntry ? symbolEntry[1]?.Text : null;
+      console.log("meta", decimals, symbol)
+      return {
+        decimals,
+        symbol,
+      };
+    } catch (error) {
+      console.error("Error fetching metadata:", error);
+      return null; // Return null in case of an error
+    }
+  };
+  
+  
+  
   // Fetch token containing mainnet Canister ID
   const fetchCanisterIdHandler = async (tokenName) => {
     try {
       const fetchResult = await searchCoinGeckoById(tokenName);
       if (!fetchResult) {
-        throw new Error("Cannot call fetchCanisterIdHandler");
+        throw new Error("Failed to fetch Canister ID");
       }
+      console.log("Fetched Canister ID:", fetchResult);
       setCanisterIdToken([fetchResult]);
       return fetchResult;
     } catch (error) {
-      console.log(error);
-      return null;
+      console.error("Error in fetchCanisterIdHandler:", error);
+      return null; // Return null in case of an error
     }
   };
+     
+   
+
 
   return (
     <div className="fixed inset-0 w-screen overflow-y-auto text-[#FFFFFF] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50">
@@ -115,7 +145,7 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
               // Find corresponding metadata if available(mainnet)
               // const CanisterId = canisterIdToken? token.contract_address : null;
               const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC;
-
+              //  setMetadata()
 
               // Find the amount based on CanisterId
               const findAmount = Tokens?.find((t) => t?.CanisterId === CanisterId);
@@ -128,13 +158,18 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
                   className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer `}
                   onClick={async () => {
                     const fetchResult = await fetchCanisterIdHandler(token.id);
+                    if (!fetchResult) {
+                      console.error("Failed to fetch Canister ID for token:", token.id);
+                      return;
+                    }
+                    const meta = await  fetchMetadata(CanisterId);
                     if (fetchResult) {
                       const tokenData = {
                         id: token.id,
                         Name: TokenName,
                         ImagePath: ImagePath,
                         ShortForm: ShortForm,
-
+                        metaData: meta || [],
 //                         CanisterId: CanisterId,
                         // CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC,
 

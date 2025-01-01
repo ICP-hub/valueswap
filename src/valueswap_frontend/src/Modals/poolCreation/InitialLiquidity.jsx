@@ -10,7 +10,7 @@ import { useAuth } from '../../components/utils/useAuthClient';
 import { Principal } from '@dfinity/principal';
 import { searchCoinGeckoById } from '../../components/utils/fetchCoinGeckoData';
 import { toast } from 'react-toastify';
-import { idlFactory as tokenIdl } from '../../../../declarations/ckbtc';
+import { idlFactory as tokenIdl } from '../../../../declarations/ckbtc_ledger';
 import { IOSSwitch } from '../../buttons/SwitchButton';
 
 const InitialLiquidity = () => {
@@ -344,7 +344,7 @@ const InitialLiquidity = () => {
                 className="font-normal leading-5 text-xl sm:text-3xl py-1 inline-block bg-transparent border-none outline-none"
                 type="number"
                 min='0'
-                value={initialTokenAmount}
+                value={isNaN(initialTokenAmount) ? "" : initialTokenAmount}
                 ref={initialTokenRef}
                 onChange={(e) => handleInput(e, 0)}
               />
@@ -366,7 +366,7 @@ const InitialLiquidity = () => {
               </span>
             </div>
             <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-              ${InitialToken.currencyAmount.toLocaleString() || 0}
+              ${InitialToken?.currencyAmount?.toLocaleString() || 0}
             </span>
           </div>
         </div>
@@ -385,7 +385,7 @@ const InitialLiquidity = () => {
                         className="font-normal leading-5 text-xl sm:text-3xl py-1 inline-block outline-none bg-transparent"
                         type="number"
                         min="0"
-                        value={restTokensAmount[index]}
+                        value={isNaN(restTokensAmount[index]) ? "" : restTokensAmount[index]}
                         ref={(el) => (restTokensRefs.current[index] = el)}
                         onChange={(e) => handleInput(e, index + 1)}
                       />
@@ -447,4 +447,3 @@ const InitialLiquidity = () => {
 };
 
 export default InitialLiquidity;
-
