@@ -103,7 +103,6 @@ impl Pool_Data {
         Ok(())
     }
 
-    // Enhanced URL validation
     fn is_valid_image_url(&self, url: &str) -> bool {
         let lower_url = url.to_lowercase();
         (lower_url.starts_with("http://") || lower_url.starts_with("https://"))
