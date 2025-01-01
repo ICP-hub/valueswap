@@ -74,7 +74,7 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                 </div>
             </div>
                 <div
-                    className={`font-gilroy text-base font-medium md:min-w-[500px]`}
+                    className={`font-gilroy text-base font-medium mx-auto`}
                     onClick={() => {
 
                         if (!ButtonActive) {
@@ -86,7 +86,7 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                         }
                     }}
                 >
-            <GradientButton CustomCss={`my-4 w-full ${ButtonActive ? ' opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`} >
+            <GradientButton CustomCss={`my-4 md:min-w-[500px] ${ButtonActive ? ' opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`} >
                         Next
             </GradientButton>
             </div>
