@@ -7,7 +7,7 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { useAuth, useAuthClient } from '../utils/useAuthClient'
 import BorderGradientButton from '../../buttons/BorderGradientButton'
-
+import {portfolioSampleData} from "../../TextData"
 const PortfolioDataComponent = () => {
   const [allDataInPool, setAllDataInPool] = useState([])
   const [displayCount, setDisplayCount] = useState(0)
