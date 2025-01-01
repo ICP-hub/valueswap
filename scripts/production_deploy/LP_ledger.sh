@@ -36,7 +36,7 @@ export NUM_OF_BLOCK_TO_ARCHIVE=1000
 export CYCLE_FOR_ARCHIVE_CREATION=10000000000000
 export FEATURE_FLAGS=true
 
-# Deploy the cketh_ledger canister with the specified initialization arguments
+# Deploy the cketh canister with the specified initialization arguments
 DEPLOY_ARGUMENTS="(variant {Init = record {
   token_symbol = \"${TOKEN_SYMBOL}\";
   token_name = \"${TOKEN_NAME}\";
@@ -54,7 +54,11 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
+<<<<<<< HEAD
 dfx deploy LP_ledger_canister --argument "$DEPLOY_ARGUMENTS" --network ic --no-wallet
+=======
+dfx deploy LP_ledger_canister --argument "$DEPLOY_ARGUMENTS" --network ic
+>>>>>>> 26ad3fc (add faucet)
 
 echo "LP ledger got deployed"
 

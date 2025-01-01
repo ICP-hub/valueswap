@@ -22,15 +22,7 @@ const PoolPage = () => {
     return (
         <div className=' bg-[#000711] '>
             <div className='items-center'>
-                {
-                    location.pathname != '/valueswap/pool/create-pool/steps' ? (
-                        <img src={PoolPageBackGround} alt="" className='-z-0 h-96 w-full absolute top-0' />
-                    ) : (
-                        <div>
-
-                        </div>
-                    )
-                }
+                
                 {
                     location.pathname != '/valueswap/pool/create-pool/steps' ? (
                         <div className='flex justify-center'>

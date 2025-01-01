@@ -104,12 +104,23 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
         <div className="px-4 py-2 overflow-scroll h-full">
           {filteredTokens.length > 0 ? (
             filteredTokens.map((token, index) => {
-              const TokenName = token.name || "";
-              const ShortForm = token.symbol || "";
-              const ImagePath = token.image?.large || token.image || "";
-              const marketPrice = token.current_price || "-";
+
+              // Extract data from token
+              const TokenName = token.name || '';
+              const TokenId = token.id || '';
+              const ShortForm = token.symbol ? token.symbol : '';
+              const ImagePath = token.image?.large || token.image || token.thumb || token.large || '';
+              const marketPrice = token.current_price || token.market_data?.current_price?.usd || '-';
+
+              // Find corresponding metadata if available(mainnet)
               // const CanisterId = canisterIdToken? token.contract_address : null;
-              // const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH_LEDGER : process.env.CANISTER_ID_CKBTC_LEDGER;
+              const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC;
+
+
+              // Find the amount based on CanisterId
+              const findAmount = Tokens?.find((t) => t?.CanisterId === CanisterId);
+              const TokenAmount = findAmount ? findAmount.Amount : 0;
+
 
               return (
                 <div
@@ -123,8 +134,14 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
                         Name: TokenName,
                         ImagePath: ImagePath,
                         ShortForm: ShortForm,
-                        // CanisterId: fetchResult.contract_address,
-                        CanisterId: ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC,
+
+//                         CanisterId: CanisterId,
+                        // CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC,
+
+
+                        // CanisterId: CanisterId,
+                        CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC,
+
                         marketPrice: marketPrice,
                       };
                       if (id === 1) setPayToken(tokenData);

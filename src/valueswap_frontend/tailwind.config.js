@@ -37,6 +37,7 @@ export default {
     fontFamily: {
       gilroy: ["gilroy", "sans-serif"],
       cabin: ["cabin", "sans-serif"],
+      fahkwang: ["fahkwang", "sans-serif"],
     },
   },
   plugins: [],

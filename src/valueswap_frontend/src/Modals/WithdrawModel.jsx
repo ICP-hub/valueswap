@@ -4,13 +4,15 @@ import { useAuth } from '../components/utils/useAuthClient';
 import { toast } from 'react-toastify';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import CircularProgress from '@mui/material/CircularProgress';
-import { idlFactory as tokenIdl } from '../../../declarations/ckbtc_ledger';
+import { idlFactory as tokenIdl } from '../../../declarations/ckbtc';
 import { Principal } from '@dfinity/principal';
 function WithdrawModel({ setOpenWithdraw, poolName }) {
     const [change, setChange] = useState(false);
     const [coinDetail, setCoinDetail] = useState([]);
     const [CoinName, setCoinName] = useState([])
+    const [CoinName, setCoinName] = useState([])
     // const { backendActor } = useAuth();
+    const [amountLp, setAmountLp] = useState(0);
     const [amountLp, setAmountLp] = useState(0);
     const { createTokenActor, backendActor, principal, getBalance } = useAuth();
 
@@ -23,6 +25,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                 .then(specificData => {
                     let pool_data = specificData.Ok[0].pool_data;
                     let swap_fee = specificData.Ok[0].swap_fee;
+                    setCoinName(pool_data)
                     setCoinName(pool_data)
                     console.log("pooldata:", pool_data);
                     console.log("swap_fee:", swap_fee);
@@ -56,9 +59,15 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                 });
         });
     };
+<<<<<<< HEAD
+    
+    
+    console.log("res", coinDetail);
+=======
 
 
     console.log("getBalance", getBalance(process.env.CANISTER_ID_LP_LEDGER_CANISTER));
+>>>>>>> f77b7ce (add spinner in withdraw)
 
     const transferApprove = async (sendAmount, canisterId, backendCanisterID, tokenActor) => {
         try {
@@ -129,11 +138,13 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
         const CanisterId = process.env.CANISTER_ID_LP_LEDGER_CANISTER;
         try {
             if (!CanisterId || !amountLp) {
+            if (!CanisterId || !amountLp) {
                 console.error("Invalid CanisterId or amount");
                 return { success: false, error: "Invalid CanisterId or amount" };
             }
             const tokenActor = await createTokenActor(CanisterId);
             const approvalTransactions = await transferApprove(
+                amountLp,
                 amountLp,
                 CanisterId,
                 backendCanisterID,
@@ -170,6 +181,8 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
             handleCreatePoolClick(CANISTER_ID_VALUESWAP_BACKEND).then(approveResult => {
                 console.log("approve result", approveResult)
 
+<<<<<<< HEAD
+=======
                 const finallWidthdraw = async () => {
                     const specificData = await backendActor?.get_specific_pool_data(poolName);
                     let pool_data = await specificData.Ok[0].pool_data;
@@ -185,6 +198,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                 }
                 if (approveResult.success) {
 
+>>>>>>> f77b7ce (add spinner in withdraw)
                     return finallWidthdraw()
                 }
             })
@@ -227,8 +241,15 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
                     <div>
                         {/* Display coin details */}
                         {CoinName.map((coin, index) => (
+                        {CoinName.map((coin, index) => (
                             <div key={index} className='flex justify-between'>
                                 <span>{coin.token_name}</span>
+<<<<<<< HEAD
+                               
+                                <span>{coinDetail[index]}</span>
+                               
+                               
+=======
                                 {coinDetail[index] ? (
                                     coinDetail[index] >= 0.00001 ? (
                                         <span>{(coinDetail[index]).toFixed(8)}</span>
@@ -241,6 +262,7 @@ function WithdrawModel({ setOpenWithdraw, poolName }) {
 
 
 
+>>>>>>> f77b7ce (add spinner in withdraw)
                             </div>
                         ))}
                     </div>
