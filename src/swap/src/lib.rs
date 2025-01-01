@@ -248,7 +248,6 @@ pub async fn lp_rollback(user: Principal, pool_data: Pool_Data) -> Result<(), St
 
 
 // TODO : make ledger calls with state checks for balance to prevent TOCTOU vulnerablities
-// TODO : make use of user_share_ratio
 
 #[update]
 async fn burn_tokens(

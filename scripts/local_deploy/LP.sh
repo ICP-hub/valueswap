@@ -3,7 +3,7 @@ set -e
 
 
 # Get the principal ID for the minter account
-export MINTER="by6od-j4aaa-aaaaa-qaadq-cai"
+export MINTER="b77ix-eeaaa-aaaaa-qaada-cai"
 echo "MINTER principal: $MINTER"
 
 # Set token details
@@ -17,11 +17,7 @@ export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
-<<<<<<< HEAD
 dfx identity use DevJourney 
-=======
-dfx identity use Harshit
->>>>>>> f77b7ce (add spinner in withdraw)
 export DEFAULT=$(dfx identity get-principal )
 echo "DEFAULT principal: $DEFAULT"
 
