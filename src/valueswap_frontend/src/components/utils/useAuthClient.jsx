@@ -237,7 +237,7 @@ export const useAuthClient = () => {
     }
     try {
       setProvider(selectedProvider); // Set the provider
-      const tokenCanisterIds = DummyDataTokens.Tokens.map(token => token.CanisterId);
+    
       const additionalCanisterIds = [
         process.env.CANISTER_ID_CKBTC,
         process.env.CANISTER_ID_CKETH
@@ -246,7 +246,6 @@ export const useAuthClient = () => {
       // Combine all canister IDs
       const whitelist = [
         process.env.CANISTER_ID_VALUESWAP_BACKEND,
-        ...tokenCanisterIds,
         ...additionalCanisterIds
       ];
 
@@ -379,7 +378,8 @@ export const useAuthClient = () => {
         const userObject = await StoicLogin();
         const identity =   userObject.agent._identity; 
         // console.log("identity", StoicLogin())// StoicLogin returns identity
-        const principal = await identity._principal;
+        const principal = await userObject.principal;
+        console.log("principal stoic", principal, userObject)
         setPrincipal(principal); // Store the Principal object
         setIdentity(identity);
         setIsAuthenticated(true);

@@ -196,7 +196,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
 
         const poolDetails = {
           pool_data: validPoolData,
-          swap_fee: Math.round(swap_fee * 100)
+          swap_fee: BigInt(Math.round(swap_fee * 100))
         } // Ensure swap_fee is an integer
         console.log('Final poolDetails to be sent to backend:', poolDetails)
 

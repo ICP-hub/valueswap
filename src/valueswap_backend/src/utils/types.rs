@@ -114,8 +114,8 @@ impl Pool_Data {
 
     // Enhanced URL validation
     fn is_valid_image_url(&self, url: &str) -> bool {
-        (url.starts_with("http://") || url.starts_with("https://"))
-            && (url.ends_with(".png") || url.ends_with(".jpg") || url.ends_with(".jpeg"))
+        url.starts_with("http://") || url.starts_with("https://")
+      
     }
 }
 
