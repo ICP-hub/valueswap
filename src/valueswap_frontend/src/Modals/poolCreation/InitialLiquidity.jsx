@@ -10,7 +10,7 @@ import { useAuth } from '../../components/utils/useAuthClient';
 import { Principal } from '@dfinity/principal';
 import { searchCoinGeckoById } from '../../components/utils/fetchCoinGeckoData';
 import { toast } from 'react-toastify';
-import { idlFactory as tokenIdl } from '../../../../declarations/ckbtc_ledger';
+import { idlFactory as tokenIdl } from '../../../../declarations/ckbtc/index';
 import { IOSSwitch } from '../../buttons/SwitchButton';
 
 const InitialLiquidity = () => {

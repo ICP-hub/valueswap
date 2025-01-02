@@ -90,7 +90,7 @@ const SetPoolFees = ({ handleNext, setFixedActiveSetp }) => {
 
             </div>
                 <div
-                    className={`font-gilroy text-base font-medium mx-auto`}
+                    className={`font-gilroy text-base font-medium flex justify-center`}
                     onClick={() => {
 
                         if (!ButtonActive) {
@@ -101,7 +101,7 @@ const SetPoolFees = ({ handleNext, setFixedActiveSetp }) => {
                         }
                     }}
                 >
-                    <GradientButton CustomCss={`my-4 md:w-min-w-[500px] ${ButtonActive ? ' opacity-100 cursor-pointer' : 'opacity-50 cursor-default'}`}>
+                    <GradientButton CustomCss={`my-4 sm:w-1/2 w-full ${ButtonActive ? ' opacity-100 cursor-pointer' : 'opacity-50 cursor-default'}`}>
                         Next
                     </GradientButton>
                 </div>
