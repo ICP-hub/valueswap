@@ -40,7 +40,6 @@ fn prevent_anonymous() -> Result<(), String> {
 }
 
 //TODO 14 Add Test cases
-//TODO 16 ADD limit of 30% for swapping
 //TODO 15 ADD rate limiting for cycles  --PHASE 2
 //TODO 17 Reguarly check cycles balance to preves DOS  ---PHASE 2
 
