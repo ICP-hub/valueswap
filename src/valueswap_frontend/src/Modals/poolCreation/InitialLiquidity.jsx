@@ -336,7 +336,7 @@ const InitialLiquidity = () => {
           <div className='flex flex-col'>
             <div>
               <input
-                className={`${initialTokenAmount > InitialToken.currencyAmount ? "text-red-500" : ""} font-normal leading-5 text-xl sm:text-3xl py-1 inline-block bg-transparent border-none outline-none`}
+                className={`${initialTokenAmount > initialTokenBalance ? "text-red-500" : ""} font-normal leading-5 text-xl sm:text-3xl py-1 inline-block bg-transparent border-none outline-none`}
                 type="number"
                 min='0'
                 value={initialTokenAmount}
@@ -345,23 +345,21 @@ const InitialLiquidity = () => {
               />
             </div>
             <span className='text-sm sm:text-base font-normal'>
-              Balance: {initialTokenBalance?.toLocaleString()}
+            ${InitialToken.currencyAmount?.toLocaleString() || 0}
             </span>
           </div>
           <div className='flex flex-col justify-center'>
-            <div className='flex gap-3 items-center'>
-              <BlueGradientButton customCss={'disabled px-2 py-2  normal-cursor'}>
-                <img src={InitialToken.ImagePath} alt="" className=' h-3 w-3 sm:h-4 sm:w-4 translate-[] scale-150' />
-              </BlueGradientButton>
+            <div className='flex gap-3 items-center flex'>
+                <img src={InitialToken.ImagePath} alt="" className=' h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
               <span className='text-base sm:text-2xl font-normal'>
                 {InitialToken.ShortForm.toUpperCase()}
               </span>
-              <span className='bg-[#3E434B] py-1 rounded-lg px-2 sm:px-3'>
+              <span className='py-1 px-2 sm:px-3'>
                 {InitialToken.weights} %
               </span>
             </div>
             <span className='inline-flex justify-between w-full text-center font-normal leading-5 text-sm sm:text-base'>
-              ${InitialToken.currencyAmount?.toLocaleString() || 0}
+            <p className={`${initialTokenAmount > initialTokenBalance ? "text-red-500" : ""}`}>{initialTokenBalance?.toLocaleString()} ETH</p>
               <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
             </span>
           </div>
@@ -389,7 +387,7 @@ const InitialLiquidity = () => {
                       />
                     </div>
                     <span className='text-sm sm:text-base font-normal'>
-                      {balance !== undefined ? balance.toLocaleString() : "0"}
+                    ${token.currencyAmount? token.currencyAmount.toLocaleString() : "0"}
                     </span>
                   </div>
                   <div className='flex flex-col justify-center'>
@@ -398,13 +396,13 @@ const InitialLiquidity = () => {
                       <span className='text-sm sm:text-2xl font-normal'>
                         {token.ShortForm.toUpperCase()}
                       </span>
-                      <span className='bg-[#3E434B] py-1 rounded-lg px-2 sm:px-3'>
+                      <span className='py-1 px-2 sm:px-3'>
                         {token.weights} %
                       </span>
                     </div>
-                    <span className='text-center font-normal leading-5 text-sm sm:text-base'>
-                      ${token.currencyAmount.toLocaleString() || 0}
-
+                    <span className='inline-flex justify-between text-center font-normal leading-5 text-sm sm:text-base'>
+                    {balance !== undefined ? balance.toLocaleString() : "0"} ETH
+                      <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
                     </span>
                   </div>
                 </div>
