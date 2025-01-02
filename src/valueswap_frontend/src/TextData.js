@@ -488,23 +488,45 @@ export const portfolioSampleData =  [
               token_name: "ETH",
               image: "https://example.com/images/eth.png",
               weight: 0.5,
-              value: "50000000000000000000", // 50 ETH in WEI
-              balance: "25000000000000000000", // 25 ETH in WEI
+              value: "50000000", // 50 ETH in WEI
+              balance: "25000000", // 25 ETH in WEI
+              APR: "2% - 3%",
             },
             {
               token_name: "USDT",
               image: "https://example.com/images/usdt.png",
               weight: 0.3,
-              value: "30000000000000000000", // 30 USDT in smallest unit
-              balance: "15000000000000000000", // 15 USDT in smallest unit
+              value: "30000000", // 30 USDT in smallest unit
+              balance: "15000000", // 15 USDT in smallest unit
             },
             {
               token_name: "DAI",
               image: "https://example.com/images/dai.png",
               weight: 0.2,
-              value: "20000000000000000000", // 20 DAI in smallest unit
-              balance: "10000000000000000000", // 10 DAI in smallest unit
+              value: "20000000", // 20 DAI in smallest unit
+              balance: "10000000", // 10 DAI in smallest unit
             },
+            {
+                token_name: "UNI",
+                image: "https://example.com/images/uni.png",
+                weight: 0.4,
+                value: "40000000", // 40 UNI in smallest unit
+                balance: "20000000", // 20 UNI in smallest unit
+              },
+              {
+                token_name: "SUSHI",
+                image: "https://example.com/images/sushi.png",
+                weight: 0.4,
+                value: "40000000", // 40 SUSHI in smallest unit
+                balance: "20000000", // 20 SUSHI in smallest unit
+              },
+              {
+                token_name: "AAVE",
+                image: "https://example.com/images/aave.png",
+                weight: 0.2,
+                value: "20000000", // 20 AAVE in smallest unit
+                balance: "10000000", // 10 AAVE in smallest unit
+              },
           ],
         },
         {
@@ -514,22 +536,22 @@ export const portfolioSampleData =  [
               token_name: "UNI",
               image: "https://example.com/images/uni.png",
               weight: 0.4,
-              value: "40000000000000000000", // 40 UNI in smallest unit
-              balance: "20000000000000000000", // 20 UNI in smallest unit
+              value: "40000000", // 40 UNI in smallest unit
+              balance: "20000000", // 20 UNI in smallest unit
             },
             {
               token_name: "SUSHI",
               image: "https://example.com/images/sushi.png",
               weight: 0.4,
-              value: "40000000000000000000", // 40 SUSHI in smallest unit
-              balance: "20000000000000000000", // 20 SUSHI in smallest unit
+              value: "40000000", // 40 SUSHI in smallest unit
+              balance: "20000000", // 20 SUSHI in smallest unit
             },
             {
               token_name: "AAVE",
               image: "https://example.com/images/aave.png",
               weight: 0.2,
-              value: "20000000000000000000", // 20 AAVE in smallest unit
-              balance: "10000000000000000000", // 10 AAVE in smallest unit
+              value: "20000000", // 20 AAVE in smallest unit
+              balance: "10000000", // 10 AAVE in smallest unit
             },
           ],
         },
@@ -540,22 +562,22 @@ export const portfolioSampleData =  [
               token_name: "USDC",
               image: "https://example.com/images/usdc.png",
               weight: 0.33,
-              value: "33000000000000000000", // 33 USDC in smallest unit
-              balance: "16500000000000000000", // 16.5 USDC in smallest unit
+              value: "33000000", // 33 USDC in smallest unit
+              balance: "16500000", // 16.5 USDC in smallest unit
             },
             {
               token_name: "USDT",
               image: "https://example.com/images/usdt.png",
               weight: 0.33,
-              value: "33000000000000000000", // 33 USDT in smallest unit
-              balance: "16500000000000000000", // 16.5 USDT in smallest unit
+              value: "33000000", // 33 USDT in smallest unit
+              balance: "16500000", // 16.5 USDT in smallest unit
             },
             {
               token_name: "DAI",
               image: "https://example.com/images/dai.png",
               weight: 0.34,
-              value: "34000000000000000000", // 34 DAI in smallest unit
-              balance: "17000000000000000000", // 17 DAI in smallest unit
+              value: "34000000", // 34 DAI in smallest unit
+              balance: "17000000", // 17 DAI in smallest unit
             },
           ],
         },
