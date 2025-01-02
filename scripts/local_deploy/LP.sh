@@ -3,7 +3,7 @@ set -e
 
 
 # Get the principal ID for the minter account
-export MINTER="by6od-j4aaa-aaaaa-qaadq-cai"
+export MINTER="b77ix-eeaaa-aaaaa-qaada-cai"
 echo "MINTER principal: $MINTER"
 
 # Set token details
