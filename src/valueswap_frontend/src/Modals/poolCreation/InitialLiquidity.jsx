@@ -326,12 +326,17 @@ const InitialLiquidity = () => {
           <hr className="border-2 w-3/4 pr-6" />
         </div>
       </div>
-      <div className='z-50 w-max m-auto flex flex-col gap-4 p-3 sm:p-6'>
-        <div className='flex justify-between gap-12 items-center font-gilroy'>
+      <div className='z-50 w-max m-auto flex flex-col gap-4 p-3 sm:p-6 relative space-y-2'>
+        <div className='flex gap-2 items-center justify-end w-full'>
+          <p className='font-gilroy text-sm'>Auto optimize liquidity</p>
+          <IOSSwitch sx={{ m: 1 }} defaultChecked  onClick={()=> setOptimizeEnable((prev)=> !prev)}/>
+        </div>
+        <div className='flex justify-between gap-12 items-center font-gilroy backdrop-blur-[32px] 
+        md:px-6 md:py-8 rounded-xl border border-white'>
           <div className='flex flex-col'>
             <div>
               <input
-                className="font-normal leading-5 text-xl sm:text-3xl py-1 inline-block bg-transparent border-none outline-none"
+                className={`${initialTokenAmount > InitialToken.currencyAmount ? "text-red-500" : ""} font-normal leading-5 text-xl sm:text-3xl py-1 inline-block bg-transparent border-none outline-none`}
                 type="number"
                 min='0'
                 value={initialTokenAmount}
@@ -340,8 +345,7 @@ const InitialLiquidity = () => {
               />
             </div>
             <span className='text-sm sm:text-base font-normal'>
-              Balance: 800
-              {/* {initialTokenBalance.toLocaleString()} */}
+              Balance: {initialTokenBalance?.toLocaleString()}
             </span>
           </div>
           <div className='flex flex-col justify-center'>
@@ -350,14 +354,15 @@ const InitialLiquidity = () => {
                 <img src={InitialToken.ImagePath} alt="" className=' h-3 w-3 sm:h-4 sm:w-4 translate-[] scale-150' />
               </BlueGradientButton>
               <span className='text-base sm:text-2xl font-normal'>
-                {InitialToken.ShortForm}
+                {InitialToken.ShortForm.toUpperCase()}
               </span>
               <span className='bg-[#3E434B] py-1 rounded-lg px-2 sm:px-3'>
                 {InitialToken.weights} %
               </span>
             </div>
-            <span className='text-center font-normal leading-5 text-sm sm:text-base'>
+            <span className='inline-flex justify-between w-full text-center font-normal leading-5 text-sm sm:text-base'>
               ${InitialToken.currencyAmount?.toLocaleString() || 0}
+              <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
             </span>
           </div>
         </div>
@@ -369,29 +374,29 @@ const InitialLiquidity = () => {
             return (
               <div key={index}>
                 <div className='border-t-[1px] opacity-50 item-center my-6'></div>
-                <div className='flex justify-between items-center font-gilroy'>
+                <div className='flex justify-between items-center font-gilroy backdrop-blur-[32px] 
+        md:px-6 md:py-8 rounded-xl border border-white'>
                   <div className='flex flex-col'>
                     <div>
                       <input
                         className="font-normal leading-5 text-xl sm:text-3xl py-1 inline-block outline-none bg-transparent"
                         type="number"
                         min="0"
+                        placeholder="0"
                         value={restTokensAmount[index]}
                         ref={(el) => (restTokensRefs.current[index] = el)}
                         onChange={(e) => handleInput(e, index + 1)}
                       />
                     </div>
                     <span className='text-sm sm:text-base font-normal'>
-                      Balance: {balance !== undefined ? balance.toLocaleString() : "0"}
+                      {balance !== undefined ? balance.toLocaleString() : "0"}
                     </span>
                   </div>
                   <div className='flex flex-col justify-center'>
                     <div className='flex gap-3 items-center'>
-                      <BlueGradientButton customCss={'disabled px-2 py-2  normal-cursor'}>
-                        <img src={token.ImagePath} alt="" className='h-3 w-3 sm:h-4 sm:w-4 transform scale-150' />
-                      </BlueGradientButton>
+                        <img src={token.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
                       <span className='text-sm sm:text-2xl font-normal'>
-                        {token.ShortForm}
+                        {token.ShortForm.toUpperCase()}
                       </span>
                       <span className='bg-[#3E434B] py-1 rounded-lg px-2 sm:px-3'>
                         {token.weights} %
@@ -407,10 +412,6 @@ const InitialLiquidity = () => {
             );
           })}
         </div>
-        <div className='flex gap-2 items-center'>
-          <p className='font-gilroy text-sm'>Auto optimize liquidity</p>
-          <IOSSwitch sx={{ m: 1 }} defaultChecked  onClick={()=> setOptimizeEnable((prev)=> !prev)}/>
-          </div>
         {( pooExits && Confirmation) && <FinalizePool handleCreatePoolClick={handleCreatePoolClick} />}
         <div
           className={`font-gilroy text-base font-medium`}
