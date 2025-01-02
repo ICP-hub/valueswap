@@ -1,7 +1,7 @@
 use candid::{Nat, Principal};
-use ic_cdk:: call;
+use ic_cdk::call;
 use ic_cdk_macros::{query, update};
-use std::cell:: RefCell;
+use std::cell::RefCell;
 use std::collections::BTreeMap;
 
 use crate::api::deposit::deposit_tokens;
@@ -18,10 +18,9 @@ thread_local! {
     static USERS_POOL_LP: RefCell<BTreeMap<Principal, BTreeMap<String, Nat>>> = RefCell::new(BTreeMap::new());
 }
 
-
 #[update]
 pub fn increase_pool_lp_tokens(params: Pool_Data) {
-    let mut pool_supply : Nat = Nat::from(1u128);
+    let mut pool_supply: Nat = Nat::from(1u128);
     POOL_LP_SHARE.with(|lp_share| {
         let mut borrowed_lp_share = lp_share.borrow_mut();
 
@@ -44,9 +43,9 @@ pub fn increase_pool_lp_tokens(params: Pool_Data) {
         borrowed_lp_share
             .entry(key.clone())
             .and_modify(|existing_supply| {
-                *existing_supply += pool_supply.clone() / Nat::from(10u128)
+                *existing_supply += pool_supply.clone() / Nat::from(1000u128)
             })
-            .or_insert(pool_supply.clone() / Nat::from(10u128));
+            .or_insert(pool_supply.clone() / Nat::from(1000u128));
     });
 
     USERS_POOL_LP.with(|users_pool_lp| {
@@ -59,7 +58,7 @@ pub fn increase_pool_lp_tokens(params: Pool_Data) {
             .collect::<Vec<String>>()
             .join("");
 
-        let lp_tokens : Nat = pool_supply / Nat::from(10u128);
+        let lp_tokens: Nat = pool_supply / Nat::from(1000u128);
 
         user_pools
             .entry(user)
@@ -70,9 +69,9 @@ pub fn increase_pool_lp_tokens(params: Pool_Data) {
     });
 
     users_pool(params.clone());
+
     total_lp_tokens();
 }
-
 
 #[update]
 pub fn users_pool(params: Pool_Data) {
@@ -154,9 +153,8 @@ pub fn get_user_pools_with_lp(user: Principal) -> Option<BTreeMap<String, Nat>> 
     })
 }
 
-
 #[update]
-pub async fn users_lp_share( params: Pool_Data) -> Result<(), String> {
+pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
     let user = ic_cdk::caller();
     let mut users_contribution: Nat = Nat::from(1u128);
     USERS_LP.with(|share| {
@@ -200,16 +198,17 @@ fn get_users_lp(user_id: Principal) -> Option<Nat> {
     })
 }
 
-
 // TODO Send token amount to pool canister instead of user_share ratio
 #[update]
 async fn burn_lp_tokens(params: Pool_Data, pool_name: String, amount: Nat) -> Result<(), String> {
     let user = ic_cdk::caller();
+
     let ledger_canister_id =
         Principal::from_text(LP_LEDGER_ADDRESS).expect("Invalid ledger canister id");
     let target_canister_id = ic_cdk::id();
 
     let result = deposit_tokens(amount.clone(), ledger_canister_id, target_canister_id).await;
+
     if let Err(e) = result {
         ic_cdk::trap(&format!("Transfer failed : {}", e));
     }
@@ -254,27 +253,32 @@ async fn burn_lp_tokens(params: Pool_Data, pool_name: String, amount: Nat) -> Re
     if pool_value <= Nat::from(0u128) {
         ic_cdk::trap(&format!("No tokens in the pool: {}", pool_name));
     }
-    
+
     let pool_value_f64 = pool_value.clone().to_string().parse::<f64>().unwrap();
     // let pool_value_f64 = pool_value.0.to_u64_digits().0.first().cloned().unwrap_or(0) as f64;
 
     let tokens_to_transfer = pool_value_f64 * user_share_ratio.clone();
 
-    let result: Result<(), String> =
-        call(canister_id, "burn_tokens", (params, user, tokens_to_transfer))
-            .await
-            .map_err(|e| format!("Failed to perform swap: {:?}", e));
+    let result: Result<(), String> = call(
+        canister_id,
+        "burn_tokens",
+        (params, user, tokens_to_transfer),
+    )
+    .await
+    .map_err(|e| format!("Failed to perform swap: {:?}", e));
 
     if let Err(e) = result {
         return Err(e);
     }
 
     decrease_pool_lp(pool_name.clone(), amount.clone());
-    decrease_user_pool_lp(user , pool_name, amount.clone());
+
+    decrease_user_pool_lp(user, pool_name, amount.clone());
+
     decrease_total_lp(amount);
+
     Ok(())
 }
-
 
 // TODO Send token amount to pool canister instead of user_share ratio
 #[update]
@@ -323,8 +327,7 @@ async fn get_user_share_ratio(
     let pool_value_f64 = pool_value.clone().to_string().parse::<f64>().unwrap();
     // let pool_value_f64 = pool_value.0.to_u64_digits().0.first().cloned().unwrap_or(0) as f64;
 
-    let tokens_to_transfer = pool_value_f64 * user_share_ratio.clone();    
-
+    let tokens_to_transfer = pool_value_f64 * user_share_ratio.clone();
 
     // Call the `get_burned_tokens` function on the canister
     let result: Result<(Vec<f64>,), String> = call(
@@ -339,11 +342,12 @@ async fn get_user_share_ratio(
     result.map(|(burned_tokens_vec,)| burned_tokens_vec)
 }
 
-
 #[update]
 fn decrease_pool_lp(pool_name: String, amount: Nat) {
+
     POOL_LP_SHARE.with(|pool| {
         let mut pool_lp_share = pool.borrow_mut();
+
         if let Some(current_lp) = pool_lp_share.get_mut(&pool_name) {
             // Ensure the LP amount does not go negative
             if *current_lp >= amount {
@@ -357,17 +361,22 @@ fn decrease_pool_lp(pool_name: String, amount: Nat) {
     });
 }
 
-
 #[update]
 fn decrease_user_pool_lp(user: Principal, pool_name: String, amount: Nat) {
+
     USERS_POOL_LP.with(|users_pool_lp| {
+
         let mut borrowed = users_pool_lp.borrow_mut();
+
         if let Some(user_pools) = borrowed.get_mut(&user) {
             if let Some(current_lp) = user_pools.get_mut(&pool_name) {
                 if *current_lp >= amount {
                     *current_lp -= amount;
                 } else {
-                    ic_cdk::trap(&format!("Insufficient LP tokens for user in pool: {}", pool_name));
+                    ic_cdk::trap(&format!(
+                        "Insufficient LP tokens for user in pool: {}",
+                        pool_name
+                    ));
                 }
             } else {
                 ic_cdk::trap(&format!("User not associated with pool: {}", pool_name));
@@ -378,9 +387,9 @@ fn decrease_user_pool_lp(user: Principal, pool_name: String, amount: Nat) {
     });
 }
 
-
 #[update]
 fn decrease_total_lp(lp: Nat) {
+
     TOTAL_LP_SUPPLY.with(|total_lp| {
         let mut borrowed_lp = total_lp.borrow_mut();
         if *borrowed_lp > Nat::from(0u128) {
