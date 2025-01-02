@@ -332,7 +332,7 @@ const InitialLiquidity = () => {
           <IOSSwitch sx={{ m: 1 }} defaultChecked  onClick={()=> setOptimizeEnable((prev)=> !prev)}/>
         </div>
         <div className='flex justify-between gap-12 items-center font-gilroy backdrop-blur-[32px] 
-        md:px-6 md:py-8 rounded-xl border border-white'>
+        md:px-6 px-3 md:py-8 py-4 rounded-xl border border-white'>
           <div className='flex flex-col'>
             <div>
               <input
@@ -373,7 +373,7 @@ const InitialLiquidity = () => {
               <div key={index}>
                 <div className='border-t-[1px] opacity-50 item-center my-6'></div>
                 <div className='flex justify-between items-center font-gilroy backdrop-blur-[32px] 
-        md:px-6 md:py-8 rounded-xl border border-white'>
+        md:px-6 px-3 md:py-8 py-4 rounded-xl border border-white'>
                   <div className='flex flex-col'>
                     <div>
                       <input
