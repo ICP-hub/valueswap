@@ -8,7 +8,7 @@ set -e
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER="cpmcr-yeaaa-aaaaa-qaala-cai"
+export MINTER="b77ix-eeaaa-aaaaa-qaada-cai"
 echo "MINTER principal: $MINTER"
 
 # Set token details
