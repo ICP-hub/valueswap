@@ -101,7 +101,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
         const decimals = token.metaData?.decimals || 1 // Default to 1 if decimals is undefined
         console.log("decimals", decimals)
         const amountStr = token.Amount.toString().replace(/[^0-9.-]+/g, '')
-         const amount = (amountStr) * Math.pow(10, 8);
+         const amount = parseFloat(amountStr * Math.pow(10, decimals));
         console.log(`Token ${token.ShortForm} amountStr:`, amountStr)
         console.log(`Token ${token.ShortForm} parsed amount:`, amount)
 

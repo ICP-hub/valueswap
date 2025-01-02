@@ -3,6 +3,7 @@ import GradientButton from '../../buttons/GradientButton'
 // import { AllPool } from '../../TextData';
 import { useNavigate } from 'react-router-dom'
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
+import ImportExportIcon from '@mui/icons-material/ImportExport';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
 import { useAuth, useAuthClient } from '../utils/useAuthClient'
@@ -16,7 +17,7 @@ const PortfolioDataComponent = () => {
   const [isAscending, setIsAscending] = useState(true)
   const { backendActor, principal } = useAuth()
   const [poolName, setPoolName] = useState([])
-  const { isAuthenticated } = useAuthClient()
+  const { isAuthenticated } = useAuth()
   //  const listOfPool = [];
   useEffect(() => {
     const userPools = async () => {
@@ -185,19 +186,19 @@ const PortfolioDataComponent = () => {
                             <th
                               scope='col'
                               key={index}
-                              className={`py-7    md:pr-0 text-center text-sm md:text-base lg:text-xl font-medium text-white ${
+                              className={`py-7    md:pr-0 text-center text-sm md:text-base lg:text-base  font-bold text-white ${
                                 heading == 'Pool name' ? 'w-7/12' : ''
                               } `}
                             >
                               <span
-                                className='flex  items-center ml-4'
+                                className={`flex  items-center ml-4 ${index === activeSort ? "text-[#F7931A]": ""}`}
                                 onClick={() => sortingConditional(index)}
                               >
                                 {heading}
                                 {index === activeSort ? (
-                                  <ArrowDownwardIcon sx={{ color: '' }} />
+                                  <ArrowDownwardIcon sx={{ color: '' }}  fontSize='small'/>
                                 ) : (
-                                  ''
+                                  <ImportExportIcon fontSize='small'/>
                                 )}
                               </span>
                             </th>
@@ -206,7 +207,8 @@ const PortfolioDataComponent = () => {
                       </thead>
                       <tbody>
                         {isAuthenticated ? (
-                          !allDataInPool ? (
+                          //  allDataInPool
+                          !portfolioSampleData ? (
                             Array.from({ length: 3 }).map((_, index) => (
                               <tr key={index}>
                                 <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
@@ -224,7 +226,7 @@ const PortfolioDataComponent = () => {
                               </tr>
                             ))
                           ) : (
-                            allDataInPool?.map((Poolinfo, index) => (
+                            portfolioSampleData?.map((Poolinfo, index) => (
                               <tr
                                 key={index}
                                 className='hover:bg-[#546093] rounded-xl cursor-pointer'
@@ -236,19 +238,19 @@ const PortfolioDataComponent = () => {
                                   )
                                 }}
                               >
-                                <td className='min-w-80 whitespace-nowrap my-4 text-sm md:text-base font-medium text-white flex items-center gap-5 justify-start ml-8'>
+                                <td className='min-w-80 whitespace-nowrap my-4 text-sm md:text-base font-medium text-white flex flex-wrap items-center gap-5 justify-start ml-4'>
                                   {Poolinfo?.pool_data.map((pool, indx) => (
                                     <span
                                       key={indx}
-                                      className='flex items-center gap-x-1 cursor-pointer border-2 rounded-2xl py-1 px-2'
+                                      className='flex items-center justify-center gap-x-1 cursor-pointer border-[1px] border-[#FFFFFF66] rounded-2xl py-1 px-2'
                                     >
                                       <img
                                         src={pool.image}
                                         alt=''
-                                        className='w-6 h-6'
+                                        className='w-4 h-4'
                                       />
-                                      <span>{pool.token_name}</span>
-                                      <span>{pool.weight * 100} %</span>
+                                     {Poolinfo?.pool_data.length < 4 ? <span className='font-bold'>{pool.token_name}</span> :""}
+                                      <span className='text-sm flex items-center justify-center'>{pool.weight * 100} %</span>
                                     </span>
                                   ))}
                                 </td>
