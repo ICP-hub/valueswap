@@ -1,9 +1,5 @@
-use candid::{CandidType, Deserialize, Nat, Principal};
-use ic_cdk::caller;
+use candid::{ Nat, Principal};
 use ic_cdk_macros::*;
-use serde::de::value::Error;
-use std::borrow::Borrow;
-use std::cell::Ref;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
@@ -16,106 +12,170 @@ pub use utils::types::*;
 
 thread_local! {
     pub static POOL_DATA: RefCell<BTreeMap<Principal, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
-    // pub static LP_SHARE : RefCell<BTreeMap<Principal , f64>> = RefCell::new(BTreeMap::new());
     pub static POOL_BALANCE : RefCell<BTreeMap<Principal , Nat>> = RefCell::new(BTreeMap::new());
 }
 
-// #[update]
-// fn increase_total_lp(params : Pool_Data)  {
-//     TOTAL_LP.with(|lp|{
-//         let mut total_lp = lp.borrow_mut().clone();
-//         for amount in params.pool_data{
-//             let temp = amount.balance as f64 * amount.value as f64;
-//             total_lp += temp.borrow();
-//         }
-//         total_lp
-//     });
-// }
-
-// #[query]
-// fn get_total_lp() -> f64 {
-//     TOTAL_LP.with(|lp|{ lp.borrow().clone()})
-// }
-
-// #[update]
-// pub fn cmm_algorithm(){
-
-// }
 
 
 #[update]
 pub fn pool_balance(user_principal: Principal, params: Pool_Data) {
+    // Validate user principal
+    if user_principal == Principal::anonymous() {
+        ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
+        return;
+    }
+
+    // Validate pool data
+    if params.pool_data.is_empty() {
+        ic_cdk::println!("Error: Pool data is empty. Cannot compute balance.");
+        return;
+    }
+
+    // Calculate the total balance
     let balance: Nat = params
         .pool_data
         .iter()
         .map(|pool| pool.balance.clone())
         .fold(Nat::from(0u128), |acc, x| acc + x);
-        // .sum();
 
+    // Debug: Log the calculated balance
+    ic_cdk::println!("Debug: Total calculated balance is {}.", balance);
+
+    // Update the pool balance for the user
     POOL_BALANCE.with(|pool_balance| {
         let mut borrowed_pool_balance = pool_balance.borrow_mut();
         borrowed_pool_balance
             .entry(user_principal)
             .and_modify(|user_balance| *user_balance += balance.clone())
             .or_insert(balance);
-    })
+    });
 }
+
 
 #[query]
 pub fn get_pool_balance(user_principal: Principal) -> Option<Nat> {
+    // Validate user principal
+    if user_principal == Principal::anonymous() {
+        ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
+        return None;
+    }
+
+    // Retrieve the pool balance
     POOL_BALANCE.with(|pool_balance| {
         let borrowed_pool_balance = pool_balance.borrow();
         if let Some(balance) = borrowed_pool_balance.get(&user_principal) {
+            // Debug: Log the retrieved balance
+            ic_cdk::println!(
+                "Debug: Retrieved pool balance for user {}: {}.",
+                user_principal,
+                balance
+            );
             Some(balance.clone())
         } else {
+            // Debug: Log absence of balance
+            ic_cdk::println!(
+                "Debug: No pool balance found for user {}.",
+                user_principal
+            );
             None
         }
     })
 }
 
+
 // store user_id with pool data
 
 #[update]
 async fn store_pool_data(user_principal: Principal, params: Pool_Data) -> Result<(), String> {
-    // let key = format!("{},{}", pool_name, params.swap_fee);
-    let key = user_principal;
-    // increase_total_lp(params.clone());
+    // Validate user principal
+    if user_principal == Principal::anonymous() {
+        ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
+        return Err("Invalid user principal: Cannot be anonymous.".to_string());
+    }
+
+    // Validate pool data using the `validate` method
+    if let Err(err) = params.validate() {
+        ic_cdk::println!("Error: Invalid pool data - {:?}", err);
+        return Err(format!("Invalid pool data: {:?}", err));
+    }
+
+    // Debug: Log storing operation
+    ic_cdk::println!(
+        "Debug: Storing pool data for user principal {} with {} pools.",
+        user_principal,
+        params.pool_data.len()
+    );
+
+    // Update the pool balance
     pool_balance(user_principal.clone(), params.clone());
 
+    // Store the pool data
     POOL_DATA.with(|pool_data| {
         let mut pool_data_borrowed = pool_data.borrow_mut();
         let liquidity = params.clone();
 
-        pool_data_borrowed.entry(key).or_default().push(liquidity);
+        pool_data_borrowed.entry(user_principal).or_default().push(liquidity);
+
+        // Debug: Log successful storage
+        ic_cdk::println!(
+            "Debug: Successfully stored pool data for user principal {}.",
+            user_principal
+        );
     });
 
     Ok(())
 }
 
+
 // check if user exists and if it exists update pool data else add user entry with pool data
 
 #[update]
 async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> Result<(), String> {
-    let _pool_name = params
+    // Validate user principal
+    if user_principal == Principal::anonymous() {
+        ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
+        return Err("Invalid user principal: Cannot be anonymous.".to_string());
+    }
+
+    // Validate pool data using the `validate` method
+    if let Err(err) = params.validate() {
+        ic_cdk::println!("Error: Invalid pool data - {:?}", err);
+        return Err(format!("Invalid pool data: {:?}", err));
+    }
+
+    // Debug: Log adding liquidity operation
+    let pool_name = params
         .pool_data
         .iter()
         .map(|pool| pool.token_name.clone())
         .collect::<Vec<String>>()
         .join("");
+    ic_cdk::println!(
+        "Debug: Adding liquidity to pool '{}' for user principal {}.",
+        pool_name,
+        user_principal
+    );
 
-    // increase_total_lp(params.clone());
+    // Update the pool balance
     pool_balance(user_principal.clone(), params.clone());
 
-    // let key = format!("{},{}", pool_name, params.swap_fee);
-
+    // Add the liquidity to the pool data
     POOL_DATA.with(|pool_data| {
         let mut pool_data_borrowed = pool_data.borrow_mut();
         let liquidity = params.clone();
 
-        // check if user exists
+        // Check if user already exists
         if let Some(existing_pool_data) = pool_data_borrowed.get_mut(&user_principal) {
-            existing_pool_data.push(liquidity)
+            ic_cdk::println!(
+                "Debug: Found existing pool data for user {}. Appending new liquidity.",
+                user_principal
+            );
+            existing_pool_data.push(liquidity);
         } else {
+            ic_cdk::println!(
+                "Debug: No existing pool data found for user {}. Creating new entry.",
+                user_principal
+            );
             pool_data_borrowed
                 .entry(user_principal)
                 .or_default()
@@ -123,194 +183,314 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
         }
     });
 
+    // Debug: Log successful operation
+    ic_cdk::println!(
+        "Debug: Successfully added liquidity to pool '{}' for user principal {}.",
+        pool_name,
+        user_principal
+    );
+
     Ok(())
 }
+
+
+
+#[update]
+pub async fn lp_rollback(user: Principal, pool_data: Pool_Data) -> Result<(), String> {
+    // Validate user principal
+    if user == Principal::anonymous() {
+        ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
+        return Err("Invalid user principal: Cannot be anonymous.".to_string());
+    }
+
+    // Validate pool data using the `validate` method
+    if let Err(err) = pool_data.validate() {
+        ic_cdk::println!("Error: Invalid pool data - {:?}", err);
+        return Err(format!("Invalid pool data: {:?}", err));
+    }
+
+    // Debug: Log rollback operation
+    ic_cdk::println!(
+        "Debug: Starting LP rollback for user principal {} with {} pools.",
+        user,
+        pool_data.pool_data.len()
+    );
+
+    // Perform rollback for each pool
+    for amount in pool_data.pool_data.iter() {
+        ic_cdk::println!(
+            "Debug: Rolling back balance {} of token {} for user {}.",
+            amount.balance,
+            amount.token_name,
+            user
+        );
+
+        let transfer_result =
+            icrc1_transfer(amount.ledger_canister_id, user, amount.balance.clone()).await;
+
+        if let Err(e) = transfer_result {
+            let error_message = format!(
+                "Rollback failed for user {} on token {}: {}",
+                user, amount.token_name, e
+            );
+            ic_cdk::println!("Error: {}", error_message);
+            ic_cdk::trap(&error_message);
+        }
+    }
+
+    // Debug: Log successful completion
+    ic_cdk::println!("Debug: LP rollback completed successfully for user principal {}.", user);
+
+    Ok(())
+}
+
+
+
+
+// TODO : make ledger calls with state checks for balance to prevent TOCTOU vulnerablities
 
 #[update]
 async fn burn_tokens(
     params: Pool_Data,
     user: Principal,
-    user_share_ratio: f64,
+    tokens_to_transfer: f64,
 ) -> Result<(), String> {
-    let total_token_balance = match get_pool_balance(user.clone()) {
-        Some(balance) => balance,
-        None => Nat::from(0u128),
-    };
+    // Validate user principal
+    if user == Principal::anonymous() {
+        ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
+        return Err("Invalid user principal: Cannot be anonymous.".to_string());
+    }
 
+    // Validate pool data using the `validate` method
+    if let Err(err) = params.validate() {
+        ic_cdk::println!("Error: Invalid pool data - {:?}", err);
+        return Err(format!("Invalid pool data: {:?}", err));
+    }
+
+    let tokens_to_transfer_u64 = tokens_to_transfer as u64;
+    let tokens_to_transfer_nat = Nat::from(tokens_to_transfer_u64);
+
+    // Debug: Log the burn operation start
+    ic_cdk::println!(
+        "Debug: Starting burn_tokens for user principal {} with share ratio {}.",
+        user,
+        tokens_to_transfer
+    );
+
+
+    // TODO Add check for balance if its greater than canister balance
+
+    // Get total token balance for the user
+    // let total_token_balance = match get_pool_balance(user.clone()) {
+    //     Some(balance) => balance,
+    //     None => {
+    //         ic_cdk::println!(
+    //             "Debug: No pool balance found for user principal {}. Defaulting to zero.",
+    //             user
+    //         );
+    //         Nat::from(0u128)
+    //     }
+    // };
+
+    // Debug: Log total token balance
+    // ic_cdk::println!(
+    //     "Debug: Total token balance for user principal {} is {}.",
+    //     user,
+    //     total_token_balance
+    // );
+
+    // Iterate over pool data to calculate and burn tokens
     for token in params.pool_data.iter() {
-        let token_amount = token.weight.clone() * total_token_balance.clone();
-        // let transfer_amount = token_amount * user_share_ratio as u64;
+        // Calculate token amount to burn
+        let mut token_amount = token.weight.clone() * tokens_to_transfer_nat.clone();
+        // user_share_ratio = user_share_ratio * 10;
+        // let user_share_ratio_u64 = user_share_ratio as u64;
+        // let ratio = Nat::from(user_share_ratio_u64);
+        // let mut transfer_amount = token_amount.clone() * ratio;
+        // transfer_amount = transfer_amount / Nat::from(10u128);
+
+        token_amount = token_amount * Nat::from(10u128);
+
+        // Debug: Log transfer details
+        ic_cdk::println!(
+            "Debug: Burning {} of token {} for user principal {}.",
+            token_amount,
+            token.token_name,
+            user
+        );
+
+        // Perform the token transfer
         let transfer_result = icrc1_transfer(token.ledger_canister_id, user, token_amount).await;
 
         if let Err(e) = transfer_result {
-            ic_cdk::println!("Transfer failed {:}", e);
-            return Err("Token transfer failed".to_string());
+            let error_message = format!(
+                "Error: Token transfer failed for token {} for user {}: {}",
+                token.token_name, user, e
+            );
+            ic_cdk::println!("{}", error_message);
+            return Err(error_message);
         }
     }
+
+    // Debug: Log successful burn operation
+    ic_cdk::println!("Debug: burn_tokens completed successfully for user principal {}.", user);
+
     Ok(())
 }
 
+
+
 #[query]
-async fn get_burned_tokens(params: Pool_Data, user: Principal, user_share_ratio: f64) -> Vec<f64> {
-    let total_token_balance = match get_pool_balance(user.clone()) {
-        Some(balance) => balance,
-        None => Nat::from(0u128),
-    };
-
-    let mut result: Vec<f64> = vec![];
-    for token in params.pool_data.iter() {
-        let token_amount = token.weight.clone() * total_token_balance.clone() ;
-        let transfer_amount = token_amount.to_string().parse::<f64>().unwrap() / user_share_ratio.to_string().parse::<f64>().unwrap();
-
-        // let transfer_amount = user_share_ratio * token_amount;
-        result.push(transfer_amount);
+async fn get_burned_tokens(
+    params: Pool_Data,
+    user: Principal,
+    tokens_to_transfer: f64,
+) -> Result<Vec<Nat>, String> {
+    // Validate user principal
+    if user == Principal::anonymous() {
+        ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
+        return Err("Invalid user principal: Cannot be anonymous.".to_string());
     }
-    result
+
+    // Validate pool data using the `validate` method
+    if let Err(err) = params.validate() {
+        ic_cdk::println!("Error: Invalid pool data - {:?}", err);
+        return Err(format!("Invalid pool data: {:?}", err));
+    }
+
+    // Validate user_share_ratio
+    // if user_share_ratio <= 0.0 {
+    //     ic_cdk::println!("Error: Invalid user share ratio. Must be greater than zero.");
+    //     return Err("User share ratio must be greater than zero.".to_string());
+    // }
+    
+    let tokens_transfer_u64 = tokens_to_transfer as u64;
+    let tokens_to_transfer_nat = Nat::from(tokens_transfer_u64);
+        
+    
+    // Debug: Log the start of the function
+    ic_cdk::println!(
+        "Debug: Calculating burned tokens for user {} with share ratio {}.",
+        user,
+        tokens_to_transfer_nat
+    );
+
+
+
+    // Get the total token balance for the user
+    // let total_token_balance = match get_pool_balance(user.clone()) {
+    //     Some(balance) => {
+    //         ic_cdk::println!(
+    //             "Debug: Total token balance for user {} is {}.",
+    //             user,
+    //             balance
+    //         );
+    //         balance
+    //     }
+    //     None => {
+    //         ic_cdk::println!(
+    //             "Debug: No pool balance found for user {}. Defaulting to zero.",
+    //             user
+    //         );
+    //         Nat::from(0u128)
+    //     }
+    // };
+
+    let mut result: Vec<Nat> = vec![];
+
+    // Iterate over each token in pool data
+    for token in params.pool_data.iter() {
+        // Calculate token amount and transfer amount
+        let token_amount = token.weight.clone() * tokens_to_transfer_nat.clone();
+        // let transfer_amount = token_amount
+        //     .to_string()
+        //     .parse::<f64>()
+        //     .unwrap_or_default()
+        //     / tokens_to_transfer_nat;
+
+        // Debug: Log the calculated transfer amount
+        ic_cdk::println!(
+            "Debug: Calculated transfer amount for token {}: {}.",
+            token.token_name,
+            tokens_to_transfer_nat
+        );
+
+        result.push(token_amount.clone());
+    }
+
+    // Debug: Log the result
+    ic_cdk::println!(
+        "Debug: Burned token calculation completed for user {}. Result: {:?}",
+        user,
+        result
+    );
+
+    Ok(result)
 }
 
-// fn pre_swap(params: SwapParams) -> Result<(), SwapError> {
-//     let entered_token: u64 = if params.zero_for_one {
-//         params.token1
-//     } else {
-//         params.token2
-//     };
-
-//     if entered_token <= 0 {
-//         return Err(SwapError::InvalidAmount);
-//     }
-//     Ok(())
-// }
-
-// #[update]
-// fn swap(params : SwapParams) -> Result<() , String>{
-
-// }
-
-// #[query]
-// fn pre_compute_swap(params: SwapParams) -> (String, f64) {
-//     // let required_pools = match search_swap_pool(params.clone()) {
-//     //     Ok(pools) => pools,
-//     //     Err(_) => {
-//     //         ic_cdk::println!("No matching pools found.");
-//     //         return ("No matching pools found.".to_string(), 0.0);
-//     //     }
-//     // };
-
-//     // let mut best_pool = None;
-//     // let mut max_output_amount = 0.0;
-
-//     POOL_DATA.with(|pool_data| {
-//         let pool_data = pool_data.borrow();
-
-//         for pool_key in required_pools {
-//             let pool_entries = match pool_data.get(&pool_key) {
-//                 Some(entries) => entries,
-//                 None => {
-//                     ic_cdk::println!("Pool key {} not found in POOL_DATA.", pool_key);
-//                     continue;
-//                 }
-//             };
-
-//             for data in pool_entries {
-//                 // Find the tokenA (input) and tokenB (output) from the pool data
-//                 let tokenA_data = data
-//                     .pool_data
-//                     .iter()
-//                     .find(|p| p.token_name == params.token1_name);
-//                 let tokenB_data = data 
-//                     .pool_data
-//                     .iter()
-//                     .find(|p| p.token_name == params.token2_name);
-
-//                 // ic_cdk::println!(
-//                 //     "Testing pool_key {} with tokenA_data: {:?}, tokenB_data: {:?}",
-//                 //     pool_key,
-//                 //     tokenA_data,
-//                 //     tokenB_data
-//                 // );
-
-//                 if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
-//                     let b_i = tokenA.balance as f64;
-//                     let w_i = tokenA.weight as f64;
-//                     let b_o = tokenB.balance as f64;
-//                     let w_o = tokenB.weight as f64;
-//                     // ic_cdk::println!("Argument for swap {:?} , {:?} , {:?} , {:?}",b_i,w_i,b_o,w_o);
-
-//                     let amount_out = params.token_amount as f64;
-//                     let fee = data.swap_fee;
-//                     // ic_cdk::println!("{:?}, {:?} ",amount_out , fee);
-
-//                     // Calculate the required input using the in_given_out formula
-//                     let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out, fee);
-//                     // ic_cdk::println!("The required output is {:?}", required_input);
-//                     // ic_cdk::println!("Required Input {:}", required_input);
-
-//                     // Ensure the user has enough balance to provide the input
-//                     if required_input >= max_output_amount {
-//                         max_output_amount = f64::max(required_input, max_output_amount);
-
-//                         best_pool = Some(pool_key.clone());
-//                         // Check if the current pool gives a better output
-//                         // if calculated_output > max_output_amount {
-//                         //     max_output_amount = calculated_output;
-//                         // }
-//                     }
-//                 } else {
-//                     ic_cdk::println!("Either tokenA or tokenB was not found in pool.");
-//                 }
-//             }
-//         }
-//     });
-
-//     match best_pool {
-//         Some(pool) => (pool, max_output_amount),
-//         None => ("No suitable pool found.".to_string(), 0.0),
-//     }
-// }
 
 
 #[update]
 async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Result<(), String> {
-    // pool canister id
-    // let token_canister_id = ic_cdk::api::id();
-
-    // Convert f64 to u64
-    // let amount_as_u64: u64 = amount as u64;
-
-    // Convert u64 to Nat
-    // let amount_nat = Nat::from(amount_as_u64);
-
-    // Example usage within your swap function
-    let transfer_result = icrc1_transfer(
-        params.ledger_canister_id2,
-        user_principal,
-        amount.clone(),
-    )
-    .await;
-
-    if let Err(e) = transfer_result {
-        ic_cdk::println!("Transfer failed: {:?}", e);
-        return Err("Token transfer failed.".to_string());
+    // Validate user principal
+    if user_principal == Principal::anonymous() {
+        ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
+        return Err("Invalid user principal: Cannot be anonymous.".to_string());
     }
 
-    // Fetch user pool data
+    // Validate SwapParams (you can extend this validation based on your use case)
+    if params.token1_name.trim().is_empty() || params.token2_name.trim().is_empty() {
+        ic_cdk::println!("Error: Token names cannot be empty.");
+        return Err("Invalid SwapParams: Token names cannot be empty.".to_string());
+    }
+
+    if amount == Nat::from(0u32) {
+        ic_cdk::println!("Error: Transfer amount must be greater than zero.");
+        return Err("Transfer amount must be greater than zero.".to_string());
+    }
+
+    // Debug: Log the swap operation start
+    ic_cdk::println!(
+        "Debug: Starting swap for user principal {} with amount {}.",
+        user_principal,
+        amount
+    );
+
+    // Perform the token transfer
+    let transfer_result = icrc1_transfer(params.ledger_canister_id2, user_principal, amount.clone()).await;
+
+    if let Err(e) = transfer_result {
+        let error_message = format!("Token transfer failed for user {}: {:?}", user_principal, e);
+        ic_cdk::println!("Error: {}", error_message);
+        return Err(error_message);
+    }
+
+    // Debug: Log successful transfer
+    ic_cdk::println!(
+        "Debug: Token transfer completed successfully for user principal {}.",
+        user_principal
+    );
+
+    // Fetch and clone the pool data
     let mut pool_data = POOL_DATA.with(|pool_data| pool_data.borrow_mut().clone());
 
-    // if pool_data.is_none() {
-    //     return Err("User has no pool data".to_string());
-    // }
+    // Validate pool data
+    if pool_data.is_empty() {
+        ic_cdk::println!("Error: No pool data found for swap operation.");
+        return Err("No pool data found.".to_string());
+    }
 
-    // let mut user_pool_data = pool_data.unwrap();
+    // Debug: Log pool data processing
+    ic_cdk::println!("Debug: Processing pool data for swap operation.");
 
-    // Check if user has enough balance and liquidity
+    // Initialize distributed amount and check flags
+    let length = pool_data.len();
+    let distribute_amount1 = params.token_amount / length;
+    let distribute_amount2 = amount / length;
     let mut has_sufficient_balance = false;
     let mut has_sufficient_liquidity = false;
 
-    let length = pool_data.len();
-
-    let distribute_amount1 = params.token_amount / length;
-    let distribute_amount2 = amount / length ;
-
+    // Iterate over pool data and perform the swap
     for (user, pools) in pool_data.iter_mut() {
         for pool in pools {
             for token in &mut pool.pool_data {
@@ -319,27 +499,36 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Res
                     if token.balance < distribute_amount1.clone() {
                         return Err(format!(
                             "User {:?} has insufficient balance for token {}",
-                             user,  token.token_name
+                            user, token.token_name
                         ));
                     }
+
                     // Subtract distributed amount from token
-                    token.balance -= distribute_amount1.clone() ;
+                    token.balance -= distribute_amount1.clone();
+                    has_sufficient_balance = true;
                 }
 
                 if token.token_name == params.token2_name {
                     token.balance += distribute_amount2.clone();
+                    has_sufficient_liquidity = true;
                 }
             }
         }
     }
 
+    // Check balance and liquidity flags
     if !has_sufficient_balance {
-        return Err("Insufficient balance".to_string());
+        ic_cdk::println!("Error: Insufficient balance for swap operation.");
+        return Err("Insufficient balance.".to_string());
     }
 
     if !has_sufficient_liquidity {
-        return Err("Insufficient liquidity".to_string());
+        ic_cdk::println!("Error: Insufficient liquidity for swap operation.");
+        return Err("Insufficient liquidity.".to_string());
     }
+
+    // Debug: Log successful validation
+    ic_cdk::println!("Debug: Sufficient balance and liquidity verified.");
 
     // Update the pool data
     POOL_DATA.with(|pool_data_cell| {
@@ -347,42 +536,15 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Res
         *pool_data_mut = pool_data;
     });
 
+    // Debug: Log successful swap completion
+    ic_cdk::println!(
+        "Debug: Swap operation completed successfully for user principal {}.",
+        user_principal
+    );
+
     Ok(())
 }
 
-// fn pre_swap_for_all(params: SwapParams, operator: Principal) -> Result<Nat, SwapError> {
-//     // let swap_result = match compute_swap(args.clone(), operator, false) {
-//     //     Ok(result) => result,
-//     //     Err(code) => return Err(SwapError::InternalError(format!("preswap {:?}", code))),
-//     // };
 
-//     let mut effective_amount = 0;
-//     let mut swap_amount = 0;
-
-//     // if params.zero_for_one && swap_result.amount1 < 0 {
-//     //     swap_amount = Nat::from((-swap_result.amount1) as u64);
-//     //     effective_amount = Nat::from(swap_result.amount0 as u64);
-//     // }
-
-// //     if !args.zero_for_one && swap_result.amount0 < 0 {
-// //         swap_amount = Nat::from((-swap_result.amount0) as u64);
-// //         effective_amount = Nat::from(swap_result.amount1 as u64);
-// //     }
-
-//     if swap_amount <= Nat::from(0) {
-//         return Err(SwapError::InternalError(
-//             "The amount of input token is too small.".to_string(),
-//         ));
-// } else if params.amount_in.parse::<i64>().unwrap_or(0) > effective_amount.to_u64().unwrap_or(0)
-//         && effective_amount > Nat::from(0)
-//     {
-//         return Err(SwapError::InternalError(format!(
-//             "The maximum amount of input tokens is {:?}",
-//             effective_amount
-// //         )));
-//     } else {
-//         return Ok(swap_amount);
-//     }
-// }
 
 export_candid!();

@@ -480,83 +480,110 @@ export const CreatePoolsData = {
 }
 
 
-export const portfolioSampleData = {
-    SeeMoreButtonText: 'See more',
-    SeeLessButtonText: 'See Less',
-    Headings: ['Token Composition', 'Balance', 'Pool value', 'APR', 'Time'],
-    TableData: [
+export const portfolioSampleData =  [
         {
-            PoolData: [
-                {
-                    Name: "BitCoin",
-                    ShortForm: "BTC",
-                    weights: 50,
-                    ImagePath: Bitcoin,
-                    Balance: 189050,
-                    Value: 189050
-                },
-                {
-                    Name: "LiteCoin",
-                    ShortForm: "LTC",
-                    weights: 25,
-                    ImagePath: LiteCoin,
-                    Balance: 189050,
-                    Value: 189050
-                },
-                {
-                    Name: "Ethereum",
-                    ShortForm: "ETH",
-                    weights: 25,
-                    ImagePath: Etherum,
-                    Balance: 189050,
-                    Value: 189050
-                },
-            ],
-            PoolMetaData: {
-                Balance: 125625170,
-                PoolValue: 125625172,
-                APRstart: 0.05,
-                APRend: 0.95,
-                Time: new Date(),
-                PoolId: nanoid(),
-                TwentyFourHourFees: 950.859,
-                TwentyFourHourVolume: 625175,
-                PersonalPoolBalance: 189.05
-            }
+          pool_name: "Ethereum Pool",
+          pool_data: [
+            {
+              token_name: "ETH",
+              image: "https://example.com/images/eth.png",
+              weight: 0.5,
+              value: "50000000", // 50 ETH in WEI
+              balance: "25000000", // 25 ETH in WEI
+              APR: "2% - 3%",
+            },
+            {
+              token_name: "USDT",
+              image: "https://example.com/images/usdt.png",
+              weight: 0.3,
+              value: "30000000", // 30 USDT in smallest unit
+              balance: "15000000", // 15 USDT in smallest unit
+            },
+            {
+              token_name: "DAI",
+              image: "https://example.com/images/dai.png",
+              weight: 0.2,
+              value: "20000000", // 20 DAI in smallest unit
+              balance: "10000000", // 10 DAI in smallest unit
+            },
+            {
+                token_name: "UNI",
+                image: "https://example.com/images/uni.png",
+                weight: 0.4,
+                value: "40000000", // 40 UNI in smallest unit
+                balance: "20000000", // 20 UNI in smallest unit
+              },
+              {
+                token_name: "SUSHI",
+                image: "https://example.com/images/sushi.png",
+                weight: 0.4,
+                value: "40000000", // 40 SUSHI in smallest unit
+                balance: "20000000", // 20 SUSHI in smallest unit
+              },
+              {
+                token_name: "AAVE",
+                image: "https://example.com/images/aave.png",
+                weight: 0.2,
+                value: "20000000", // 20 AAVE in smallest unit
+                balance: "10000000", // 10 AAVE in smallest unit
+              },
+          ],
         },
         {
-            PoolData: [
-                {
-                    Name: "BitCoin",
-                    ShortForm: "BTC",
-                    weights: 50,
-                    ImagePath: Bitcoin,
-                    Balance: 189050,
-                    Value: 189050
-                },
-                {
-                    Name: "LiteCoin",
-                    ShortForm: "LTC",
-                    weights: 50,
-                    ImagePath: LiteCoin,
-                    Balance: 189050,
-                    Value: 189050
-                },
-            ],
-            PoolMetaData: {
-                Balance: 125625175,
-                PoolValue: 125625175,
-                APRstart: 0.05,
-                APRend: 0.95,
-                Time: new Date(),
-                PoolId: nanoid(),
-                TwentyFourHourFees: 950.859,
-                TwentyFourHourVolume: 625175,
-                PersonalPoolBalance: 200
-            }
-        }
-    ]
-}
+          pool_name: "DeFi Pool",
+          pool_data: [
+            {
+              token_name: "UNI",
+              image: "https://example.com/images/uni.png",
+              weight: 0.4,
+              value: "40000000", // 40 UNI in smallest unit
+              balance: "20000000", // 20 UNI in smallest unit
+            },
+            {
+              token_name: "SUSHI",
+              image: "https://example.com/images/sushi.png",
+              weight: 0.4,
+              value: "40000000", // 40 SUSHI in smallest unit
+              balance: "20000000", // 20 SUSHI in smallest unit
+            },
+            {
+              token_name: "AAVE",
+              image: "https://example.com/images/aave.png",
+              weight: 0.2,
+              value: "20000000", // 20 AAVE in smallest unit
+              balance: "10000000", // 10 AAVE in smallest unit
+            },
+          ],
+        },
+        {
+          pool_name: "Stablecoin Pool",
+          pool_data: [
+            {
+              token_name: "USDC",
+              image: "https://example.com/images/usdc.png",
+              weight: 0.33,
+              value: "33000000", // 33 USDC in smallest unit
+              balance: "16500000", // 16.5 USDC in smallest unit
+            },
+            {
+              token_name: "USDT",
+              image: "https://example.com/images/usdt.png",
+              weight: 0.33,
+              value: "33000000", // 33 USDT in smallest unit
+              balance: "16500000", // 16.5 USDT in smallest unit
+            },
+            {
+              token_name: "DAI",
+              image: "https://example.com/images/dai.png",
+              weight: 0.34,
+              value: "34000000", // 34 DAI in smallest unit
+              balance: "17000000", // 17 DAI in smallest unit
+            },
+          ],
+        },
+      ];
+      
+
 
 
 export const PoolCompositionsData = {

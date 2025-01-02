@@ -11,7 +11,7 @@ set -e
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER="by6od-j4aaa-aaaaa-qaadq-cai"
+export MINTER="b77ix-eeaaa-aaaaa-qaada-cai"
 echo "MINTER principal: $MINTER"
 
 # Set token details
@@ -21,7 +21,7 @@ echo "Token Name: $TOKEN_NAME"
 echo "Token Symbol: $TOKEN_SYMBOL"
 
 # Set initial parameters
-export PRE_MINTED_TOKENS=10_000_000_000
+export PRE_MINTED_TOKENS=10_000_000_000_000
 export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
@@ -38,7 +38,7 @@ export NUM_OF_BLOCK_TO_ARCHIVE=1000
 export CYCLE_FOR_ARCHIVE_CREATION=10000000000000
 export FEATURE_FLAGS=true
 
-# Deploy the ckbtc_ledger canister with the specified initialization arguments
+# Deploy the ckbtc canister with the specified initialization arguments
 DEPLOY_ARGUMENTS="(variant {Init = record {
   token_symbol = \"${TOKEN_SYMBOL}\";
   token_name = \"${TOKEN_NAME}\";
@@ -72,6 +72,6 @@ dfx deploy
 # echo "ckBTC got deployed"
 
 # Check the balance of the default identity
-# balance=$(dfx canister call ckbtc_ledger icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
+# balance=$(dfx canister call ckbtc icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
 # echo "Balance of the DEFAULT account: $balance"
 

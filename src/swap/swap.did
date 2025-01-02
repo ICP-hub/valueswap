@@ -8,7 +8,8 @@ type CreatePoolParams = record {
 };
 type Pool_Data = record { pool_data : vec CreatePoolParams; swap_fee : nat };
 type Result = variant { Ok; Err : text };
-type Result_1 = variant { Ok : nat; Err : text };
+type Result_1 = variant { Ok : vec float64; Err : text };
+type Result_2 = variant { Ok : nat; Err : text };
 type SwapParams = record {
   token_amount : nat;
   ledger_canister_id1 : principal;
@@ -19,10 +20,11 @@ type SwapParams = record {
 service : {
   add_liquidity_to_pool : (principal, Pool_Data) -> (Result);
   burn_tokens : (Pool_Data, principal, float64) -> (Result);
-  get_burned_tokens : (Pool_Data, principal, float64) -> (vec float64) query;
+  get_burned_tokens : (Pool_Data, principal, float64) -> (Result_1) query;
   get_pool_balance : (principal) -> (opt nat) query;
-  icrc1_transfer : (principal, principal, nat) -> (Result_1);
-  icrc_get_balance : (principal, principal) -> (Result_1);
+  icrc1_transfer : (principal, principal, nat) -> (Result_2);
+  icrc_get_balance : (principal, principal) -> (Result_2);
+  lp_rollback : (principal, Pool_Data) -> (Result);
   pool_balance : (principal, Pool_Data) -> ();
   store_pool_data : (principal, Pool_Data) -> (Result);
   swap : (principal, SwapParams, nat) -> (Result);

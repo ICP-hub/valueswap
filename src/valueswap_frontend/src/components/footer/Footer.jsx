@@ -9,7 +9,7 @@ function Footer() {
     return (
         <div className=''>
             <hr className='border-gray-700 ' />
-            <div className='grid md:grid-cols-4 grid-cols-2  m-0 gap-y-12 text-white px-4 sm:px-24 md:pr-12   translate-y-[20%] pb-14' >
+            <div className='grid md:grid-cols-4 grid-cols-2  m-0 gap-y-12 text-white px-4 sm:px-24 md:pr-12   mt-10 pb-14' >
 
                 <div className='space-y-4'>
                     <h1 className='text-lg font-gilroy hover:text-[#C16800] w-1/2'>ValueSwap.io</h1>
