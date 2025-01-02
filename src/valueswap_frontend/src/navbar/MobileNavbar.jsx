@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import GradientButton from '../buttons/GradientButton';
 import { Bars3BottomRightIcon, XMarkIcon } from '@heroicons/react/24/solid';
@@ -30,7 +30,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
     // }
     const { isAuthenticated, login, logout, principal, reloadLogin } = useAuth();
 
-    useEffect(() => { 
+    useMemo(() => { 
         const getDisplayFunction = () => {
           console.log('principal:', principal);
           console.log('Type of principal:', typeof principal);
@@ -131,8 +131,8 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                 <div className="w-full  rounded-2xl  flex justify-between max-w-[1200px] tracking-wide items-center py-4 md:py-4 px-2">
 
                     <div className='flex items-center justify-between px-2 md:justify-start'>
-                        <div className='flex items-center justify-around'>
-                            <img src="./image/valueswap.png" alt="" className='w-28 h-full sm:w-36  object-contain' />
+                        <div className='flex items-center justify-around' onClick={()=> navigate("/")} >
+                            <img src="./image/valueswap.png" alt="" className='w-28 h-full sm:w-36 cursor-pointer object-contain' />
                             <div className="items-center hidden md:inline-block h-8 ml-2 md:ml-4 lg:ml-6 border-l border-white "></div>
                         </div>
 

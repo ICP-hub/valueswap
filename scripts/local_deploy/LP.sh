@@ -18,6 +18,7 @@ export TRANSFER_FEE=10_000
 
 # Switch to the default identity and get its principal ID
 dfx identity use DevJourney 
+
 export DEFAULT=$(dfx identity get-principal )
 echo "DEFAULT principal: $DEFAULT"
 

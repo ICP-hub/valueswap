@@ -5,9 +5,9 @@ import { useNavigate } from 'react-router-dom'
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
-import { useAuth } from '../utils/useAuthClient'
+import { useAuth, useAuthClient } from '../utils/useAuthClient'
 import BorderGradientButton from '../../buttons/BorderGradientButton'
-
+import {portfolioSampleData} from "../../TextData"
 const PortfolioDataComponent = () => {
   const [allDataInPool, setAllDataInPool] = useState([])
   const [displayCount, setDisplayCount] = useState(0)
@@ -16,6 +16,7 @@ const PortfolioDataComponent = () => {
   const [isAscending, setIsAscending] = useState(true)
   const { backendActor, principal } = useAuth()
   const [poolName, setPoolName] = useState([])
+  const { isAuthenticated } = useAuthClient()
   //  const listOfPool = [];
   useEffect(() => {
     const userPools = async () => {
@@ -108,16 +109,16 @@ const PortfolioDataComponent = () => {
   const Headings = ['Pool name', 'Staking', 'TVL', 'Volume(24h)', 'APR']
   return (
     <div className='max-w-[1200px] mx-auto h-screen relative'>
-        <div className="flex justify-between mt-8 px-8 mx-auto">
-            <div className="bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl w-[48%] py-8 text-center">
-                <h3 className=''>My liquidity</h3>
-                <h1 className='text-3xl font-semibold tracking-wide'>$0.00</h1>
-            </div>
-            <div className="bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl w-[48%] py-8 text-center">
-            <h3>Claimable incentives</h3>
-            <h1 className='text-3xl font-semibold tracking-wide'>$0.00</h1>
-            </div>
+      <div className='flex justify-between mt-8 px-8 mx-auto'>
+        <div className='bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl w-[48%] py-8 text-center'>
+          <h3 className=''>My liquidity</h3>
+          <h1 className='text-3xl font-semibold tracking-wide'>$0.00</h1>
         </div>
+        <div className='bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl w-[48%] py-8 text-center'>
+          <h3>Claimable incentives</h3>
+          <h1 className='text-3xl font-semibold tracking-wide'>$0.00</h1>
+        </div>
+      </div>
       <div className='w-full h-screen text-white  px-8 mx-auto absolute'>
         <div className='flex justify-between  p-2 pb-6 pt-6 rounded-t-lg mx-auto'>
           {/* search box */}
@@ -165,7 +166,7 @@ const PortfolioDataComponent = () => {
             </div>
           </div>
         </div>
-        <div className='flex flex-col font-gilroy bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl '>
+        <div className='flex flex-col font-gilroy min-h-[30%] bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl '>
           <div className='-my-2 overflow-x-auto'>
             <div className='inline-block min-w-full py-2 align-middle'>
               {allDataInPool.Ok?.length <= 0 ? (
@@ -176,7 +177,6 @@ const PortfolioDataComponent = () => {
                     baseColor='#1f2029'
                     highlightColor='#2b2b2b'
                     borderRadius='0.5rem'
-                    duration={2}
                   >
                     <table className='min-w-full min-h-1/2'>
                       <thead>
@@ -205,8 +205,9 @@ const PortfolioDataComponent = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {!allDataInPool
-                          ? Array.from({ length: 3 }).map((_, index) => (
+                        {isAuthenticated ? (
+                          !allDataInPool ? (
+                            Array.from({ length: 3 }).map((_, index) => (
                               <tr key={index}>
                                 <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
                                   <Skeleton height={30} />
@@ -222,22 +223,25 @@ const PortfolioDataComponent = () => {
                                 </td>
                               </tr>
                             ))
-                          : allDataInPool?.map((Poolinfo, index) => (
+                          ) : (
+                            allDataInPool?.map((Poolinfo, index) => (
                               <tr
                                 key={index}
                                 className='hover:bg-[#546093] rounded-xl cursor-pointer'
                                 onClick={() => {
-                                  // const poolName = AllPool[index][0]
                                   navigate(
-                                    `/valueswap/portfolio/pool-info/${poolName[index][0]}`
+                                    `/valueswap/portfolio/pool-info/${
+                                      Poolinfo.pool_name || index
+                                    }`
                                   )
                                 }}
                               >
                                 <td className='min-w-80 whitespace-nowrap my-4 text-sm md:text-base font-medium text-white flex items-center gap-5 justify-start ml-8'>
                                   {Poolinfo?.pool_data.map((pool, indx) => (
-                                    <span className='flex items-center gap-x-1 cursor-pointer border-2 rounded-2xl py-1 px-2 '>
-                                      {/* <span key={index} className='bg-[#3D3F47] p-2 rounded-xl'>
-                                                                    </span> */}
+                                    <span
+                                      key={indx}
+                                      className='flex items-center gap-x-1 cursor-pointer border-2 rounded-2xl py-1 px-2'
+                                    >
                                       <img
                                         src={pool.image}
                                         alt=''
@@ -249,7 +253,6 @@ const PortfolioDataComponent = () => {
                                   ))}
                                 </td>
                                 <td className='whitespace-nowrap py-4 pl-3 text-center text-sm md:text-base font-medium pr-2'>
-                                  {/* {pool?.PoolMetaData?.APRstart}% - {pool?.PoolMetaData?.APRend}% */}
                                   $
                                   {(() => {
                                     const value = Poolinfo?.pool_data?.reduce(
@@ -259,9 +262,7 @@ const PortfolioDataComponent = () => {
                                     return value?.toLocaleString('en-US')
                                   })()}
                                 </td>
-
                                 <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
-                                  {/* $ {pool?.PoolMetaData?.PoolValue.toLocaleString('en-US')} */}
                                   {(() => {
                                     const totalBalance =
                                       Poolinfo?.pool_data?.reduce(
@@ -276,7 +277,19 @@ const PortfolioDataComponent = () => {
                                   1% - 2%
                                 </td>
                               </tr>
-                            ))}
+                            ))
+                          )
+                        ) : (
+                          <tr>
+                            <td colSpan={4} className='text-center text-white'>
+                              <GradientButton
+                                CustomCss={`hover:opacity-75 text-xs md:text-base lg:text-base h-[45px] w-[120px] py-2 lg:py-4`}
+                              >
+                                Connect wallet
+                              </GradientButton>
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </SkeletonTheme>
