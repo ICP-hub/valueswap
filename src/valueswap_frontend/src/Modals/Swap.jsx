@@ -332,6 +332,7 @@ const Swap = () => {
               className='bg-transparent w-1/2 outline-none hide-arrows text-4xl'
               placeholder='0'
               min='0'
+              value={coinAmount}
               onChange={handleAmountChange}
             />
             <BorderGradientButton customCss={`bg-gray-700 `}>
