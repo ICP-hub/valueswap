@@ -205,7 +205,7 @@ const InitialLiquidity = () => {
             }
             amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
             balance = await getBalance(canisterId);
-
+            const extra = 10000;
 
 
             console.log("init metaData", metaData);
@@ -216,7 +216,7 @@ const InitialLiquidity = () => {
 
             if (balance >= amount + fee) {
                 const transaction = {
-                    amount: BigInt(amount + fee),  // Approving amount (including fee)
+                    amount: BigInt(amount + fee + extra),  // Approving amount (including fee)
                     from_subaccount: [],  // Optional subaccount
                     spender: {
                         owner: Principal.fromText(backendCanisterID),
@@ -276,6 +276,7 @@ const InitialLiquidity = () => {
             // return Promise.resolve(); // To continue
             return Promise.reject({ success: false, error: errorMsg, token: tokenData }); // To exit on error
           }
+          const decimals = tokenData.metaData.decimals;
           const tokenActors = await createTokenActor(tokenData.CanisterId);
           const approvalResult = await transferApprove(
             tokenData.Amount,
