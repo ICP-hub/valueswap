@@ -70,6 +70,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
             // This line should replace your current call to add_liquidity_curr
 
             for amount in params.pool_data.iter() {
+                ic_cdk::println!("The first debug statement for first token ");
                 deposit_tokens(
                     amount.balance.clone(),
                     amount.ledger_canister_id.clone(),
@@ -77,28 +78,34 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                 )
                 .await
                 .map_err(|_| CustomError::TokenDepositFailed)?;
+
+                ic_cdk::println!("The second debug statement for first token ");
             }
 
-            if let Err(e) = users_lp_share(params.clone()).await {
-                ic_cdk::call::<_, ()>(
-                    canister_id.principal,
-                    "lp_rollback",
-                    (principal_id, params.pool_data.clone()),
-                )
-                .await
-                .map_err(|rollback_err| {
-                    log::error!(
-                        "LP rollback failed for user {}: {:?}",
-                        principal_id,
-                        rollback_err
-                    );
-                    CustomError::UnableToRollbackLP(format!(
-                        "LP rollback failed: {:?}, original error: {}",
-                        rollback_err, e
-                    ))
-                })?;
-                return Err(CustomError::UnableToTransferLP(e));
-            }
+            ic_cdk::println!("The first break point for debugging ");
+
+            // if let Err(e) = users_lp_share(params.clone()).await {
+            //     ic_cdk::call::<_, ()>(
+            //         canister_id.principal,
+            //         "lp_rollback",
+            //         (principal_id, params.pool_data.clone()),
+            //     )
+            //     .await
+            //     .map_err(|rollback_err| {
+            //         log::error!(
+            //             "LP rollback failed for user {}: {:?}",
+            //             principal_id,
+            //             rollback_err
+            //         );
+            //         CustomError::UnableToRollbackLP(format!(
+            //             "LP rollback failed: {:?}, original error: {}",
+            //             rollback_err, e
+            //         ))
+            //     })?;
+            //     return Err(CustomError::UnableToTransferLP(e));
+            // }
+
+            ic_cdk::println!("The second break point for debugging ");
 
             add_liquidity_curr(params.clone()).map_err(|e| CustomError::OperationFailed(e))?;
 
@@ -160,6 +167,8 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                     });
 
                     for amount in params.pool_data.iter() {
+                        ic_cdk::println!("The first debug statement for first token {}", canister_id.clone());
+
                         deposit_tokens(
                             amount.balance.clone(),
                             amount.ledger_canister_id.clone(),
@@ -167,32 +176,39 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                         )
                         .await
                         .map_err(|_| CustomError::TokenDepositFailed)?;
+                        
+                        ic_cdk::println!("The second debug statement for first token  {}", canister_id.clone());
                     }
 
                     // users_lp_share(principal_id.clone(), params.clone())
                     //     .await
                     //     .map_err(|e| CustomError::UnableToTransferLP(e))?;
 
-                    if let Err(e) = users_lp_share(params.clone()).await {
-                        ic_cdk::call::<_, ()>(
-                            canister_id,
-                            "lp_rollback",
-                            (principal_id, params.pool_data.clone()),
-                        )
-                        .await
-                        .map_err(|rollback_err| {
-                            log::error!(
-                                "LP rollback failed for user {}: {:?}",
-                                principal_id,
-                                rollback_err
-                            );
-                            CustomError::UnableToRollbackLP(format!(
-                                "LP rollback failed: {:?}, original error: {}",
-                                rollback_err, e
-                            ))
-                        })?;
-                        return Err(CustomError::UnableToTransferLP(e));
-                    }
+                    ic_cdk::println!("The first break point for debugging {} ",canister_id.clone());
+                    // ic_cdk::println!("Successfully installed WASM on canister: {}", canister_id);
+
+                    // if let Err(e) = users_lp_share(params.clone()).await {
+                    //     ic_cdk::call::<_, ()>(
+                    //         canister_id,
+                    //         "lp_rollback",
+                    //         (principal_id, params.pool_data.clone()),
+                    //     )
+                    //     .await
+                    //     .map_err(|rollback_err| {
+                    //         log::error!(
+                    //             "LP rollback failed for user {}: {:?}",
+                    //             principal_id,
+                    //             rollback_err
+                    //         );
+                    //         CustomError::UnableToRollbackLP(format!(
+                    //             "LP rollback failed: {:?}, original error: {}",
+                    //             rollback_err, e
+                    //         ))
+                    //     })?;
+                    //     return Err(CustomError::UnableToTransferLP(e));
+                    // }
+
+                    ic_cdk::println!("The second break point for debugging{ }",canister_id.clone());
 
                     store_pool_data(params.clone(), canister_id_record)
                         .await
@@ -377,8 +393,6 @@ async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), 
 
     Ok(())
 }
-
-
 
 
 // Adding liquidity to the specific pool
