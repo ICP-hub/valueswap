@@ -11,6 +11,7 @@ const CreatePoolStepsPage = () => {
    const [fixedActiveSetp, setFixedActiveSetp] = useState(0)
    console.log("setFixedActiveSetp", fixedActiveSetp)
     const handleNext = () => {
+        console.log("CLicked")
         if (!isLastStep) {
             setActiveStep(current => current + 1);
         }
@@ -44,8 +45,15 @@ const CreatePoolStepsPage = () => {
             </button>
             <div className=" lg:flex-row flex-col py-2 justify-around hidden lg:flex max-w-[1200px] mx-auto font-gilroy">
                 {steps.map((label, index) => (
-                       <div key={index} className= {`flex gap-6 pb-6 w-full justify-center items-center m-auto`} onClick={() => setActiveStep(index <= fixedActiveSetp ? index : fixedActiveSetp)}>
-                       <div className={`py-2 px-4 rounded-full  ${activeStep == index  ? "bg-[#F7931A]":"bg-[#00308E]"}`}>{index+ 1}</div>
+                       <div key={index} className= {`flex w-full items-center justify-center md:gap-4`} onClick={() => setActiveStep(index <= fixedActiveSetp ? index : fixedActiveSetp)}>
+                        <div className={`relative flex aspect-square md:px-6 items-center justify-center rounded-full bg-gray-900 
+                             ${activeStep === index  ? "shadow-lg ring-1 ring-gray-700/50 before:-inset-1 before:rounded-full before:bg-white/5 before:blur-md opacity-100":"ring-0 opacity-80"}`}>
+                            
+                            {activeStep === index &&  <div className="absolute -inset-0.5 rounded-full bg-gradient-to-r from-blue-100/20 to-white/20 opacity-75 blur-md group-hover:opacity-100" />}
+                            <span className={`lg:text-4xl md:text-3xl text-2xl text-white ${activeStep == index ? "font-semibold" : "font-normal"}`} >
+                                {index+ 1}
+                            </span>
+                        </div>
                        <p className="text-lg">{label}</p>
                        <hr className="border-2 w-1/4 pr-6" />
                      </div>
