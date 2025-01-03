@@ -90,7 +90,7 @@ console.log("searchToken", searchToken)
                         type="number"
                         className='bg-transparent w-10 text-base hide-arrows focus:outline-none'
                         pattern='[0-9]*'
-                        value={token.weights}
+                        value={parseFloat(token.weights).toFixed(2)}
                         onChange={handleChangePercent}
                         disabled={token.weightsLocked}
                     />
