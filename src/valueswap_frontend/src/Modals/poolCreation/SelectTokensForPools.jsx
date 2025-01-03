@@ -44,9 +44,20 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
 
                 <div className='w-full flex justify-between items-center gap-4'>
                     <p className='font-gilroy text-2xl font-light'>Choose upto 8 tokens:</p>
+                    <div className={`place-self-end ${CoinCount < 8 ? 'block' : 'hidden'}`}
+                    onClick={() => {
+                        if (CoinCount < 8) {
+                            dispatch(AddCoin())
+                        } else {
+                            
+                            toast.warn('No More than 8 coins Allowed in the pool')
+                        }
+                    }}
+                >
                     <BorderGradientButton customCss={`bg-[#182030] text-xs md:text-light lg:text-base h-[45px] w-[115px] md:w-[140px] `}>
                         Add Token
                     </BorderGradientButton>
+                </div>
                 </div>
 
 
@@ -58,19 +69,6 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                             </div>
                         );
                     })}
-                </div>
-
-
-                <div className={`place-self-end ${CoinCount < 8 ? 'block' : 'hidden'}`}
-                    onClick={() => {
-                        if (CoinCount < 8) {
-                            dispatch(AddCoin())
-                        } else {
-                            
-                            toast.warn('No More than 8 coins Allowed in the pool')
-                        }
-                    }}
-                >
                 </div>
             </div>
                 <div

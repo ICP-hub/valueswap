@@ -107,7 +107,28 @@ const Pool = createSlice({
         },
         setWeightedPercent: (state, action) => {
             const index = action.payload.index;
-            state.Tokens[index].weights = action.payload.percent;
+            const newPercent = parseFloat(action.payload.percent);
+            const oldPercent = parseFloat(state.Tokens[index].weights);
+            const difference = newPercent - oldPercent;
+            state.Tokens[index].weights = newPercent;
+
+            // Adjust other tokens' weights to maintain the total percentage
+            const unlockedTokens = state.Tokens.filter((token, i) => i !== index && !token.weightsLocked);
+            const totalUnlockedWeights = unlockedTokens.reduce((total, token) => total + parseFloat(token.weights), 0);
+
+            unlockedTokens.forEach((token) => {
+                token.weights = parseFloat(token.weights) - parseFloat((difference * (parseFloat(token.weights) / totalUnlockedWeights)).toFixed(2));
+            });
+
+            // Ensure the sum of weights is exactly equal to TotalPercentage
+            const totalWeights = state.Tokens.reduce((total, token) => total + parseFloat(token.weights), 0);
+            const adjustment = state.TotalPercentage - totalWeights;
+            if (adjustment !== 0) {
+                const lastUnlockedToken = unlockedTokens[unlockedTokens.length - 1];
+                if (lastUnlockedToken) {
+                    lastUnlockedToken.weights = parseFloat(lastUnlockedToken.weights) + adjustment;
+                }
+            }
         },
         ToggleLocked: (state, action) => {
             const index = action.payload.index;
