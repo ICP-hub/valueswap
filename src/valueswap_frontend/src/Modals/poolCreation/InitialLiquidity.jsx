@@ -351,10 +351,11 @@ const InitialLiquidity = () => {
           </div>
           <div className='flex flex-col justify-center'>
             <div className='flex gap-3 items-center flex'>
-                <img src={InitialToken.ImagePath} alt="" className=' h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
+              <img src={InitialToken.ImagePath} alt="" className=' h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
               <span className='text-base sm:text-2xl font-normal'>
                 {InitialToken.ShortForm.toUpperCase()}
               </span>
+              <span className='text-sm sm:text-2xl font-normal'>•</span>
               <span className='py-1 px-2 sm:px-3'>
                 {InitialToken.weights} %
               </span>
@@ -392,10 +393,11 @@ const InitialLiquidity = () => {
                   </div>
                   <div className='flex flex-col justify-center'>
                     <div className='flex gap-3 items-center'>
-                        <img src={token.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
+                      <img src={token.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
                       <span className='text-sm sm:text-2xl font-normal'>
                         {token.ShortForm.toUpperCase()}
                       </span>
+                      <span className='text-sm sm:text-2xl font-normal'>•</span>
                       <span className='py-1 px-2 sm:px-3'>
                         {token.weights} %
                       </span>
