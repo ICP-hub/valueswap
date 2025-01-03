@@ -372,7 +372,6 @@ const InitialLiquidity = () => {
 
             return (
               <div key={index}>
-                <div className='border-t-[1px] opacity-50 item-center my-6'></div>
                 <div className='flex justify-between items-center font-gilroy backdrop-blur-[32px] 
         md:px-6 px-3 md:py-8 py-4 rounded-xl border border-white'>
                   <div className='flex flex-col'>
