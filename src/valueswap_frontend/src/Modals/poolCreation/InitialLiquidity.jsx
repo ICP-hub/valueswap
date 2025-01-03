@@ -205,7 +205,7 @@ const InitialLiquidity = () => {
             }
             amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
             balance = await getBalance(canisterId);
-
+            const extra = 10000;
 
 
             console.log("init metaData", metaData);
@@ -216,7 +216,7 @@ const InitialLiquidity = () => {
 
             if (balance >= amount + fee) {
                 const transaction = {
-                    amount: BigInt(amount + fee),  // Approving amount (including fee)
+                    amount: BigInt(amount + fee + extra),  // Approving amount (including fee)
                     from_subaccount: [],  // Optional subaccount
                     spender: {
                         owner: Principal.fromText(backendCanisterID),
@@ -276,6 +276,7 @@ const InitialLiquidity = () => {
             // return Promise.resolve(); // To continue
             return Promise.reject({ success: false, error: errorMsg, token: tokenData }); // To exit on error
           }
+          const decimals = tokenData.metaData.decimals;
           const tokenActors = await createTokenActor(tokenData.CanisterId);
           const approvalResult = await transferApprove(
             tokenData.Amount,
@@ -326,7 +327,7 @@ const InitialLiquidity = () => {
           <hr className="border-2 w-3/4 pr-6" />
         </div>
       </div>
-      <div className='z-50 w-max m-auto flex flex-col gap-4 p-3 sm:p-6 relative space-y-2'>
+      <div className=' w-max m-auto flex flex-col gap-4 p-3 sm:p-6 relative space-y-2'>
         <div className='flex gap-2 items-center justify-end w-full'>
           <p className='font-gilroy text-sm'>Auto optimize liquidity</p>
           <IOSSwitch sx={{ m: 1 }} defaultChecked  onClick={()=> setOptimizeEnable((prev)=> !prev)}/>

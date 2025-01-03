@@ -95,6 +95,7 @@ dependencies = [
 
 [[package]]
 name = "cc"
+
 version = "1.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8d6dbb628b8f8555f86d0323c2eb39e3ec81901f4b83e091db8a6a76d316a333"
@@ -610,6 +611,7 @@ dependencies = [
  "ic-cdk 0.17.1",
  "ic-cdk-macros 0.17.1",
  "ic-cdk-timers",
+ "num-traits",
  "serde",
 ]
 

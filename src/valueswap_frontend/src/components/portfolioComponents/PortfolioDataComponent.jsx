@@ -13,7 +13,7 @@ const PortfolioDataComponent = () => {
   const [allDataInPool, setAllDataInPool] = useState([])
   const [displayCount, setDisplayCount] = useState(0)
   const [buttonVisible, setButtonVisibility] = useState(true)
-  const [activeSort, setActiveSort] = useState()
+  const [activeSort, setActiveSort] = useState(0)
   const [isAscending, setIsAscending] = useState(true)
   const { backendActor, principal } = useAuth()
   const [poolName, setPoolName] = useState([])
@@ -186,12 +186,12 @@ const PortfolioDataComponent = () => {
                             <th
                               scope='col'
                               key={index}
-                              className={`py-7    md:pr-0 text-center text-sm md:text-base lg:text-base  font-bold text-white ${
+                              className={`py-7    md:pr-0 text-center  text-sm md:text-base lg:text-base  font-bold text-white ${
                                 heading == 'Pool name' ? 'w-7/12' : ''
                               } `}
                             >
                               <span
-                                className={`flex  items-center ml-4 ${index === activeSort ? "text-[#F7931A]": ""}`}
+                                className={`flex  items-center ml-4 cursor-pointer ${index === activeSort ? "text-[#F7931A]": ""}`}
                                 onClick={() => sortingConditional(index)}
                               >
                                 {heading}

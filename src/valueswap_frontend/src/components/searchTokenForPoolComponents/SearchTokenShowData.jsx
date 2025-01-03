@@ -31,7 +31,7 @@ console.log("searchToken", searchToken)
 
     return (
         <>
-        <div id={`selectToken${token?.Name}`} className='flex justify-between border border-dashed rounded-xl p-2 gap-8 custom-400:gap-8 custom-450:gap-16 sm:gap-32 items-center mt-4 z-10' key={token.id}>
+        <div id={`selectToken${token?.Name}`} className='flex justify-between border border-dashed rounded-xl p-2 gap-8 custom-400:gap-8 custom-450:gap-16 sm:gap-32 items-center mt-4 ' key={token.id}>
              <div>
                 {token.Selected ? (
                     <div className='flex flex-col gap-1'>
@@ -63,7 +63,7 @@ console.log("searchToken", searchToken)
                         </div>
                     </div>
                 ) : (
-                    <div>
+                    <div className='h-full'>
                         <div onClick={() => {
                         setSearchToken(true);
                     }}>
@@ -76,7 +76,7 @@ console.log("searchToken", searchToken)
                             </div>
                         </BlueGradientButton>
                         </div>
-                        {searchToken && <SearchToken setSearchToken={setSearchToken} setTokenData={setTokenData} set id={3} />}
+                        {searchToken && <SearchToken setSearchToken={setSearchToken} setTokenData={setTokenData}  id={3} />}
                         {/* {console.log("index of the selected", index)} */}
                         {HandleData(index, TokenData)}
                         {HandleSelectCheck()}
