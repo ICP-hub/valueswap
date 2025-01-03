@@ -102,7 +102,7 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
 
 
   return (
-    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-screen h-screen overflow-y-auto text-[#FFFFFF] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-screen h-screen overflow-y-auto text-[#FFFFFF] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50">
       <div className="h-3/4 w-[90%] sm:w-[480px] bg-[#3B3D41] rounded-2xl shadow-lg flex flex-col">
         {/* Header */}
         <div className="flex justify-between items-center px-4 pt-6 border-b border-gray-700">

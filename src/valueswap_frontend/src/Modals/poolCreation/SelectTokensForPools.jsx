@@ -26,7 +26,7 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
 
 
     return (
-        <div className='flex flex-col justify-center px-2'>
+        <div className='flex flex-col justify-center px-2 h-full'>
             <div className='w-full'>
                 <div className={`flex gap-6 pb-6 w-[70%] md:w-[60%] justify-between items-center m-auto  lg:hidden`} >
                     <div className={`py-2 px-4 rounded-full bg-[#F7931A]`}>1</div>
@@ -86,7 +86,7 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                         }
                     }}
                 >
-            <GradientButton CustomCss={`my-4 md:min-w-[500px] ${ButtonActive ? ' opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`} >
+            <GradientButton CustomCss={`my-4 md:min-w-[500px] -z-50 ${ButtonActive ? ' opacity-100 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`} >
                         Next
             </GradientButton>
             </div>

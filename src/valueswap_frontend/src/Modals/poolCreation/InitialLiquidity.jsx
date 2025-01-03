@@ -327,7 +327,7 @@ const InitialLiquidity = () => {
           <hr className="border-2 w-3/4 pr-6" />
         </div>
       </div>
-      <div className='z-50 w-max m-auto flex flex-col gap-4 p-3 sm:p-6 relative space-y-2'>
+      <div className=' w-max m-auto flex flex-col gap-4 p-3 sm:p-6 relative space-y-2'>
         <div className='flex gap-2 items-center justify-end w-full'>
           <p className='font-gilroy text-sm'>Auto optimize liquidity</p>
           <IOSSwitch sx={{ m: 1 }} defaultChecked  onClick={()=> setOptimizeEnable((prev)=> !prev)}/>
