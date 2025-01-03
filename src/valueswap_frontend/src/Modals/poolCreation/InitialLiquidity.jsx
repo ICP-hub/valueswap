@@ -351,15 +351,16 @@ const InitialLiquidity = () => {
           </div>
           <div className='flex flex-col justify-center'>
             <div className='flex gap-3 items-center flex'>
-                <img src={InitialToken.ImagePath} alt="" className=' h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
+              <img src={InitialToken.ImagePath} alt="" className=' h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
               <span className='text-base sm:text-2xl font-normal'>
                 {InitialToken.ShortForm.toUpperCase()}
               </span>
+              <span className='text-sm sm:text-2xl font-normal'>•</span>
               <span className='py-1 px-2 sm:px-3'>
                 {InitialToken.weights} %
               </span>
             </div>
-            <span className='inline-flex justify-between w-full text-center font-normal leading-5 text-sm sm:text-base'>
+            <span className='inline-flex justify-center gap-2 w-full text-center font-normal leading-5 text-sm sm:text-base'>
             <p className={`${initialTokenAmount > initialTokenBalance ? "text-red-500" : ""}`}>{initialTokenBalance?.toLocaleString()} ETH</p>
               <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
             </span>
@@ -372,7 +373,6 @@ const InitialLiquidity = () => {
 
             return (
               <div key={index}>
-                <div className='border-t-[1px] opacity-50 item-center my-6'></div>
                 <div className='flex justify-between items-center font-gilroy backdrop-blur-[32px] 
         md:px-6 px-3 md:py-8 py-4 rounded-xl border border-white'>
                   <div className='flex flex-col'>
@@ -393,15 +393,16 @@ const InitialLiquidity = () => {
                   </div>
                   <div className='flex flex-col justify-center'>
                     <div className='flex gap-3 items-center'>
-                        <img src={token.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
+                      <img src={token.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
                       <span className='text-sm sm:text-2xl font-normal'>
                         {token.ShortForm.toUpperCase()}
                       </span>
+                      <span className='text-sm sm:text-2xl font-normal'>•</span>
                       <span className='py-1 px-2 sm:px-3'>
                         {token.weights} %
                       </span>
                     </div>
-                    <span className='inline-flex justify-between text-center font-normal leading-5 text-sm sm:text-base'>
+                    <span className='inline-flex justify-center gap-2 text-center font-normal leading-5 text-sm sm:text-base'>
                     {balance !== undefined ? balance.toLocaleString() : "0"} ETH
                       <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
                     </span>
