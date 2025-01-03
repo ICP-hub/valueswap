@@ -31,7 +31,7 @@ console.log("searchToken", searchToken)
 
     return (
         <>
-        <div id={`selectToken${token?.Name}`} className='flex justify-between border border-dashed rounded-xl p-2 gap-8 custom-400:gap-8 custom-450:gap-16 sm:gap-32 items-center mt-4 ' key={token.id}>
+        <div id={`selectToken${token?.Name}`} className='flex justify-between border border-dashed rounded-xl p-2 gap-8 custom-400:gap-8 custom-450:gap-16 sm:gap-32 items-center mt-4 md:min-w-[500px] min-w-[300px]' key={token.id}>
              <div>
                 {token.Selected ? (
                     <div className='flex flex-col gap-1'>
@@ -68,13 +68,12 @@ console.log("searchToken", searchToken)
                         setSearchToken(true);
                     }}>
 
-                        <BlueGradientButton customCss={'py-2 px-2 lg:px-4 lg:py-3 font-gilroy font-light bg-transparent'}  >
-                            <div className='flex items-center gap-1 text-xs sm:text-sm'
+                            <div className='py-2 px-2 lg:px-4 lg:py-3 font-gilroy font-light bg-transparent flex items-center gap-1 text-lg sm:text-xl cursor-pointer'
                                 >
-                                Select a Token
+                                Select Token
                                 <span className='cursor-pointer' ><ChevronDown size={18} /></span>
                             </div>
-                        </BlueGradientButton>
+                        
                         </div>
                         {searchToken && <SearchToken setSearchToken={setSearchToken} setTokenData={setTokenData}  id={3} />}
                         {/* {console.log("index of the selected", index)} */}
@@ -83,14 +82,14 @@ console.log("searchToken", searchToken)
                     </div>
                 )}
             </div>
-            <div className='flex justify-between items-center gap-1 sm:gap-2'>
+            <div className='flex justify-between items-center gap- sm:gap-2'>
                 {/* <span>{token.ShortForm}</span> */}
                 <span className='py-1 rounded-lg'>
                     <input
                         type="number"
                         className='bg-transparent w-10 text-base hide-arrows focus:outline-none'
                         pattern='[0-9]*'
-                        value={parseFloat(token.weights).toFixed(2)}
+                        value={parseFloat(token.weights).toFixed(1)}
                         onChange={handleChangePercent}
                         disabled={token.weightsLocked}
                     />
