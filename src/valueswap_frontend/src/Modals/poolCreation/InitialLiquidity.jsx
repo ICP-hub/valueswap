@@ -360,7 +360,7 @@ const InitialLiquidity = () => {
                 {InitialToken.weights} %
               </span>
             </div>
-            <span className='inline-flex justify-between w-full text-center font-normal leading-5 text-sm sm:text-base'>
+            <span className='inline-flex justify-center gap-2 w-full text-center font-normal leading-5 text-sm sm:text-base'>
             <p className={`${initialTokenAmount > initialTokenBalance ? "text-red-500" : ""}`}>{initialTokenBalance?.toLocaleString()} ETH</p>
               <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
             </span>
@@ -402,7 +402,7 @@ const InitialLiquidity = () => {
                         {token.weights} %
                       </span>
                     </div>
-                    <span className='inline-flex justify-between text-center font-normal leading-5 text-sm sm:text-base'>
+                    <span className='inline-flex justify-center gap-2 text-center font-normal leading-5 text-sm sm:text-base'>
                     {balance !== undefined ? balance.toLocaleString() : "0"} ETH
                       <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
                     </span>
