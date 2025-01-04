@@ -17,7 +17,7 @@ const LandingPage = ({ setClickConnectWallet }) => {
     return (
         <div className=''>
 
-            <div className='md:mx-8 mx-4 '>
+            <div className=' mx-4 '>
                 <div className=' relative'>
                     <Hero setClickConnectWallet={setClickConnectWallet} />
                 </div>
@@ -25,7 +25,7 @@ const LandingPage = ({ setClickConnectWallet }) => {
                 <About />
                 <LiquidityInfo />
                 <Partnership />
-                <Methods />
+                {/* <Methods /> */}
 
                 <div className='mt-4'>
                     <WhitePaper />

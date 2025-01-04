@@ -8,7 +8,7 @@ type CreatePoolParams = record {
 };
 type Pool_Data = record { pool_data : vec CreatePoolParams; swap_fee : nat };
 type Result = variant { Ok; Err : text };
-type Result_1 = variant { Ok : vec float64; Err : text };
+type Result_1 = variant { Ok : vec nat; Err : text };
 type Result_2 = variant { Ok : nat; Err : text };
 type SwapParams = record {
   token_amount : nat;

@@ -85,27 +85,30 @@ const ShowAllPools = () => {
   ];
   
   // Fetch pool data from backend
+  // console.log("allPool a")
   useEffect(() => {
     const fetchPoolData = async () => {
       try {
         const AllPoolsData = await valueswap_backend?.get_pool_data();
-        if (AllPoolsData.length > 0) {
-
-          setAllDataInPool(AllPoolsData); // Set the fetched data
-          setFilteredPools(AllPoolsData); // Initially set filteredPools to all data
+        if (AllPoolsData.Ok[0].length > 0) {
+    
+         
+          setAllDataInPool(AllPoolsData.Ok[0]); // Set the fetched data
+          setFilteredPools(AllPoolsData.Ok[0]); // Initially set filteredPools to all data
         }
+      
         return;
       } catch (error) {
         console.error("Error fetching pool data", error);
       }
     };
     fetchPoolData();
-  }, [backendActor]);
+  }, []);
 
   // Filter logic based on search input
   useEffect(() => {
     if (filterData.trim() !== "") {
-      const filtered = allDataInPool?.filter(poolData =>
+      const filtered = allDataInPool.Ok[0]?.filter(poolData =>
         poolData[1][0].pool_data.some(token =>
           token.token_name.toLowerCase().includes(filterData.toLowerCase())
         )
@@ -273,26 +276,37 @@ const ShowAllPools = () => {
                             </td>
                           </tr>
                         ))
-                        : currentItems?.map((pool, index) => (
+                        : currentItems[1]?.map((pool, index) => (
                           <tr key={index} className='min-w-[1000px] ' onClick={() => navigate(`/valueswap/pool/addLiquidity/${pool[0]}`)}>
-                            <td className='flex items-center  pl-10 pr-3 gap-2 md:gap-5 my-4 text-sm font-medium text-white min-w-52 whitespace-nowrap md:text-base'>
+                            <td className='flex items-center   pr-3 gap-2 md:gap-5 my-4 text-sm font-medium text-white min-w-52 whitespace-nowrap md:text-base'>
                               <span className='flex items-center gap-x-2 flex-wrap gap-y-2'>
+                                {      console.log("allPool a", pool, index)}
                                 {pool?.pool_data?.map((token) => (
                                   <div className='flex items-center gap-x-1 cursor-pointer border-2 rounded-2xl py-1 px-2 ' key={token.token_name}>
                                     <img className='w-6 h-6' src={token.image} alt="" />
                                     <span>{token.token_name}</span>
-                                    <span>{token.weight * 100}%</span>
+                                    <span>{Number(token.weight)}%</span>
                                   </div>
                                 ))}
                               </span>
                             </td>
                             <td className='px-3 py-4 text-sm pl-10 pr-3 text-white whitespace-nowrap md:text-base'>
-                              $ {pool.PoolValue?.toLocaleString('en-US') || "46466464"}
+                             ${
+                                
+                                (()=> {
+                                  const totalVolume = 
+                                  pool?.pool_data?.reduce((sum, volume) => 
+                                     sum + Number(volume.value), 0
+                                  )
+                                  return totalVolume;
+                                })()
+                            }
                             </td>
                             <td className='px-3 py-4 text-sm pl-12 pr-3 text-white whitespace-nowrap md:text-base'>
-                              $ {pool.TotalVolume?.toLocaleString('en-US') || "35355"}
+                             3
+                              
                             </td>
-                            <td className='py-4  text-sm font-medium pl-10 pr-3 whitespace-nowrap md:text-base'>
+                            <td className='py-4  text-sm font-medium  pr-3 whitespace-nowrap md:text-base'>
                               {pool.APR || "04% - 6%"}
                             </td>
                           </tr>
