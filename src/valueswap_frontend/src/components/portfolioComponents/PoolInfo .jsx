@@ -39,11 +39,11 @@ const PoolInfo = () => {
   ]
 
   return (
-    <div className=' max-w-[1200px] mx-auto h-screen relative '>
+    <div className=' max-w-[1200px] mx-auto relative '>
 
-      <div className='w-full h-screen  text-white mt-12 z-20 sm:px-8 absolute'>
+      <div className='w-full text-white mt-12 z-20 sm:px-8 '>
 
-        <div className='flex flex-col justify-between bg-[#010427] p-2  py-6  rounded-t-lg mx-auto'>
+        <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg mx-auto'>
           <div className='flex justify-between items-center  mx-2  md:ml-8'>
             <div className='font-gilroy text-base md:text-3xl font-medium flex items-center gap-4'>
               <div className='flex gap-1 sm:gap-2'>
@@ -81,8 +81,21 @@ const PoolInfo = () => {
               </div>
             </div>
           </div>
-          <div className='flex flex-col lg:flex-row w-full gap-11 mx-auto  mt-7'>
-            <div className=' lg:w-[59%] p-4 text-[#4b4b4b] bg-[#000711] '>
+          <div className='flex flex-col lg:flex-row w-full gap-11 mx-auto mt-7'>
+            <div className='min-w-[300px] aspect-square flex flex-col justify-between items-start gap-4 my-4 backdrop-blur-[32px] rounded-lg p-4 border border-white'>
+              <PoolInfoBox Heading={'TVL'} Data={`$ ${specificPool?.PoolMetaData?.TwentyFourHourVolume.toLocaleString('en-US')}`} />
+              <PoolInfoBox Heading={'Fees (24h)'} Data={`$ ${specificPool?.PoolMetaData?.TwentyFourHourFees.toLocaleString('en-US')}`} />
+              <PoolInfoBox Heading={'Weekly Incentives'} Data={`$ ${specificPool?.PoolMetaData?.PoolValue.toLocaleString('en-US')}`} />
+              {/* <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48 justify-center'>
+                <PoolInfoBox Heading={'Pool Value'} Data={`$ ${specificPool?.PoolMetaData?.PoolValue.toLocaleString('en-US')}`} />
+                <PoolInfoBox Heading={'24H_Fees'} Data={`$ ${specificPool?.PoolMetaData?.TwentyFourHourFees.toLocaleString('en-US')}`} />
+              </div>
+              <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48 justify-center'>
+                <PoolInfoBox Heading={'24H_Pool Volume'} Data={`$ ${specificPool?.PoolMetaData?.TwentyFourHourVolume.toLocaleString('en-US')}`} />
+                <PoolInfoBox Heading={'APR'} Data={`${specificPool?.PoolMetaData?.APRstart}% - ${specificPool?.PoolMetaData?.APRend}%`} />
+              </div> */}
+            </div>
+            <div className=' lg:w-[59%] p-4 text-white border border-white backdrop-blur-[32px] rounded-lg'>
               {/* pool info chart here in this div */}
               <div>
                 <div className='flex justify-between'>
@@ -93,7 +106,7 @@ const PoolInfo = () => {
                         <p>Volumes in Past-</p>
                         <hr className='border-[#4b4b4b]' />
                       </div>
-                      <select name="" id="" className='bg-[#000711] text-white p-1 border-[1px] border-white focus:outline-none rounded-md'>
+                      <select name="" id="" className='bg-transparent backdrop-blur-sm text-white p-1 border-[1px] border-white focus:outline-none rounded-md'>
                         <option value="volume">Volume</option>
                         <option value="24hr">24hr Vol</option>
                       </select>
@@ -119,19 +132,9 @@ const PoolInfo = () => {
 
               </div>
             </div>
-
-            <div className=' flex flex-col items-center gap-4 my-4 '>
-              <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48 justify-center'>
-                <PoolInfoBox Heading={'Pool Value'} Data={`$ ${specificPool?.PoolMetaData?.PoolValue.toLocaleString('en-US')}`} />
-                <PoolInfoBox Heading={'24H_Fees'} Data={`$ ${specificPool?.PoolMetaData?.TwentyFourHourFees.toLocaleString('en-US')}`} />
-              </div>
-              <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48 justify-center'>
-                <PoolInfoBox Heading={'24H_Pool Volume'} Data={`$ ${specificPool?.PoolMetaData?.TwentyFourHourVolume.toLocaleString('en-US')}`} />
-                <PoolInfoBox Heading={'APR'} Data={`${specificPool?.PoolMetaData?.APRstart}% - ${specificPool?.PoolMetaData?.APRend}%`} />
-              </div>
-            </div>
           </div>
 
+          <div className='flex items-center justify-between mt-2'>
           <div className='gap-2 pt-9 mx-10 font-gilroy flex items-center'>
             <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:</span>
             <span className='mx-3 text-2xl font-normal leading-6'>${specificPool?.PoolMetaData?.PersonalPoolBalance.toLocaleString('en-US')}</span>
@@ -154,6 +157,7 @@ const PoolInfo = () => {
                 Withdraw
               </GradientButton>
             </div>
+          </div>
           </div>
 
           <div className='font-gilroy font-medium text-base md:text-xl lg:text-2xl flex gap-3 md:gap-16 lg:gap-32 mx-4 lg:mx-10 mt-6'>
