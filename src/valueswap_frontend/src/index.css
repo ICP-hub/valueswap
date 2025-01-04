@@ -9,22 +9,18 @@ body {
   color: white;
   background-color: #000711;
   background-image:
-    /* Gradient overlay */
+
     linear-gradient(
       180deg,
       rgba(217, 217, 217, 0.04) 0%,
       rgba(115, 115, 115, 0.0) 100%
     ),
-    /* Background image */
-    url('/image/bg_1.png');
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  /* Optional: If you want a subtle 'lighten' effect, you can keep the blend.
-     However, removing blend mode will generally improve performance. */
-  /* background-blend-mode: lighten; */
+    url('/image/bg_1.webp');
+  /* background-position: center; */
+  background-size: contain;
+  /* background-repeat: no-repeat; */
+ 
 }
-
 
 
 

@@ -40,10 +40,10 @@ function SwapSetting() {
 
 
     return (
-        <div className='w-full bg-[#05071D] h-fit z-50 rounded-lg border border-[#FFFFFF80] relative'>
+        <div className='w-full  h-fit z-50  ext-[#A3A3A3] bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-20 border  border-[#FFFFFF66] rounded-2xl relative'>
             <h1 className='font-gilroy text-3xl font-light text-center py-4'>Settings</h1>
             {showTooltip && (
-                <div className='absolute right-1 top-6 p-4 bg-[#010427] w-[312px] z-50'>
+                <div className='absolute right-1 top-6 p-4 bg-gray-700 w-[312px] z-50'>
                     <p className=''>Your Transaction will be roll backed if the price changes by more then choosen tolerance percentage</p>
                 </div>
             )}
@@ -75,7 +75,7 @@ function SwapSetting() {
                             </span>
                         </button> */}
                             <div  onClick={handleShowInput}>
-                        <BorderGradientButton customCss={`bg-[#05071D] h-[38px] md:h-[38px]`}>
+                        <BorderGradientButton customCss={`bg-gray-700 h-[38px] md:h-[38px]`}>
                             Custom
                         </BorderGradientButton>
                             </div>
@@ -90,9 +90,9 @@ function SwapSetting() {
                     )
                 }
                 <div className='flex flex-col md:flex-row gap-1 justify-between w-full items-center  pb-4'>
-                    <div className='flex gap-x-1 pb-4 w-full justify-between md:justify-normal'>
+                    <div className='flex gap-x-1 pb-4 w-full justify-between md:justify-normal'  onMouseEnter={handleMouseEnterInfo2} onMouseLeave={handleMouseLeaveInfo2} onClick={() => setShowTooltip2(!showTooltip2)}>
                         <h3 >Transaction Validity</h3>
-                        <div onMouseEnter={handleMouseEnterInfo2} onMouseLeave={handleMouseLeaveInfo2} onClick={() => setShowTooltip2(!showTooltip2)}>
+                        <div id='valid'>
 
                             <InfoOutlinedIcon sx={{ color: '#FFFFFFBF' }} />
                         </div>
@@ -105,8 +105,8 @@ function SwapSetting() {
                            
 
                         </div> */}
-                         <BorderGradientButton customCss={`bg-[#010427] h-[38px] md:h-[38px] `}>
-                         <input type='number' maxLength="3" className=" bg-[#010427] flex w-8 justify-center items-center appearance-none	outline-none text-center" />
+                         <BorderGradientButton customCss={` h-[38px] md:h-[38px] bg-gray-700 `}>
+                         <input type='number' maxLength="3" className=" bg-gray-700 flex w-8 justify-center items-center appearance-none	outline-none text-center" />
 
                          </BorderGradientButton>
                         <div >minutes</div>
@@ -115,7 +115,7 @@ function SwapSetting() {
 
             </div>
             {showTooltip2 && (
-                <div className='absolute right-1 bottom-2 sm:bottom-6 p-4 bg-[#010427] w-[312px] z-50'>
+                <div className='absolute right-1 bottom-2 sm:bottom-6 p-4 bg-gray-700 w-[312px] z-50'>
                     <p className=''>Your Transaction will be roll backed if it is pending for more then this time.</p>
                 </div>
             )}
