@@ -61,7 +61,7 @@ const SelectTokensForPools = ({ handleNext, setFixedActiveSetp }) => {
                 </div>
 
 
-                <div className='flex flex-col items-center space-y-4'>
+                <div className='flex flex-col items-center space-y-2'>
                     {Tokens.map((token, index) => {
                         return (
                             <div key={index} className='flex items-center align-middle space-x-2'>

@@ -350,7 +350,7 @@ const InitialLiquidity = () => {
             </span>
           </div>
           <div className='flex flex-col justify-center'>
-            <div className='flex gap-3 items-center flex'>
+            <div className='flex gap-3 items-center'>
               <img src={InitialToken.ImagePath} alt="" className=' h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
               <span className='text-base sm:text-2xl font-normal'>
                 {InitialToken.ShortForm.toUpperCase()}
@@ -367,7 +367,7 @@ const InitialLiquidity = () => {
           </div>
         </div>
 
-        <div>
+        <div className='flex flex-col gap-4'>
           { RestTokens && RestTokens.map((token, index) => {
             const balance = restTokensBalances[index];
 
