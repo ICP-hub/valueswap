@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { portfolioSampleData } from '../../TextData';
 import PoolInfoBox from '../../displayBoxes/PoolInfoBox';
 import GradientButton from '../../buttons/GradientButton'
@@ -18,6 +18,7 @@ const PoolInfo = () => {
  const [openWithdraw, setOpenWithdraw] = useState(false)
  const [specificPool, setSpecificPool] = useState([])
  const {backendActor, getBalance} = useAuth()
+ const navigate = useNavigate()
   useEffect(() => {
     console.log("pool id", id)
     console.log("getBalance", getBalance("bkyz2-fmaaa-aaaaa-qaaaq-cai"));
@@ -154,7 +155,7 @@ const PoolInfo = () => {
               </GradientButton>
             </div>
             <div onClick={()=> setOpenWithdraw(true)}>
-              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
+              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`} onClick={()=> navigate("/valueswap/on-withdraw")}>
                 Withdraw
               </GradientButton>
             </div>
