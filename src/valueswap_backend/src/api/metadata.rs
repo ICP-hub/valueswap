@@ -1,3 +1,4 @@
+
 use candid::{CandidType, Principal};
 use ic_cdk::{call, update};
 use serde::Deserialize;
@@ -54,3 +55,36 @@ pub async fn get_decimals(target_canister_id: Principal) -> Result<u128, String>
         }
     }
 }
+
+// fn parse_metadata(metadata: TokenMetadata) -> Result<(String, String, Option<u8>), String> {
+//     let mut name = None;
+//     let mut symbol = None;
+//     let mut decimals = None;
+
+//     for entry in metadata.0 {
+//         match entry.key.as_str() {
+//             "icrc1:name" => {
+//                 if let MetadataValue::Text(value) = entry.value {
+//                     name = Some(value);
+//                 }
+//             },
+//             "icrc1:symbol" => {
+//                 if let MetadataValue::Text(value) = entry.value {
+//                     symbol = Some(value);
+//                 }
+//             },
+//             "icrc1:decimals" => {
+//                 if let MetadataValue::Nat(value) = entry.value {
+//                     decimals = Some(value.0.try_into().ok());
+//                 }
+//             },
+//             _ => {}
+//         }
+//     }
+
+//     Ok((
+//         name.ok_or("Name not found")?,
+//         symbol.ok_or("Symbol not found")?,
+//         decimals,
+//     ))
+// }
