@@ -7,6 +7,7 @@ import { PoolCompositions, Swapping, LiquidityOverview } from '../../tables'
 import Echarts from './Echarts';
 import WithdrawModel from '../../Modals/WithdrawModel';
 import { useAuth } from '../utils/useAuthClient';
+import PoolAttributes from './PoolAttributes';
 
 const PoolInfo = () => {
 
@@ -51,7 +52,7 @@ const PoolInfo = () => {
                   specificPool?.map((token, index) => (
                     <div key={index}>
                       <div className='bg-[#3D3F47] p-1 rounded-lg'>
-                        <img src={token.image} alt="" className='w-6 h-6 md:w-10 md:h-10' />
+                        <img src={token.image} alt="token-image" className='w-6 h-6 md:w-10 md:h-10' />
                       </div>
                     </div>
                   ))
@@ -67,9 +68,9 @@ const PoolInfo = () => {
                     </div>
                   ))
                 }
-                <span className='mx-1'>:  :</span>
+                {/* <span className='mx-1'>:  :</span> */}
 
-                <span>{specificPool?.[0]?.weight * 100}</span>
+                {/* <span>{specificPool?.[0]?.weight * 100}</span> */}
                 {
                   specificPool?.slice(1).map((token, index) => (
                     <div key={index} className=''>
@@ -134,7 +135,7 @@ const PoolInfo = () => {
             </div>
           </div>
 
-          <div className='flex items-center justify-between mt-2'>
+          <div className='flex md:flex-row flex-col items-center justify-between mt-2'>
           <div className='gap-2 pt-9 mx-10 font-gilroy flex items-center'>
             <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:</span>
             <span className='mx-3 text-2xl font-normal leading-6'>${specificPool?.PoolMetaData?.PersonalPoolBalance.toLocaleString('en-US')}</span>
@@ -172,9 +173,9 @@ const PoolInfo = () => {
             ))}
           </div> */}
 
-          <div className='grid grid-cols-2 md:grid-rows-2 gap-4'>
+          <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-4'>
             <PoolCompositions TableData={specificPool?.PoolData} />
-            <div className='min-w-[200px] font-gilroy min-h-[280px] bg-transparent backdrop-blur-[32px] rounded-lg p-4 border border-white'></div>
+            <PoolAttributes pool={specificPool}/>
           </div>
           {/* <div >
             {currIndex === 0 && <PoolCompositions TableData={specificPool?.PoolData} />}
