@@ -29,7 +29,7 @@ const Faucet = () => {
     const [selectFaucet, setSelectFaucet] = useState([]);
     const [balances, setBalances] = useState({});
     const { isAuthenticated, backendActor, getBalance } = useAuth();
-
+    let balance;
     // Fetch the balance for each token when the component is mounted or when `isAuthenticated` changes
     useEffect(() => {
         if (isAuthenticated) {
@@ -53,7 +53,7 @@ const Faucet = () => {
 
     // Handle display of balance in table
     const displayBalance = (tokenName) => {
-        console.log("tokenName", balances[tokenName])
+
         return balances[tokenName] !== undefined ? Number(balances[tokenName]) : "Loading...";
     };
 
@@ -90,7 +90,8 @@ const Faucet = () => {
                                         <p className='font-semibold'>{token.TokenName}</p>
                                     </td>
                                     <td className='flex flex-col items-center'>
-                                        <p>{displayBalance(token.TokenName)/100000000 }</p>
+                                       
+                                        <p>{ balances[token.TokenName] !== undefined ? Number(balances[token.TokenName])/100000000 : "Loading..."}</p>
                                         <p>${0}</p>
                                     </td>
                                     <td className='text-end'>
