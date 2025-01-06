@@ -367,7 +367,7 @@ const InitialLiquidity = () => {
           </div>
         </div>
 
-        <div>
+        <div className='flex flex-col gap-4'>
           { RestTokens && RestTokens.map((token, index) => {
             const balance = restTokensBalances[index];
 
