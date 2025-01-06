@@ -5,10 +5,10 @@ use std::collections::BTreeMap;
 
 mod api;
 mod utils;
-
 pub use api::transfer::*;
 pub use utils::maths::*;
 pub use utils::types::*;
+use crate::api::metadata::MetadataValue;
 
 thread_local! {
     pub static POOL_DATA: RefCell<BTreeMap<Principal, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
