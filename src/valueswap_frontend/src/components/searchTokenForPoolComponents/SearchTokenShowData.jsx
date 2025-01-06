@@ -241,6 +241,7 @@ console.log("searchToken", searchToken)
                 
             <img src="/image/delete.svg" alt="trash" loading='lazy' width={24} className='aspect-square'/>
         </span>) : 
+        // To maintain the alignment of the buttons
             <span className='w-[24px]'></span>
         }
     </span>
