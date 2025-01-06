@@ -20,19 +20,11 @@ const PoolPage = () => {
         }
     }, [location])
     return (
-        <div className='  '>
+        <div className=''>
             <div className='items-center'>
+                
                 {
-                    location.pathname != '/valueswap/pool/create-pool/steps' ? (
-                       ""
-                    ) : (
-                        <div>
-
-                        </div>
-                    )
-                }
-                {
-                    location.pathname != '/valueswap/pool/create-pool/steps' ? (
+                    location.pathname !== '/valueswap/pool/create-pool/steps' ? (
                         <div className='flex justify-center'>
                             {
                                 boxText == 'Create Pool' ? (

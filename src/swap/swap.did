@@ -11,8 +11,10 @@ type MetadataValue = variant { Nat : nat; Text : text };
 type Pool_Data = record { pool_data : vec CreatePoolParams; swap_fee : nat };
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok : vec nat; Err : text };
+
 type Result_2 = variant { Ok : vec MetadataEntry; Err : text };
 type Result_3 = variant { Ok : nat; Err : text };
+
 type SwapParams = record {
   token_amount : nat;
   ledger_canister_id1 : principal;

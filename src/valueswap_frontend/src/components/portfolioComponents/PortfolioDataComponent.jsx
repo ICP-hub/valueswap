@@ -9,6 +9,10 @@ import 'react-loading-skeleton/dist/skeleton.css'
 import { useAuth, useAuthClient } from '../utils/useAuthClient'
 import BorderGradientButton from '../../buttons/BorderGradientButton'
 import {portfolioSampleData} from "../../TextData"
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 const PortfolioDataComponent = () => {
   const [allDataInPool, setAllDataInPool] = useState([])
   const [displayCount, setDisplayCount] = useState(0)
@@ -16,20 +20,27 @@ const PortfolioDataComponent = () => {
   const [activeSort, setActiveSort] = useState()
   const [isAscending, setIsAscending] = useState(true)
   const { backendActor, principal } = useAuth()
-  const [poolName, setPoolName] = useState([])
+  const [poolName, setPoolName] = useState()
+  const [itemsPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
   const { isAuthenticated } = useAuth()
+
   //  const listOfPool = [];
   useEffect(() => {
     const userPools = async () => {
-      const AllPool = await backendActor?.get_users_pool(principal)
+      const AllPool = await backendActor?.get_user_pools_with_lp(principal)
+      console.log(" get_user_pools_with_lp", AllPool)
+
       setPoolName(AllPool)
       for (let i = 0; i < AllPool.length; i++) {
-        console.log('AllPool', AllPool[i][0])
+        // console.log('AllPool', AllPool[i][0])
         const poolData = await backendActor?.get_specific_pool_data(
-          AllPool[i][0]
+          AllPool[0][i][0]
         )
+        console.log("poolData", poolData)
         let specificData = poolData.Ok[0]
-        setAllDataInPool(prev => [...prev, specificData])
+       
+        setAllDataInPool(prev => [...prev, {...specificData, Lp: AllPool[0][i][1]}])
       }
       setDisplayCount(Math.min(5, AllPool.length))
     }
@@ -106,10 +117,35 @@ const PortfolioDataComponent = () => {
     }
   }
 
+  // pagination logic
+  const  totalPages = Math.ceil(allDataInPool?.length / itemsPerPage);
+
+  const currentItems = allDataInPool?.slice(
+    (currentPage -1) * itemsPerPage, 
+    currentPage * itemsPerPage
+  )
+
+
+  const handleNextPage = () => {
+    if(currentPage < totalPages) setCurrentPage(currentPage + 1);
+  }
+
+  const handlePrevPage = () => {
+    if(currentPage > 1) setCurrentPage(currentPage - 1);
+  }
+
+  const handleFirstPage = () => {
+    setCurrentPage(1);
+  }
+
+  const handleLastPage = () => {
+    setCurrentPage(totalPages);
+  }
+
   const navigate = useNavigate()
-  const Headings = ['Pool name', 'Staking', 'TVL', 'Volume(24h)', 'APR']
+  const Headings = ['Pool name', 'Staking', 'TVL', 'Volume(24h)', "LP", 'APR']
   return (
-    <div className='max-w-[1200px] mx-auto h-screen relative'>
+    <div className='max-w-[1200px] mx-auto  relative'>
       <div className='flex justify-between mt-8 px-8 mx-auto'>
         <div className='bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl w-[48%] py-8 text-center'>
           <h3 className=''>My liquidity</h3>
@@ -120,7 +156,7 @@ const PortfolioDataComponent = () => {
           <h1 className='text-3xl font-semibold tracking-wide'>$0.00</h1>
         </div>
       </div>
-      <div className='w-full h-screen text-white  px-8 mx-auto absolute'>
+      <div className='w-full  text-white  px-8 mx-auto pb-8'>
         <div className='flex justify-between  p-2 pb-6 pt-6 rounded-t-lg mx-auto'>
           {/* search box */}
           <div className='flex w-full gap-x-2 justify-center items-center'>
@@ -167,7 +203,7 @@ const PortfolioDataComponent = () => {
             </div>
           </div>
         </div>
-        <div className='flex flex-col font-gilroy min-h-[30%] bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl '>
+        <div className='flex flex-col font-gilroy min-h-[30%]  bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl '>
           <div className='-my-2 overflow-x-auto'>
             <div className='inline-block min-w-full py-2 align-middle'>
               {allDataInPool.Ok?.length <= 0 ? (
@@ -186,12 +222,12 @@ const PortfolioDataComponent = () => {
                             <th
                               scope='col'
                               key={index}
-                              className={`py-7    md:pr-0 text-center text-sm md:text-base lg:text-base  font-bold text-white ${
+                              className={`py-7    md:pr-0 text-center  text-sm md:text-base lg:text-base  font-bold text-white ${
                                 heading == 'Pool name' ? 'w-7/12' : ''
                               } `}
                             >
                               <span
-                                className={`flex  items-center ml-4 ${index === activeSort ? "text-[#F7931A]": ""}`}
+                                className={`flex  items-center ml-4 cursor-pointer ${index === activeSort ? "text-[#F7931A]": ""}`}
                                 onClick={() => sortingConditional(index)}
                               >
                                 {heading}
@@ -208,7 +244,7 @@ const PortfolioDataComponent = () => {
                       <tbody>
                         {isAuthenticated ? (
                           //  allDataInPool
-                          !portfolioSampleData ? (
+                          !currentItems ? (
                             Array.from({ length: 3 }).map((_, index) => (
                               <tr key={index}>
                                 <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
@@ -226,7 +262,7 @@ const PortfolioDataComponent = () => {
                               </tr>
                             ))
                           ) : (
-                            portfolioSampleData?.map((Poolinfo, index) => (
+                            currentItems?.map((Poolinfo, index) => (
                               <tr
                                 key={index}
                                 className='hover:bg-[#546093] rounded-xl cursor-pointer'
@@ -250,7 +286,7 @@ const PortfolioDataComponent = () => {
                                         className='w-4 h-4'
                                       />
                                      {Poolinfo?.pool_data.length < 4 ? <span className='font-bold'>{pool.token_name}</span> :""}
-                                      <span className='text-sm flex items-center justify-center'>{pool.weight * 100} %</span>
+                                      <span className='text-sm flex items-center justify-center'>{Number(pool.weight )} %</span>
                                     </span>
                                   ))}
                                 </td>
@@ -278,6 +314,9 @@ const PortfolioDataComponent = () => {
                                 <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
                                   1% - 2%
                                 </td>
+                                <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
+                                  {(Number(Poolinfo?.Lp)/100000000).toFixed(4)}
+                                </td>
                               </tr>
                             ))
                           )
@@ -295,36 +334,31 @@ const PortfolioDataComponent = () => {
                       </tbody>
                     </table>
                   </SkeletonTheme>
-                  <div className='flex justify-center items-center mb-8'>
-                    {buttonVisible && (
-                      <div>
-                        {allDataInPool?.TableData?.length > displayCount && (
-                          <div className='text-center mt-4'>
-                            <button
-                              className='bg-gray-800 text-white px-4 py-2 rounded-md'
-                              onClick={() => setDisplayCount(displayCount + 5)}
-                            >
-                              {allDataInPool.SeeMoreButtonText}
-                            </button>
-                          </div>
-                        )}
-                        {allDataInPool?.TableData?.length <= displayCount && (
-                          <div className='text-center mt-4'>
-                            <button
-                              className='bg-gray-800 text-white px-4 py-2 rounded-md'
-                              onClick={() =>
-                                setDisplayCount(
-                                  Math.min(5, AllPool.TableData.length)
-                                )
-                              }
-                            >
-                              {allDataInPool.SeeLessButtonText}
-                            </button>
-                          </div>
-                        )}
+                  {(
+                  <div className='mt-4 px-4 text-center pb-4'>
+                    <div className="flex gap-x-4 ">
+                    <KeyboardDoubleArrowLeftIcon
+                    onClick={handleFirstPage}
+                    className='cursor-pointer'/>
+                    <div className='flex gap-4 '>
+                      <KeyboardArrowLeftIcon 
+                      onClick={handlePrevPage}
+                      className='cursor-pointer'/>
+                      <div className='flex gap-x-2'>
+                      <span className='text-gray-400'>
+                      Page {currentPage} of {totalPages}
+                    </span>
                       </div>
-                    )}
+                      <KeyboardArrowRightIcon 
+                       onClick={handleNextPage}
+                      className='cursor-pointer'/>
+                    </div>
+                    <KeyboardDoubleArrowRightIcon 
+                     onClick={handleLastPage}
+                    className='cursor-pointer'/>
+                    </div>
                   </div>
+                )}
                 </div>
               )}
             </div>
