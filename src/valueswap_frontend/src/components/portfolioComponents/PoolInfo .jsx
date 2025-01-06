@@ -160,7 +160,7 @@ const PoolInfo = () => {
           </div>
           </div>
 
-          <div className='font-gilroy font-medium text-base md:text-xl lg:text-2xl flex gap-3 md:gap-16 lg:gap-32 mx-4 lg:mx-10 mt-6'>
+          {/* <div className='font-gilroy font-medium text-base md:text-xl lg:text-2xl flex gap-3 md:gap-16 lg:gap-32 mx-4 lg:mx-10 mt-6'>
             {Heading.map((heading, index) => (
               <div className='flex flex-col justify-center text-center items-center gap-2 cursor-pointer' key={index}
                 onClick={() => {
@@ -170,14 +170,17 @@ const PoolInfo = () => {
                 <span className={`p-[1px]  bg-[#F7931A] w-full ${currIndex === index ? 'visible' : 'invisible'}`}></span>
               </div>
             ))}
+          </div> */}
+
+          <div className='grid grid-cols-2 md:grid-rows-2 gap-4'>
+            <PoolCompositions TableData={specificPool?.PoolData} />
+            <div className='min-w-[200px] font-gilroy min-h-[280px] bg-transparent backdrop-blur-[32px] rounded-lg p-4 border border-white'></div>
           </div>
-
-
-          <div >
+          {/* <div >
             {currIndex === 0 && <PoolCompositions TableData={specificPool?.PoolData} />}
             {currIndex === 1 && <Swapping id={Number(id)} />}
             {currIndex === 2 && <LiquidityOverview id={id} />}
-          </div>
+          </div> */}
 
 
 
