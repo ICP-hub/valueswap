@@ -164,13 +164,10 @@ pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
         let total_pool_value = get_total_lp() * Nat::from(1000u128);
         let total_lp_supply = get_total_lp();
         let mut borrowed_share = share.borrow_mut();
-        // let amount: f64 = (users_contribution.to_string().parse::<f64>().unwrap_or_default() / total_pool_value.to_string().parse::<f64>().unwrap_or_default()) * total_lp_supply.to_string().parse::<f64>().unwrap_or_default();
+        let amount: f64 = (users_contribution.to_string().parse::<f64>().unwrap_or_default() / total_pool_value.to_string().parse::<f64>().unwrap_or_default()) * total_lp_supply.to_string().parse::<f64>().unwrap_or_default();
 
-        // let amount_u64 = amount as u64;
-        // let amount_nat = Nat::from(amount_u64);
-
-        let amount_nat: Nat = (users_contribution / total_pool_value) * total_lp_supply;
-        borrowed_share.insert(user, amount_nat.clone());
+        let amount_u64 = amount as u64;
+        let amount_nat = Nat::from(amount_u64);
 
         borrowed_share.insert(user, amount_nat.clone());
 
