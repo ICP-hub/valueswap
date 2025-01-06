@@ -41,7 +41,6 @@ const PoolInfo = () => {
 
   return (
     <div className=' max-w-[1200px] mx-auto relative '>
-
       <div className='w-full text-white mt-12 z-20 sm:px-8 '>
 
         <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg mx-auto'>
@@ -190,6 +189,7 @@ const PoolInfo = () => {
 
       </div>
       {openWithdraw ? <WithdrawModel setOpenWithdraw={setOpenWithdraw} poolName={id}/> : ""}
+    </div>
     </div>
   )
 }
