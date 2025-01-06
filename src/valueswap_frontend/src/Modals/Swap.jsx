@@ -12,6 +12,11 @@ import SearchToken from './SearchToken'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { SwapModalData } from '../TextData'
 import SwapSetting from './SwapSetting'
+import CloseIcon from '@mui/icons-material/Close';
+import CircularProgress from '@mui/material/CircularProgress';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+
 const Swap = () => {
   const { backendActor, getBalance, createTokenActor, isAuthenticated } =
     useAuth()
@@ -28,10 +33,12 @@ const Swap = () => {
   const [ClickedSwap, setClickSwap] = useState(false)
   const [searchToken1, setSearchToken1] = useState(false)
   const [searchToken2, setSearchToken2] = useState(false)
-  const [recieveValue, setReciveValue] = useState(0)
+  const [receiveValue, setReceiveValue] = useState(0)
   const [balance, setBalance] = useState(0)
   const [settings, setSettings] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false); 
   const [Id, setId] = useState(0)
+  const [subModel, setSubModel] = useState(1)
   // Fetch balances whenever payCoin or receiveCoin changes
   useEffect(() => {
     if (payCoin) {
@@ -64,11 +71,11 @@ const Swap = () => {
           ledger_canister_id1: Principal.fromText(receiveCoin.CanisterId),
           ledger_canister_id2: Principal.fromText(receiveCoin.CanisterId)
         })
-        console.log('swapValue', swapValue.length)
-        if (swapValue.length == 2) {
-          setPoolNotFound(true)
-        }
-        setReciveValue(swapValue[1])
+        console.log('swapValue', swapValue)
+        // if (swapValue.length == 2) {
+        //   setPoolNotFound(true)
+        // }
+        setReceiveValue(swapValue[1])
       } else {
         console.log('no coin Amount enter')
         setPoolNotFound(false)
@@ -279,7 +286,7 @@ const Swap = () => {
       if (res.Ok) {
         getSwapValue()
       }
-      console.log('slipage:', recieveValue)
+      console.log('slipage:', receiveValue)
 
       if (res.Ok == null) {
         console.log('Swap successful')
@@ -304,6 +311,10 @@ const Swap = () => {
     setSettings((prev) => !prev)
  }
 
+ const openModalWithSteps = async () => {
+ 
+  setIsModalOpen(true);
+};
   return (
     <section className='h-screen relative flex flex-col items-center gap-y-12 bg-background-gradient'>
       <h1 className='text-center text-3xl mt-4 tracking-wider'>Swap</h1>
@@ -378,7 +389,7 @@ const Swap = () => {
           <div className='flex justify-between'>
             <div className='text-4xl w-1/2 overflow-x-auto  scroll-smooth'>
               {coinAmount && payCoin && receiveCoin
-                ? coinAmount * (payCoin?.marketPrice / receiveCoin?.marketPrice)
+                ? Number(receiveValue)/100000000
                 : 0}
             </div>
             <BorderGradientButton customCss={`bg-gray-700 z-10`}>
@@ -522,6 +533,145 @@ const Swap = () => {
                             </div>
                         </>
                     )}
+                                    {isModalOpen ? <div className="fixed inset-0  bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="p-6 pb-16 w-11/12 sm:max-w-[40rem] border-2 border-[#86828280] bg-[#182030] mt-10 rounded-lg shadow-lg text-white  mx-auto relative">
+                        <div className='ml-9 '>
+                        <button
+                            className="absolute top-5 right-10 text-gray-400 hover:text-gray-300"
+                            onClick={() => setIsModalOpen(false)}
+                        >
+                            <CloseIcon/>
+                        </button>
+
+                        <h2 className="text-xl font-semibold mb-4 font-cabin">Swap Details</h2>
+                        <p className="text-gray-400 mb-6 font-cabin">
+                            You can swap directly without depositing, because you have sufficient balance in the Swap pool.
+                        </p>
+                        </div>
+
+                        <div className='flex flex-col gap-y-6'>
+                            <div className='flex gap-x-4 font-cabin '>
+                                <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+                                <div className='flex flex-col border rounded-lg  py-2 border-gray-600 bg-[#30303080]  w-full'>
+                                    <div className='flex justify-between px-4 pb-1 w-full '>
+                                        <div className='flex  '>
+                                            <span>1. Approve <span>{payCoin.ShortForm}</span></span>
+                                            
+                                        </div>
+                                        <div onClick={() => setSubModel(1)}>
+                                            {subModel == 1 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                                        </div>
+                                    </div>
+                                    <div className={` ${subModel == 1 ? "flex flex-col" : 'hidden'}`} >
+                                        <hr className=' border-gray-500' />
+                                        <div className='flex gap-x-2 justify-between w-full font-extralight px-4 text-sm pt-1 text-[#FFFFFFBF]'>
+                                            <span>Amount</span>
+                                            <span className='flex gap-2 items-center'>
+                                                <img src={payCoin.ImagePath} alt="" className='w-4 h-4' />
+                                                {coinAmount}</span>
+                                        </div>
+                                        <div className='flex justify-between w-full font-extralight px-4 text-sm pb-1 text-[#FFFFFFBF]'>
+                                            <span >Canister Id</span>
+                                            <span>{payCoin.CanisterId}</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <div className='flex gap-x-4 font-cabin '>
+                                <div className='flex justify-center items-center'>{approvalSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+                                <div className='flex flex-col border rounded-lg  py-2 border-gray-600 bg-[#30303080]  w-full'>
+                                    <div className='flex justify-between px-4 w-full '>
+                                        <div className='flex  '>
+                                            <span>1. Deposite <span>{payCoin.ShortForm}</span></span>
+                                            
+                                        </div>
+                                        <div onClick={() => setSubModel(2)}>
+                                            {subModel == 2 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                                        </div>
+                                    </div>
+                                    <div className={` ${subModel == 2 ? "flex flex-col" : 'hidden'}`} >
+                                        <hr className=' border-gray-500' />
+                                        <div className='flex gap-x-2 justify-between w-full font-extralight px-4 text-sm pt-1 text-[#FFFFFFBF]'>
+                                            <span>Amount</span>
+                                            <span className='flex gap-2 items-center'>
+                                                <img src={payCoin.ImagePath} alt="" className='w-4 h-4' />
+                                                {coinAmount}</span>
+                                        </div>
+                                        <div className='flex justify-between w-full font-extralight px-4 text-sm pb-1 text-[#FFFFFFBF]'>
+                                            <span >Canister Id</span>
+                                            <span>{payCoin.CanisterId}</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                                      
+                                      
+                                          {/*  */}
+
+                            <div className='flex gap-x-4 font-cabin'>
+                                <div className='flex justify-center items-center'>{swapSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+                                <div className='flex flex-col border rounded-lg  py-2 border-gray-600 bg-[#30303080] w-full'>
+                                    <div className='flex justify-between w-full px-4 '>
+                                        <div className='flex gap-x-4'>
+                                            <span>3. Swap <span>{payCoin.ShortForm}</span> to <span>{receiveCoin.ShortForm}</span></span>
+                                          
+                                        </div>
+                                        <div onClick={() => setSubModel(3)}>
+                                            {subModel == 3 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                                        </div>
+                                    </div>
+                                    <div className={` ${subModel == 3 ? "flex flex-col" : 'hidden'}`}>
+                                        <hr className=' border-gray-500' />
+                                        <div className='flex gap-x-2 justify-between w-full font-extralight text-sm px-4 pt-1'>
+                                            <span>{payCoin.ShortForm}</span>
+                                            <span className='flex gap-x-2 justify-center items-center'><img src={payCoin.ImagePath} alt="" className='w-4 h-4' /> {coinAmount}</span>
+                                        </div>
+                                        <div className='flex justify-between w-full font-extralight text-sm px-4 pb-1'>
+                                            <span >{receiveCoin.ShortForm}</span>
+                                            <span className='flex gap-x-2 justify-center items-center'><img src={receiveCoin.ImagePath} alt="" className='w-4 h-4' /> 44</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            {/* withdraw */}
+                            <div className='flex gap-x-4 font-cabin'>
+                                <div className='flex justify-center items-center'>{swapSuccess ? <CheckCircleOutlineIcon style={{ color: "green" }} /> : <CircularProgress size="20px" />}</div>
+                                <div className='flex flex-col border rounded-lg  py-2 border-gray-600  bg-[#30303080] w-full'>
+                                    <div className='flex justify-between px-4 w-full'>
+                                        <div className='flex gap-x-4'>
+                                            <span>3. Withdraw  <span>{receiveCoin.ShortForm} </span></span>
+                                       
+                                        </div>
+                                        <div onClick={() => setSubModel(4)}>
+                                            {subModel == 4 ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                                        </div>
+                                    </div>
+                                    <div className={` ${subModel == 4 ? "flex flex-col" : 'hidden'}`}>
+                                        <hr className=' border-gray-500' />
+
+                                        <div className='flex justify-between w-full font-extralight text-sm px-4 pt-1 text-[#FFFFFFBF]'>
+                                            <span >{receiveCoin.ShortForm}</span>
+                                            <span className='flex gap-x-2 justify-center items-center'><img src={receiveCoin.ImagePath} alt="" className='w-4 h-4' /> 44</span>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                        </div>
+
+
+
+                    </div>
+                </div> : ""}
     </section>
   )
 }
