@@ -164,8 +164,15 @@ pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
         let total_pool_value = get_total_lp() * Nat::from(1000u128);
         let total_lp_supply = get_total_lp();
         let mut borrowed_share = share.borrow_mut();
-        let amount: Nat = (users_contribution / total_pool_value) * total_lp_supply;
-        borrowed_share.insert(user, amount.clone());
+        // let amount: f64 = (users_contribution.to_string().parse::<f64>().unwrap_or_default() / total_pool_value.to_string().parse::<f64>().unwrap_or_default()) * total_lp_supply.to_string().parse::<f64>().unwrap_or_default();
+
+        // let amount_u64 = amount as u64;
+        // let amount_nat = Nat::from(amount_u64);
+
+        let amount_nat: Nat = (users_contribution / total_pool_value) * total_lp_supply;
+        borrowed_share.insert(user, amount_nat.clone());
+
+        borrowed_share.insert(user, amount_nat.clone());
 
         ic_cdk::spawn(async move {
             let mut attempts = 0;
@@ -173,7 +180,7 @@ pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
             // let mut success = false;
 
             while attempts < max_retries {
-                let transfer_result = icrc1_transfer(user, amount.clone()).await;
+                let transfer_result = icrc1_transfer(user, amount_nat.clone()).await;
                 if transfer_result.is_ok() {
                     // success = true;
                     break; // Exit the loop if transfer is successful

@@ -80,6 +80,7 @@ service : () -> {
   create_pools : (Pool_Data) -> (Result_1);
   decrease_pool_lp : (text, nat) -> ();
   decrease_total_lp : (nat) -> ();
+  decrease_user_pool_lp : (principal, text, nat) -> ();
   deposit_tokens : (nat, principal, principal) -> (Result_3);
   faucet : (principal, principal, nat) -> (Result_3);
   get_constant_product_value : () -> (float64) query;
@@ -91,6 +92,7 @@ service : () -> {
   get_specific_pool_data : (text) -> (Result_7) query;
   get_tokens : () -> (Result_8) query;
   get_total_lp : () -> (nat) query;
+  get_user_pools_with_lp : (principal) -> (opt vec record { text; nat }) query;
   get_user_share_ratio : (Pool_Data, text, nat) -> (Result_9);
   get_users_lp : (principal) -> (opt nat) query;
   get_users_pool : (principal) -> (opt vec text) query;

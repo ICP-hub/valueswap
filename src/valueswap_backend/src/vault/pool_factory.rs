@@ -82,30 +82,36 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                 ic_cdk::println!("The second debug statement for first token ");
             }
 
-            ic_cdk::println!("The first break point for debugging ");
+            ic_cdk::println!("1The first break point for debugging ");
 
-            // if let Err(e) = users_lp_share(params.clone()).await {
-            //     ic_cdk::call::<_, ()>(
-            //         canister_id.principal,
-            //         "lp_rollback",
-            //         (principal_id, params.pool_data.clone()),
-            //     )
-            //     .await
-            //     .map_err(|rollback_err| {
-            //         log::error!(
-            //             "LP rollback failed for user {}: {:?}",
-            //             principal_id,
-            //             rollback_err
-            //         );
-            //         CustomError::UnableToRollbackLP(format!(
-            //             "LP rollback failed: {:?}, original error: {}",
-            //             rollback_err, e
-            //         ))
-            //     })?;
-            //     return Err(CustomError::UnableToTransferLP(e));
-            // }
+            if let Err(e) = users_lp_share(params.clone()).await {
+                // Log the error and attempt rollback
+                log::error!("users_lp_share failed: {:?}", e);
 
-            ic_cdk::println!("The second break point for debugging ");
+                if let Err(rollback_err) = ic_cdk::call::<_, ()>(
+                    canister_id.principal,
+                    "lp_rollback",
+                    (principal_id, params.pool_data.clone()),
+                )
+                .await
+                {
+                    log::error!(
+                        "LP rollback failed for user {}: {:?}",
+                        principal_id,
+                        rollback_err
+                    );
+                    return Err(CustomError::UnableToRollbackLP(format!(
+                        "LP rollback failed: {:?}, original error: {}",
+                        rollback_err, e
+                    )));
+                }
+
+                // Return the original error after rollback attempt
+                return Err(CustomError::UnableToTransferLP(e));
+            }
+            // users_lp_share(params.clone()).await.unwrap();
+
+            ic_cdk::println!("1The second break point for debugging ");
 
             add_liquidity_curr(params.clone()).map_err(|e| CustomError::OperationFailed(e))?;
 
@@ -187,26 +193,26 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                     ic_cdk::println!("The first break point for debugging {} ",canister_id.clone());
                     // ic_cdk::println!("Successfully installed WASM on canister: {}", canister_id);
 
-                    // if let Err(e) = users_lp_share(params.clone()).await {
-                    //     ic_cdk::call::<_, ()>(
-                    //         canister_id,
-                    //         "lp_rollback",
-                    //         (principal_id, params.pool_data.clone()),
-                    //     )
-                    //     .await
-                    //     .map_err(|rollback_err| {
-                    //         log::error!(
-                    //             "LP rollback failed for user {}: {:?}",
-                    //             principal_id,
-                    //             rollback_err
-                    //         );
-                    //         CustomError::UnableToRollbackLP(format!(
-                    //             "LP rollback failed: {:?}, original error: {}",
-                    //             rollback_err, e
-                    //         ))
-                    //     })?;
-                    //     return Err(CustomError::UnableToTransferLP(e));
-                    // }
+                    if let Err(e) = users_lp_share(params.clone()).await {
+                        ic_cdk::call::<_, ()>(
+                            canister_id,
+                            "lp_rollback",
+                            (principal_id, params.pool_data.clone()),
+                        )
+                        .await
+                        .map_err(|rollback_err| {
+                            log::error!(
+                                "LP rollback failed for user {}: {:?}",
+                                principal_id,
+                                rollback_err
+                            );
+                            CustomError::UnableToRollbackLP(format!(
+                                "LP rollback failed: {:?}, original error: {}",
+                                rollback_err, e
+                            ))
+                        })?;
+                        return Err(CustomError::UnableToTransferLP(e));
+                    }
 
                     ic_cdk::println!("The second break point for debugging{ }",canister_id.clone());
 
@@ -364,23 +370,23 @@ async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), 
 
     // Call the target canister
     let result: Result<(), String> =
-        call(canister_id, "store_data_inpool", (api::caller(), params))
+        call(canister_id, "store_pool_data", (api::caller(), params))
             .await
             .map_err(|(rejection_code, err_message)| match rejection_code {
                 ic_cdk::api::call::RejectionCode::DestinationInvalid => {
                     format!(
-                        "Invalid destination canister: {}, Method: store_data_inpool",
+                        "Invalid destination canister: {}, Method: store_pool_data",
                         canister_id
                     )
                 }
                 ic_cdk::api::call::RejectionCode::CanisterError => {
                     format!(
-                        "Canister method failed: {}, Method: store_data_inpool, Error: {}",
+                        "Canister method failed: {}, Method: store_pool_data, Error: {}",
                         canister_id, err_message
                     )
                 }
                 _ => format!(
-                    "Unexpected error: {}, RejectionCode: {:?}, Method: store_data_inpool",
+                    "Unexpected error: {}, RejectionCode: {:?}, Method: store_pool_data",
                     err_message, rejection_code
                 ),
             });
@@ -471,6 +477,7 @@ fn get_specific_pool_data(key: String) -> Result<Vec<Pool_Data>, String> {
                     Err(format!("Pool not found for key: {}", key))
                 }
             }
+            
             Err(e) => {
                 ic_cdk::println!("Failed to access POOL_DATA: {:?}", e);
                 Err("Internal Error: Failed to access pool data.".to_string())
