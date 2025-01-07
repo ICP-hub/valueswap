@@ -222,6 +222,28 @@ console.log("searchToken", searchToken)
                 </span>
             )
         }
+        {CoinCount > 2 ? (
+            <span onClick={() => {
+                    if (CoinCount > 2) {
+                        dispatch(RemoveCoin({
+                            index: index
+                        }));
+                    } else {
+                        dispatch(showAlert({
+                            type: 'danger',
+                            text: 'Pool must have more than 1 coin'
+                        }));
+                        setTimeout(() => {
+                            dispatch(hideAlert());
+                        }, 3000);
+                    }
+                }} className='cursor-pointer'>
+                
+            <img src="/image/delete.svg" alt="trash" loading='lazy' width={24} className='aspect-square'/>
+        </span>) : 
+        // To maintain the alignment of the buttons
+            <span className='w-[24px]'></span>
+        }
     </span>
     </>
     );
