@@ -119,9 +119,9 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                 .await
                 .map_err(|_| CustomError::TokenDepositFailed)?;
 
-            increase_pool_lp_tokens(params.clone());
+            increase_pool_lp_tokens(params.clone())?;
 
-            users_pool(params.clone());
+            users_pool(params.clone())?;
 
             store_pool_data(params.clone(), canister_id.principal)
                 .await
@@ -220,9 +220,9 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                         .await
                         .map_err(|e| CustomError::UnableToStorePoolData(e))?;
 
-                    increase_pool_lp_tokens(params.clone());
+                    increase_pool_lp_tokens(params.clone())?;
 
-                    users_pool(params.clone());
+                    users_pool(params.clone())?;
 
                     store_pool_data_curr(params.clone())
                         .map_err(|e| CustomError::UnableToStorePoolData(e))?;
