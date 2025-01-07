@@ -361,7 +361,7 @@ const InitialLiquidity = () => {
               </span>
             </div>
             <span className='inline-flex justify-center gap-2 w-full text-center font-normal leading-5 text-sm sm:text-base'>
-            <p className={`${initialTokenAmount > initialTokenBalance ? "text-red-500" : ""}`}>{initialTokenBalance?.toLocaleString()} ETH</p>
+            <p className={`${initialTokenAmount > initialTokenBalance ? "text-red-500" : ""}`}>{initialTokenBalance?.toLocaleString()} {InitialToken.ShortForm.toUpperCase()}</p>
               <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
             </span>
           </div>
@@ -403,7 +403,7 @@ const InitialLiquidity = () => {
                       </span>
                     </div>
                     <span className='inline-flex justify-center gap-2 text-center font-normal leading-5 text-sm sm:text-base'>
-                    {balance !== undefined ? balance.toLocaleString() : "0"} ETH
+                    {balance !== undefined ? balance.toLocaleString() : "0"} {token.ShortForm.toUpperCase()}
                       <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
                     </span>
                   </div>
