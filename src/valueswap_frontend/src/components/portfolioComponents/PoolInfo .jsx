@@ -136,7 +136,7 @@ const PoolInfo = () => {
           </div>
 
           <div className='flex md:flex-row flex-col items-center justify-between mt-2'>
-          <div className='gap-2 pt-9 mx-10 font-gilroy flex items-center'>
+          <div className='gap-2 mx-10 font-gilroy flex items-center'>
             <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:</span>
             <span className='mx-3 text-2xl font-normal leading-6'>${specificPool?.PoolMetaData?.PersonalPoolBalance.toLocaleString('en-US')}</span>
           </div>
