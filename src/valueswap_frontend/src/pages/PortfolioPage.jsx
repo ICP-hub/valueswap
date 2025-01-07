@@ -9,6 +9,7 @@ const PortfolioPage = () => {
 
     return (
         <div className='min-h-screen h-auto'>
+        <div className='min-h-screen h-auto'>
                 <div className='text-center mt-12'>
                 <span className='text-3xl leading-5'>Portfolio</span>
                 </div>
@@ -17,6 +18,7 @@ const PortfolioPage = () => {
                 <Route path='/' element={<PortfolioDataComponent />} />
                 <Route path='/pool-info/:id' element={<PoolInfo />} />
             </Routes>
+        </div>
         </div>
     )
 }

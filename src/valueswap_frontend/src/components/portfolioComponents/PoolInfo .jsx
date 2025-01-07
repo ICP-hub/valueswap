@@ -43,8 +43,8 @@ const PoolInfo = () => {
     <div className=' max-w-[1200px] mx-auto relative '>
       <div className='w-full text-white mt-12 z-20 sm:px-8 '>
 
-        <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg mx-auto'>
-        <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg mx-auto'>
+        <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg'>
+        <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg'>
           <div className='flex justify-between items-center  mx-2  md:ml-8'>
             <div className='font-gilroy text-base md:text-3xl font-medium flex items-center gap-4'>
               <div className='flex gap-1 sm:gap-2'>
@@ -82,8 +82,8 @@ const PoolInfo = () => {
               </div>
             </div>
           </div>
-          <div className='flex flex-col lg:flex-row w-full gap-11 mx-auto mt-7'>
-            <div className='min-w-[300px] aspect-square flex flex-col justify-between items-start gap-4 my-4 backdrop-blur-[32px] rounded-lg p-4 border border-white'>
+          <div className='flex flex-col lg:flex-row justify-between w-full gap-11 mx-auto mt-7'>
+            <div className='min-w-[320px] flex flex-col justify-around items-start backdrop-blur-[32px] rounded-lg p-4 border border-white'>
               <PoolInfoBox Heading={'TVL'} Data={`$ ${specificPool?.PoolMetaData?.TwentyFourHourVolume.toLocaleString('en-US')}`} />
               <PoolInfoBox Heading={'Fees (24h)'} Data={`$ ${specificPool?.PoolMetaData?.TwentyFourHourFees.toLocaleString('en-US')}`} />
               <PoolInfoBox Heading={'Weekly Incentives'} Data={`$ ${specificPool?.PoolMetaData?.PoolValue.toLocaleString('en-US')}`} />
@@ -136,13 +136,13 @@ const PoolInfo = () => {
           </div>
 
           <div className='flex md:flex-row flex-col items-center justify-between mt-2'>
-          <div className='gap-2 pt-9 mx-10 font-gilroy flex items-center'>
+          <div className='gap-2 font-gilroy flex items-center'>
             <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:</span>
             <span className='mx-3 text-2xl font-normal leading-6'>${specificPool?.PoolMetaData?.PersonalPoolBalance.toLocaleString('en-US')}</span>
           </div>
 
          
-          <div className='flex gap-3 md:gap-6 my-4 mx-3 md:mx-10'>
+          <div className='flex gap-3 md:gap-6 my-4'>
             <div>
               <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
                 Swap Tokens
