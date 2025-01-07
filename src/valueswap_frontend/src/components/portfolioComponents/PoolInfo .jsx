@@ -43,8 +43,8 @@ const PoolInfo = () => {
     <div className=' max-w-[1200px] mx-auto relative '>
       <div className='w-full text-white mt-12 z-20 sm:px-8 '>
 
-        <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg mx-auto'>
-        <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg mx-auto'>
+        <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg'>
+        <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg'>
           <div className='flex justify-between items-center  mx-2  md:ml-8'>
             <div className='font-gilroy text-base md:text-3xl font-medium flex items-center gap-4'>
               <div className='flex gap-1 sm:gap-2'>
