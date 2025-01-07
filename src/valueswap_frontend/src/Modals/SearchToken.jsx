@@ -163,7 +163,7 @@ const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenDat
                       return;
                     }
                     const meta = await  fetchMetadata(CanisterId);
-                    if (fetchResult) {
+                    if (fetchResult && meta) {
                       const tokenData = {
                         id: token.id,
                         Name: TokenName,
