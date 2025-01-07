@@ -268,11 +268,11 @@ pub fn get_user_pools_with_lp(user: Principal) -> Option<BTreeMap<String, Nat>> 
 pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
     let user = ic_cdk::caller();
 
-    if params.pool_data.is_empty() {
-        return Err("Pool data cannot be empty.".to_string());
-    }
+    params.validate().map_err(|e| format!("Invalid pool data: {:?}", e))?;
 
     let mut users_contribution: Nat = Nat::from(1u128);
+
+    // Calculate user's contribution based on pool data
     USERS_LP.with(|share| {
         let mut borrowed_share = share.borrow_mut();
 
@@ -287,23 +287,27 @@ pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
             users_contribution += amount.value.clone() * amount.balance.clone();
         }
 
+        // Retrieve total pool value and total LP supply
         let total_pool_value = get_total_lp() * Nat::from(1000u128);
         let total_lp_supply = get_total_lp();
 
+        // Validation: Ensure the total pool value and total LP supply are not zero
         if total_pool_value == Nat::from(0u128) || total_lp_supply == Nat::from(0u128) {
             log::error!("Total pool value or total LP supply is zero. Cannot calculate LP share.");
             return Err("Total pool value or total LP supply is zero.".to_string());
         }
 
+        // Calculate the amount of LP tokens to assign to the user
         let amount: Nat = (users_contribution / total_pool_value) * total_lp_supply;
         borrowed_share.insert(user, amount.clone());
 
+        // Spawn an async task to transfer LP tokens with retry mechanism
         ic_cdk::spawn(async move {
             let mut attempts = 0;
             let max_retries = 2;
 
             while attempts < max_retries {
-                let transfer_result = icrc1_transfer(user, amount_nat.clone()).await;
+                let transfer_result = icrc1_transfer(user, amount.clone()).await;
                 if transfer_result.is_ok() {
                     log::info!("Transfer successful for user: {}", user);
                     break;
@@ -328,6 +332,7 @@ pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
 
     Ok(())
 }
+
 
 
 
