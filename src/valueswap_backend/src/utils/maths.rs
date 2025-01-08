@@ -1,4 +1,5 @@
 use candid::Nat;
+use ic_cdk::query;
 
 /**********************************************************************************************
 // constantProduct                                                                           //
@@ -52,11 +53,18 @@ pub fn constant_product(balances: &[f64], weights: &[f64]) -> f64 {
 // sF = swapFee                                                                              //
 **********************************************************************************************/
 
+#[query]
 pub fn out_given_in(b_i: Nat, w_i: Nat, b_o: Nat, w_o: Nat, amount_in: Nat, fee: Nat) -> Nat {
     let temp = b_i.clone() / (b_i + amount_in * (Nat::from(1u128) - fee/Nat::from(100u128)));
     let exp = w_i/w_o;
     b_o * (Nat::from(1u128) - power_of(temp, exp))
 }
+
+
+pub fn out_given_in_past(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_in: f64, fee: f64) -> f64 {
+    b_o * (
+        1.0 - (b_i / (b_i + amount_in * (1.0 - fee/100.0))).powf(w_i / w_o) )
+    }
 
 /**********************************************************************************************
 // calcInGivenOut                                                                            //
