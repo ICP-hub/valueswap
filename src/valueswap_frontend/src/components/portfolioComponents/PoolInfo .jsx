@@ -17,16 +17,23 @@ const PoolInfo = () => {
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
  const [openWithdraw, setOpenWithdraw] = useState(false)
  const [specificPool, setSpecificPool] = useState([])
- const {backendActor, getBalance} = useAuth()
+ const [lp, setLp] = useState(0)
+ const { backendActor, principal, fetchMetadata } = useAuth()
+
  const navigate = useNavigate()
   useEffect(() => {
     console.log("pool id", id)
-    console.log("getBalance", getBalance("bkyz2-fmaaa-aaaaa-qaaaq-cai"));
+    // console.log("getBalance", getBalance("bkyz2-fmaaa-aaaaa-qaaaq-cai"));
     const poolData = async () =>{
      const pool = await backendActor.get_specific_pool_data(id)
+     
+     console.log("pool info", pool);
      const poolDataArray = pool.Ok[0].pool_data;
      console.log("specific pool data array", poolDataArray);
      setSpecificPool(poolDataArray);
+     const getLp = await backendActor.get_user_pools_with_lp(principal);
+    console.log("getLp", getLp[0][0][1])
+     setLp(Number(getLp[0][0][1])/100000000);
     }
     poolData()
   }, [id])
@@ -39,6 +46,7 @@ const PoolInfo = () => {
     "1Y",
     "All Time"
   ]
+  
 
   return (
     <div className=' max-w-[1200px] mx-auto relative '>
@@ -76,7 +84,7 @@ const PoolInfo = () => {
                   specificPool?.slice(1).map((token, index) => (
                     <div key={index} className=''>
                       <span className='mx-0.5'>/</span>
-                      {token.weight *100}
+                      {Number(token.weight) *100}
                     </div>
                   ))
                 }
@@ -138,8 +146,22 @@ const PoolInfo = () => {
 
           <div className='flex md:flex-row flex-col items-center justify-between mt-2'>
           <div className='gap-2 pt-9 mx-10 font-gilroy flex items-center'>
-            <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:</span>
-            <span className='mx-3 text-2xl font-normal leading-6'>${specificPool?.PoolMetaData?.PersonalPoolBalance.toLocaleString('en-US')}</span>
+            <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:
+
+           
+            </span>
+            <span className='mx-3 text-2xl font-normal leading-6'>$ 
+
+            {(() => {
+                                    const totalBalance =
+                                      specificPool?.reduce(
+                                        (sum, item) =>
+                                          sum + BigInt(item.value),
+                                        BigInt(0)
+                                      )
+                                    return totalBalance?.toLocaleString('en-US')
+                                  })()}
+            </span>
           </div>
 
          
@@ -175,7 +197,7 @@ const PoolInfo = () => {
           </div> */}
 
           <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <PoolCompositions TableData={specificPool?.PoolData} />
+            <PoolCompositions TableData={specificPool?.PoolData} lp={lp}  specificPool={specificPool}/>
             <PoolAttributes pool={specificPool}/>
           </div>
           {/* <div >

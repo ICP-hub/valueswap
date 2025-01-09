@@ -40,7 +40,7 @@ const PortfolioDataComponent = () => {
         console.log("poolData", poolData)
         let specificData = poolData.Ok[0]
        
-        setAllDataInPool(prev => [...prev, {...specificData, Lp: AllPool[0][i][1]}])
+        setAllDataInPool(prev => [...prev, {...specificData, Lp: AllPool[0][i][1], pool_name: AllPool[0][i][0]}])  
       }
       setDisplayCount(Math.min(5, AllPool.length))
     }
@@ -244,7 +244,7 @@ const PortfolioDataComponent = () => {
                       <tbody>
                         {isAuthenticated ? (
                           //  allDataInPool
-                          !currentItems ? (
+                          !currentItems.length < 0 ? (
                             Array.from({ length: 3 }).map((_, index) => (
                               <tr key={index}>
                                 <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
@@ -263,17 +263,19 @@ const PortfolioDataComponent = () => {
                             ))
                           ) : (
                             currentItems?.map((Poolinfo, index) => (
+                              
                               <tr
                                 key={index}
-                                className='hover:bg-[#546093] rounded-xl cursor-pointer'
+                                className=' rounded-xl cursor-pointer'
                                 onClick={() => {
                                   navigate(
                                     `/valueswap/portfolio/pool-info/${
-                                      Poolinfo.pool_name || index
+                                      Poolinfo?.pool_name || index
                                     }`
                                   )
                                 }}
                               >
+                             
                                 <td className='min-w-80 whitespace-nowrap my-4 text-sm md:text-base font-medium text-white flex flex-wrap items-center gap-5 justify-start ml-4'>
                                   {Poolinfo?.pool_data.map((pool, indx) => (
                                     <span
