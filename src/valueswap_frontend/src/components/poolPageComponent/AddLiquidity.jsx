@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom';
 import { portfolioSampleData } from '../../TextData';
 import PoolInfoBox from '../../displayBoxes/PoolInfoBox';
@@ -6,6 +6,7 @@ import GradientButton from '../../buttons/GradientButton'
 import { PoolCompositions, Swapping, LiquidityOverview } from '../../tables'
 import Echarts from '../portfolioComponents/Echarts';
 import { IOSSwitch } from '../../buttons/SwitchButton';
+import { convertTokenEquivalentUSD } from '../../utils';
 
 const RestTokens = [
   {
@@ -21,6 +22,29 @@ const RestTokens = [
     currencyAmount: 2000,
   },
 ];
+
+const Result = {
+  heading : 'Total',
+  headingData : '$0.00',
+  data : [
+    {
+      title : 'Total Pool value locked',
+      value : '$125,165'
+    },
+    {
+      title : 'LP Tokens',
+      value : 0.0086
+    },
+    {
+      title : 'Your pool share',
+      value : '0.0001%',
+    },
+    {
+      title : 'Gas fee',
+      value : 0.00052
+    }
+  ]
+}
 
 
 const AddLiquidity = () => {
@@ -46,6 +70,7 @@ const AddLiquidity = () => {
 
   const [optimizeEnable, setOptimizeEnable] = React.useState(true);
   const [initialTokenAmount, setInitialTokenAmount] = React.useState(0);
+  const [equivalentUSD, setEquivalentUSD] = React.useState(0);
   const initialTokenBalance = 500; // Static value
   const initialTokenRef = React.useRef(null);
   const restTokensAmount = [100, 200]; // Example static data
@@ -54,9 +79,23 @@ const AddLiquidity = () => {
   const InitialToken = {
     ImagePath: "path/to/initial-image.png",
     ShortForm: "USDT",
+    LongForm : "Tether",
     weights: 20,
     currencyAmount: 500,
   };
+
+  const fetchCurrPrice=useCallback(async()=>{
+    const price = await convertTokenEquivalentUSD(InitialToken.LongForm, initialTokenAmount)
+    return price
+  },[id, initialTokenAmount])
+
+  useEffect(()=>{
+    fetchCurrPrice()
+    .then((price)=>{
+      console.log("price", price)
+      setEquivalentUSD(price)
+    })
+  },[id, initialTokenAmount])
 
   const handleInput = (e, index) => {
     const value = parseFloat(e.target.value) || 0;
@@ -175,9 +214,32 @@ const AddLiquidity = () => {
           }}
         >
           <GradientButton CustomCss={`my-2 sm:my-4 w-full md:w-full ${ButtonActive ? 'opacity-100 cursor-pointer' : 'opacity-50 cursor-default'}`}>
-            Add Token Amount
+            {initialTokenAmount == 0 ? 'Add Token Amount' : 'Add Liquidity'}
           </GradientButton>
         </div>
+      {/* Info Content */}
+        <table className='w-full font-gilroy'>
+          <thead className='text-xl font-semibold'>
+            <td>{Result.heading}</td>
+            <td>{Result.headingData}</td>
+          </thead>
+          <tbody className='text-base'>
+            {
+              Result.data.map((data, index) => (
+                <tr key={index}>
+                  <td>{data.title}</td>
+                  {
+                    data.title === 'Gas fee' ? (
+                      <td>{`${data.value} ${InitialToken.ShortForm} ( $${equivalentUSD} )`}</td>
+                    ) : (
+                      <td>{data.value.toLocaleString()}</td>
+                    )
+                  }
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
       </div>
     </div>
   );
