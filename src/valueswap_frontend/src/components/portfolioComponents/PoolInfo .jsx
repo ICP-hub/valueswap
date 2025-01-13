@@ -22,8 +22,6 @@ const PoolInfo = () => {
 
  const navigate = useNavigate()
   useEffect(() => {
-    console.log("pool id", id)
-    // console.log("getBalance", getBalance("bkyz2-fmaaa-aaaaa-qaaaq-cai"));
     const poolData = async () =>{
      const pool = await backendActor.get_specific_pool_data(id)
      
@@ -55,7 +53,7 @@ const PoolInfo = () => {
         <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg mx-auto'>
         <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg mx-auto'>
           <div className='flex justify-between items-center  mx-2  md:ml-8'>
-            <div className='font-gilroy text-base md:text-3xl font-medium flex items-center gap-4'>
+            {/* <div className='font-gilroy text-base md:text-3xl font-medium flex items-center gap-4'>
               <div className='flex gap-1 sm:gap-2'>
                 {
                   specificPool?.map((token, index) => (
@@ -77,19 +75,19 @@ const PoolInfo = () => {
                     </div>
                   ))
                 }
-                {/* <span className='mx-1'>:  :</span> */}
+                <span className='mx-1'>:  :</span>
 
-                {/* <span>{specificPool?.[0]?.weight * 100}</span> */}
+                <span>{Number(specificPool?.[0]?.weight)}</span>
                 {
                   specificPool?.slice(1).map((token, index) => (
                     <div key={index} className=''>
                       <span className='mx-0.5'>/</span>
-                      {Number(token.weight) *100}
+                      {Number(token.weight)}
                     </div>
                   ))
                 }
               </div>
-            </div>
+            </div> */}
           </div>
           <div className='flex flex-col lg:flex-row w-full gap-11 mx-auto mt-7'>
             <div className='min-w-[300px] aspect-square flex flex-col justify-between items-start gap-4 my-4 backdrop-blur-[32px] rounded-lg p-4 border border-white'>
@@ -167,7 +165,7 @@ const PoolInfo = () => {
          
           <div className='flex gap-3 md:gap-6 my-4 mx-3 md:mx-10'>
             <div>
-              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
+              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`} onClick={()=> navigate("/valueswap")}>
                 Swap Tokens
               </GradientButton>
             </div>
@@ -198,7 +196,7 @@ const PoolInfo = () => {
 
           <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-4'>
             <PoolCompositions TableData={specificPool?.PoolData} lp={lp}  specificPool={specificPool}/>
-            <PoolAttributes pool={specificPool}/>
+            <PoolAttributes pool={specificPool} id={id}/>
           </div>
           {/* <div >
             {currIndex === 0 && <PoolCompositions TableData={specificPool?.PoolData} />}
