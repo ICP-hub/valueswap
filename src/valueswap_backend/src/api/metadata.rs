@@ -1,35 +1,59 @@
-use candid::{Decode, CandidType , Principal};
-use ic_agent::Agent;
 
-#[derive(CandidType, serde::Deserialize, Debug)]
-pub struct MetadataEntry {
-    pub key: String,
-    pub value: MetadataValue,
-}
+use candid::{CandidType, Principal};
+use ic_cdk::{call, update};
+use serde::Deserialize;
 
-#[derive(CandidType, serde::Deserialize, Debug)]
+#[derive(CandidType, Deserialize, Debug)]
 pub enum MetadataValue {
-    Nat(candid::Nat),
-    Text(String),
+    Nat(u128),      
+    Int(i128),      
+    Text(String),   
+    Blob(Vec<u8>),  
 }
 
-#[derive(CandidType, serde::Deserialize, Debug)]
-pub struct TokenMetadata(Vec<MetadataEntry>);
+#[update]
+pub async fn get_decimals(target_canister_id: Principal) -> Result<u128, String> {
+    if target_canister_id == Principal::anonymous() {
+        return Err("Invalid target canister ID: Cannot be anonymous.".to_string());
+    }
 
+    ic_cdk::println!("Fetching decimals from canister {}", target_canister_id);
 
-pub async fn icrc_get_metadata(canister_id: Principal) -> Result<TokenMetadata, String> {
-    let agent = Agent::builder()
-        .build()
-        .map_err(|e| format!("Failed to build agent: {}", e))?;
-
-    let response = agent
-        .query(&canister_id, "icrc1_metadata")
-        .call()
-        .await
-        .map_err(|e| format!("Query failed: {}", e))?;
-
-    Decode!(&response, TokenMetadata)
-        .map_err(|e| format!("Failed to decode metadata: {}", e))
+    // Fetch all metadata
+    match call::<(), (Vec<(String, MetadataValue)>,)>(
+        target_canister_id,
+        "icrc1_metadata",
+        (),
+    )
+    .await
+    {
+        Ok((metadata,)) => {
+            // Filter for "icrc1:decimals" and extract its value
+            for (key, value) in metadata {
+                if key == "icrc1:decimals" {
+                    if let MetadataValue::Nat(decimals) = value {
+                        ic_cdk::println!("Decimals found: {}", decimals);
+                        return Ok(decimals);
+                    } else {
+                        let error_message = "Invalid type for decimals, expected Nat.".to_string();
+                        ic_cdk::println!("{}", error_message);
+                        return Err(error_message);
+                    }
+                }
+            }
+            let error_message = "Decimals not found in metadata.".to_string();
+            ic_cdk::println!("{}", error_message);
+            Err(error_message)
+        }
+        Err((rejection_code, message)) => {
+            let error_message = format!(
+                "Failed to fetch metadata: {:?} - {}",
+                rejection_code, message
+            );
+            ic_cdk::println!("{}", error_message);
+            Err(error_message)
+        }
+    }
 }
 
 // fn parse_metadata(metadata: TokenMetadata) -> Result<(String, String, Option<u8>), String> {
