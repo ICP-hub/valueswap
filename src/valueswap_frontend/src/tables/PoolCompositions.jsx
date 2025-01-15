@@ -4,6 +4,7 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { Balance } from '@mui/icons-material';
 import { convertIntToCurrencyString, formatToLocalConvention } from '../utils';
+import { useAuth } from '../components/utils/useAuthClient';
 
 const PoolCompositionData = [
     {
@@ -24,15 +25,38 @@ const PoolCompositionData = [
     },
 ]
 
-const PoolCompositions = ({ TableData }) => {
+const PoolCompositions = ({ TableData, lp, specificPool }) => {
     const [displayCount, setDisplayCount] = useState(Math.min(5, TableData?.length || 0));
     const [buttonVisible, setButtonVisibility] = useState(true);
+    const [listOfMeta, setListOfMeta] = useState([])
+     const { fetchMetadata } = useAuth()
+
+     const metaHandler = async(CanisterId) => {
+        const meta = await  fetchMetadata(CanisterId);
+
+        setListOfMeta((prev)=> [...prev, meta?.decimals])
+       }
 
     useEffect(() => {
+      
+
+        for(let i=0; i < specificPool.length; i++){
+            if(specificPool.length <= 0 ){
+                return;
+            }
+            console.log("canister id is", specificPool[i]?.ledger_canister_id.toString())
+            metaHandler(specificPool[i]?.ledger_canister_id.toString())
+        }
+       
+    
         if (TableData?.length < 6) {
             setButtonVisibility(false);
         }
-    }, [TableData]);
+
+        
+    }, [TableData, specificPool]);
+
+    console.log("listOfMeta", listOfMeta)
 
     return (
         // <div className='mt-10 flex flex-col font-gilroy'>
@@ -133,28 +157,28 @@ const PoolCompositions = ({ TableData }) => {
             <h4 className='text-2xl'>Pool Composition</h4>
             <div className='w-full flex justify-between items-center gap-4'>
                 <p className='text-[#CCC] text-lg'>Total Liquidity</p>
-                <p className='text-lg font-semibold'>${formatToLocalConvention(BigInt(1000000),'en-us')}</p>
+                <p className='text-lg font-semibold'>{lp}</p>
             </div>
             <div className='w-full flex flex-col justify-between gap-4 mt-2'>
-                {PoolCompositionData.map((data, index) => (
+                {specificPool.map((data, index) => (
                     <div key={index} className='flex justify-between items-center gap-4'>
                         <div className='flex gap-4'>
                             <div className='p-1 rounded-lg'>
-                                <img src={data.img} alt="" className='w-6 h-6 md:w-10 md:h-10' />
+                                <img src={data.image} alt="" className='w-6 h-6 md:w-10 md:h-10' />
                             </div>
                             <div className='flex flex-col'>
-                                <p className='text-[#CCC] text-sm'>{data.shortForm}</p>
-                                <p className='text-lg font-medium'>{data.fullName}</p>
+                                <p className='text-[#CCC] text-sm'>{data.token_name}</p>
+                                <p className='text-lg font-medium'>{(data.token_name).toUpperCase()}</p>
                             </div>
                         </div>
                         <div className='flex flex-col items-center'>
                             <div className='flex items-center gap-4'>
-                                <p>{convertIntToCurrencyString(data.balance)}</p>
-                                <p>{data.weights}%</p>
+                                <p>{Number(data.balance)/Math.pow(10, listOfMeta[index])}</p>
+                                <p>{Number(data.weight)}%</p>
                             </div>
                             <div className='flex items-center gap-4'>
-                                <p>{convertIntToCurrencyString(data.value)}</p>
-                                <p>{data.weights}%</p>
+                                <p>${Number(data.value)}</p>
+                                <p>{Number(data.weight)}%</p>
                             </div>
                         </div>
                     </div>

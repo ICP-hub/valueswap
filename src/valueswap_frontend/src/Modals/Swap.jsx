@@ -34,11 +34,11 @@ const Swap = () => {
   const [searchToken1, setSearchToken1] = useState(false)
   const [searchToken2, setSearchToken2] = useState(false)
   const [receiveValue, setReceiveValue] = useState(0)
-  const [balance, setBalance] = useState(0)
   const [settings, setSettings] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false); 
   const [Id, setId] = useState(0)
   const [subModel, setSubModel] = useState(1)
+  const [initialSlipageAmount, setInitialSlipageAmount] = useState(0)
   // Fetch balances whenever payCoin or receiveCoin changes
   useEffect(() => {
     if (payCoin) {
@@ -72,6 +72,7 @@ const Swap = () => {
           ledger_canister_id2: Principal.fromText(receiveCoin.CanisterId)
         })
         console.log('swapValue', swapValue)
+        setInitialSlipageAmount(swapValue[1])
         // if (swapValue.length == 2) {
         //   setPoolNotFound(true)
         // }
@@ -483,7 +484,12 @@ const Swap = () => {
                       <GradientButton CustomCss='w-full md:w-full font-extrabold text-3xl'>
                         {SwapModalData.MainButtonsText.ConfirmSwapping}
                       </GradientButton>
+                      <p>
+                        Slipage:   Slipage
+                      </p>
                     </div>
+
+                    
                   ) : (
                     <div className=''>
                       {coinAmount !== 0  ? (
@@ -495,6 +501,7 @@ const Swap = () => {
                           <GradientButton CustomCss='w-full md:w-full font-extrabold text-3xl'>
                             {SwapModalData.MainButtonsText.SwapNow}
                           </GradientButton>
+
                         </div>
                       ) : (
                         <GradientButton CustomCss='w-full md:w-full cursor-auto disabled opacity-75 font-extrabold text-3xl'>
