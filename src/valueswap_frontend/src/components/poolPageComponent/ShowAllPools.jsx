@@ -277,12 +277,12 @@ const ShowAllPools = () => {
                           </tr>
                         ))
                         : currentItems[1]?.map((pool, index) => (
-                          <tr key={index} className='min-w-[1000px] ' onClick={() => navigate(`/valueswap/pool/addLiquidity/${pool[0]}`)}>
+                          <tr key={index} className='min-w-[1000px] mx-auto text-center' onClick={() => navigate(`/valueswap/pool/addLiquidity/${pool[0]}`)}>
                             <td className='flex items-center   pr-3 gap-2 md:gap-5 my-4 text-sm font-medium text-white min-w-52 whitespace-nowrap md:text-base'>
                               <span className='flex items-center gap-x-2 flex-wrap gap-y-2'>
-                                {      console.log("allPool a", pool, index)}
+                               
                                 {pool?.pool_data?.map((token) => (
-                                  <div className='flex items-center gap-x-1 cursor-pointer border-2 rounded-2xl py-1 px-2 ' key={token.token_name}>
+                                  <div className='flex items-center gap-x-1 cursor-pointer border-2 border-[#FFFFFF66] rounded-2xl py-1 px-2 ' key={token.token_name}>
                                     <img className='w-6 h-6' src={token.image} alt="" />
                                     <span>{token.token_name}</span>
                                     <span>{Number(token.weight)}%</span>
@@ -290,7 +290,7 @@ const ShowAllPools = () => {
                                 ))}
                               </span>
                             </td>
-                            <td className='px-3 py-4 text-sm pl-10 pr-3 text-white whitespace-nowrap md:text-base'>
+                            <td className='px-3 py-4 text-sm pl-4 pr-3 text-white whitespace-nowrap md:text-base'>
                              ${
                                 
                                 (()=> {
@@ -302,11 +302,11 @@ const ShowAllPools = () => {
                                 })()
                             }
                             </td>
-                            <td className='px-3 py-4 text-sm pl-12 pr-3 text-white whitespace-nowrap md:text-base'>
+                            <td className='px-3 py-4 text-sm  pr-3 text-white whitespace-nowrap md:text-base'>
                              3
                               
                             </td>
-                            <td className='py-4  text-sm font-medium  pr-3 whitespace-nowrap md:text-base'>
+                            <td className='py-4  text-sm font-medium   whitespace-nowrap md:text-base'>
                               {pool.APR || "04% - 6%"}
                             </td>
                           </tr>

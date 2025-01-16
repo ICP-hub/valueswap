@@ -18,7 +18,7 @@ const HomePage = () => {
                 <Route path="/portfolio/*" element={<PortfolioPage />} />
                 <Route path="/pool/*" element={<PoolPage />} />
                 <Route path='/faucet' element={<Faucet/>}/>
-                <Route path="/on-withdraw" element={<OnWithDraw/>} />
+                <Route path="/on-withdraw/:id" element={<OnWithDraw/>} />
             </Routes>
         </div>
     )
