@@ -209,7 +209,7 @@ const PortfolioDataComponent = () => {
           <div className='-my-2 overflow-x-auto'>
             <div className='inline-block min-w-full py-2 align-middle'>
               {isAuthenticated && allDataInPool.length == 0 ? (
-                <div> No Pool found ! </div>
+                <div className='mx-auto text-center px-12'>  No Pool found ! </div>
               ) : (
                 <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5'>
                   <SkeletonTheme

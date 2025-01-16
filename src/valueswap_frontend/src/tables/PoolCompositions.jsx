@@ -157,7 +157,17 @@ const PoolCompositions = ({ TableData, lp, specificPool }) => {
             <h4 className='text-2xl'>Pool Composition</h4>
             <div className='w-full flex justify-between items-center gap-4'>
                 <p className='text-[#CCC] text-lg'>Total Liquidity</p>
-                <p className='text-lg font-semibold'>{lp}</p>
+                <p className='text-lg font-semibold'>$
+                {(() => {
+                                    const totalBalance =
+                                      specificPool?.reduce(
+                                        (sum, item) =>
+                                          sum + BigInt(item.value),
+                                        BigInt(0)
+                                      )
+                                    return totalBalance?.toLocaleString('en-US')
+                                  })()}
+                </p>
             </div>
             <div className='w-full flex flex-col justify-between gap-4 mt-2'>
                 {specificPool.map((data, index) => (
@@ -171,12 +181,12 @@ const PoolCompositions = ({ TableData, lp, specificPool }) => {
                                 <p className='text-lg font-medium'>{(data.token_name).toUpperCase()}</p>
                             </div>
                         </div>
-                        <div className='flex flex-col items-center'>
-                            <div className='flex items-center gap-4'>
+                        <div className='flex flex-col justify-between'>
+                            <div className='flex justify-between gap-4'>
                                 <p>{Number(data.balance)/Math.pow(10, listOfMeta[index])}</p>
                                 <p>{Number(data.weight)}%</p>
                             </div>
-                            <div className='flex items-center gap-4'>
+                            <div className='flex justify-between gap-4'>
                                 <p>${Number(data.value)}</p>
                                 <p>{Number(data.weight)}%</p>
                             </div>
