@@ -232,7 +232,9 @@ console.log("currentItems", currentItems)
                             <td className='flex items-center   pr-3 gap-2 md:gap-5 my-4 text-sm font-medium text-white min-w-52 whitespace-nowrap md:text-base'>
                               <span className='flex items-center gap-x-2 flex-wrap gap-y-2'>
                                
+                               
                                 {pool?.pool_data?.map((token) => (
+                                  <div className='flex items-center gap-x-1 cursor-pointer border-2 border-[#FFFFFF66] rounded-2xl py-1 px-2 ' key={token.token_name}>
                                   <div className='flex items-center gap-x-1 cursor-pointer border-2 border-[#FFFFFF66] rounded-2xl py-1 px-2 ' key={token.token_name}>
                                     <img className='w-6 h-6' src={token.image} alt="" />
                                     <span>{token.token_name}</span>
@@ -241,6 +243,7 @@ console.log("currentItems", currentItems)
                                 ))}
                               </span>
                             </td>
+                            <td className='px-3 py-4 text-sm pl-4 pr-3 text-white whitespace-nowrap md:text-base'>
                             <td className='px-3 py-4 text-sm pl-4 pr-3 text-white whitespace-nowrap md:text-base'>
                              ${
                                 
@@ -254,9 +257,11 @@ console.log("currentItems", currentItems)
                             }
                             </td>
                             <td className='px-3 py-4 text-sm  pr-3 text-white whitespace-nowrap md:text-base'>
+                            <td className='px-3 py-4 text-sm  pr-3 text-white whitespace-nowrap md:text-base'>
                              3
                               
                             </td>
+                            <td className='py-4  text-sm font-medium   whitespace-nowrap md:text-base'>
                             <td className='py-4  text-sm font-medium   whitespace-nowrap md:text-base'>
                               {pool.APR || "04% - 6%"}
                             </td>
