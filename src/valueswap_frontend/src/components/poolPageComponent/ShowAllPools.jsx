@@ -27,62 +27,7 @@ const ShowAllPools = () => {
   const ref = useRef();
 
 
-  const dummyPoolsData = [
-    {
-      PoolId: "1",
-      PoolValue: "$123,456",
-      TotalVolume: "$12,345",
-      APR: "3.5% - 6.0%",
-      pool_data: [
-        {
-          token_name: "TokenA",
-          weight: 0.5,
-          image: "https://via.placeholder.com/50",
-        },
-        {
-          token_name: "TokenB",
-          weight: 0.5,
-          image: "https://via.placeholder.com/50",
-        },
-      ],
-    },
-    {
-      PoolId: "2",
-      PoolValue: "$234,567",
-      TotalVolume: "$23,456",
-      APR: "4.0% - 7.0%",
-      pool_data: [
-        {
-          token_name: "TokenC",
-          weight: 0.7,
-          image: "https://via.placeholder.com/50",
-        },
-        {
-          token_name: "TokenD",
-          weight: 0.3,
-          image: "https://via.placeholder.com/50",
-        },
-      ],
-    },
-    {
-      PoolId: "3",
-      PoolValue: "$345,678",
-      TotalVolume: "$34,567",
-      APR: "5.0% - 8.0%",
-      pool_data: [
-        {
-          token_name: "TokenE",
-          weight: 0.6,
-          image: "https://via.placeholder.com/50",
-        },
-        {
-          token_name: "TokenF",
-          weight: 0.4,
-          image: "https://via.placeholder.com/50",
-        },
-      ],
-    },
-  ];
+
   
   // Fetch pool data from backend
   // console.log("allPool a")
@@ -129,7 +74,7 @@ const ShowAllPools = () => {
      (currentPage - 1) * itemsPerPage,
      currentPage * itemsPerPage
    );
-
+console.log("currentItems", currentItems)
 
   // Sorting logic for PoolValue
   const sortValue = () => {
@@ -277,12 +222,18 @@ const ShowAllPools = () => {
                           </tr>
                         ))
                         : currentItems[1]?.map((pool, index) => (
-                          <tr key={index} className='min-w-[1000px] ' onClick={() => navigate(`/valueswap/pool/addLiquidity/${pool[0]}`)}>
+                          <tr key={index} className='min-w-[1000px] mx-auto text-center'  onClick={() => {
+                                  navigate(
+                                    `/valueswap/portfolio/pool-info/${
+                                      currentItems[0] || index
+                                    }`
+                                  )
+                                }}>
                             <td className='flex items-center   pr-3 gap-2 md:gap-5 my-4 text-sm font-medium text-white min-w-52 whitespace-nowrap md:text-base'>
                               <span className='flex items-center gap-x-2 flex-wrap gap-y-2'>
-                                {      console.log("allPool a", pool, index)}
+                               
                                 {pool?.pool_data?.map((token) => (
-                                  <div className='flex items-center gap-x-1 cursor-pointer border-2 rounded-2xl py-1 px-2 ' key={token.token_name}>
+                                  <div className='flex items-center gap-x-1 cursor-pointer border-2 border-[#FFFFFF66] rounded-2xl py-1 px-2 ' key={token.token_name}>
                                     <img className='w-6 h-6' src={token.image} alt="" />
                                     <span>{token.token_name}</span>
                                     <span>{Number(token.weight)}%</span>
@@ -290,7 +241,7 @@ const ShowAllPools = () => {
                                 ))}
                               </span>
                             </td>
-                            <td className='px-3 py-4 text-sm pl-10 pr-3 text-white whitespace-nowrap md:text-base'>
+                            <td className='px-3 py-4 text-sm pl-4 pr-3 text-white whitespace-nowrap md:text-base'>
                              ${
                                 
                                 (()=> {
@@ -302,11 +253,11 @@ const ShowAllPools = () => {
                                 })()
                             }
                             </td>
-                            <td className='px-3 py-4 text-sm pl-12 pr-3 text-white whitespace-nowrap md:text-base'>
+                            <td className='px-3 py-4 text-sm  pr-3 text-white whitespace-nowrap md:text-base'>
                              3
                               
                             </td>
-                            <td className='py-4  text-sm font-medium  pr-3 whitespace-nowrap md:text-base'>
+                            <td className='py-4  text-sm font-medium   whitespace-nowrap md:text-base'>
                               {pool.APR || "04% - 6%"}
                             </td>
                           </tr>
@@ -316,7 +267,7 @@ const ShowAllPools = () => {
                 </SkeletonTheme>
                 {/* Show More button */}
                 {/* filteredPools && displayCount < filteredPools.length  */}
-                {dummyPoolsData && (
+                {currentItems && (
                   <div className='mt-4 text-center'>
                     <div className="flex gap-x-4 ">
                     <KeyboardDoubleArrowLeftIcon

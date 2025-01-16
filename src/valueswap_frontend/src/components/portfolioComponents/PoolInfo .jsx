@@ -143,24 +143,7 @@ const PoolInfo = () => {
           </div>
 
           <div className='flex md:flex-row flex-col items-center justify-between mt-2'>
-          <div className='gap-2 pt-9 mx-10 font-gilroy flex items-center'>
-            <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:
-
-           
-            </span>
-            <span className='mx-3 text-2xl font-normal leading-6'>$ 
-
-            {(() => {
-                                    const totalBalance =
-                                      specificPool?.reduce(
-                                        (sum, item) =>
-                                          sum + BigInt(item.value),
-                                        BigInt(0)
-                                      )
-                                    return totalBalance?.toLocaleString('en-US')
-                                  })()}
-            </span>
-          </div>
+          
 
          
           <div className='flex gap-3 md:gap-6 my-4'>
@@ -175,7 +158,7 @@ const PoolInfo = () => {
               </GradientButton>
             </div>
             <div onClick={()=> setOpenWithdraw(true)}>
-              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`} onClick={()=> navigate("/valueswap/on-withdraw")}>
+              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`} onClick={()=> navigate(`/valueswap/on-withdraw/${id}`)}>
                 Withdraw
               </GradientButton>
             </div>
