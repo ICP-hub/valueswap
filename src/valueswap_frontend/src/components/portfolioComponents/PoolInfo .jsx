@@ -153,7 +153,7 @@ const PoolInfo = () => {
               </GradientButton>
             </div>
             <div>
-              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
+              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`} onClick={()=> navigate(`/valueswap/pool/addLiquidity/${id}`)}>
                 Add Liquidity
               </GradientButton>
             </div>
