@@ -1,4 +1,8 @@
 use candid::Nat;
+use ic_cdk::query;
+use num_traits::pow;
+use num_traits::ToPrimitive;
+
 
 /**********************************************************************************************
 // constantProduct                                                                           //
@@ -47,16 +51,122 @@ pub fn constant_product(balances: &[f64], weights: &[f64]) -> f64 {
 // bO = tokenBalanceOut                                                                      //
 // bI = tokenBalanceIn              /      /            bI             \    (wI / wO) \      //
 // aI = tokenAmountIn    aO = bO * |  1 - | --------------------------  | ^            |     //
-// wI = tokenWeightIn               \      \ ( bI + ( aI * ( 1 - sF )) /              /      //
+// wI = tokenWeightIn               \      \       ( bI +  aI )        /              /
 // wO = tokenWeightOut                                                                       //
 // sF = swapFee                                                                              //
 **********************************************************************************************/
 
-pub fn out_given_in(b_i: Nat, w_i: Nat, b_o: Nat, w_o: Nat, amount_in: Nat, fee: Nat) -> Nat {
-    let temp = b_i.clone() / (b_i + amount_in * (Nat::from(1u128) - fee/Nat::from(100u128)));
-    let exp = w_i/w_o;
-    b_o * (Nat::from(1u128) - power_of(temp, exp))
+#[query]
+pub fn out_given_in(b_i: Nat, w_i: Nat, b_o: Nat, w_o: Nat, amount_in: Nat) -> Nat {
+    // Define scaling factors
+    let base_scaling = Nat::from(10u64.pow(18));  // 10^18 scaling for base
+    let exp_scaling = Nat::from(100u64);          // scaling factor for exponent
+
+    // Step 1: Calculate denominator
+    let denominator = b_i.clone() + amount_in.clone();
+    ic_cdk::println!("Step 1 - Denominator: {:?}", denominator);
+
+    // Step 2: Calculate base with scaling
+    let base = (b_i.clone() * base_scaling.clone()) / denominator.clone();
+    ic_cdk::println!("Step 2 - Base: {:?}", base);
+
+    // Step 3: Calculate exponent with scaling
+    let exponent = (w_i.clone() * exp_scaling.clone()) / w_o.clone();
+    ic_cdk::println!("Step 3 - Exponent: {:?}", exponent);
+
+    // Step 4: Calculate power iteratively
+    let mut power = base_scaling.clone(); // Start with scaled 1.0
+    let mut temp_exp = exponent.clone();
+    ic_cdk::println!("Step 4 - Initial Power: {:?}", power);
+
+    while temp_exp > Nat::from(0u128) {
+        power = (power * base.clone()) / base_scaling.clone();
+        ic_cdk::println!("Step 4 - Power after iteration: {:?}", power);
+        temp_exp -= exp_scaling.clone();  // Decrement exponent by the scaling factor
+    }
+
+    // Step 5: Calculate complement of power
+    let power_complement = base_scaling.clone() - power.clone();
+    ic_cdk::println!("Step 5 - Power Complement: {:?}", power_complement);
+
+    // Step 6: Calculate final output
+    let output = (b_o.clone() * power_complement.clone()) / base_scaling.clone();
+    ic_cdk::println!("Step 6 - Output: {:?}", output);
+
+    output
 }
+
+// // Helper function to compute power (scaled base^scaled exponent)
+// fn power_of(base: Nat, exponent: Nat, scaling_factor: Nat) -> Nat {
+//     // Use logarithmic approximation or iterative multiplication for precision
+//     let mut result = scaling_factor.clone(); // Start with 1 in scaled terms
+//     let mut base_scaled = base;
+
+//     // Convert exponent to an integer approximation
+//     let exp_int = exponent.0.to_u128().unwrap_or(1);
+
+//     for _ in 0..exp_int {
+//         result = (result * base_scaled.clone()) / scaling_factor.clone();
+//     }
+
+//     result
+// }
+
+// use ic_cdk::export::candid::Nat;
+
+// #[query]
+// pub fn out_given_in(b_i: Nat, w_i: Nat, b_o: Nat, w_o: Nat, amount_in: Nat, fee: Nat) -> Nat {
+//     // Scaling factor for precision (1e18 for fixed-point arithmetic)
+//     let scaling_factor = Nat::from(10u128.pow(18));
+//     let one = scaling_factor.clone();
+
+//     // Apply fee adjustment: amount_in * (1 - fee/100)
+//     let fee_adjusted_amount_in = amount_in.clone() * (one.clone() - fee.clone() * scaling_factor.clone() / Nat::from(100u128)) / scaling_factor.clone();
+
+//     // Calculate the denominator: b_i + fee_adjusted_amount_in
+//     let denominator = b_i.clone() + fee_adjusted_amount_in.clone();
+
+//     // Calculate the base: b_i / denominator
+//     let base = (b_i.clone() * scaling_factor.clone()) / denominator;
+
+//     // Calculate the exponent: w_i / w_o
+//     let exponent = (w_i.clone() * scaling_factor.clone()) / w_o.clone();
+
+//     // Calculate the power: base^exponent
+//     let power = pow1(base, exponent.clone(), scaling_factor.clone());
+
+//     // Final calculation: b_o * (1 - power)
+//     let result = b_o.clone() * (scaling_factor.clone() - power) / scaling_factor;
+
+//     result
+// }
+
+// // Function to calculate base^exponent with rounding
+// fn pow1(base: Nat, exponent: Nat, scaling_factor: Nat) -> Nat {
+//     let mut result = scaling_factor.clone();
+//     let mut base_scaled = base.clone();
+//     let mut exp = exponent.0.to_u128().unwrap_or(0);
+
+//     while exp > 0 {
+//         if exp % 2 == 1 {
+//             result = (result * base_scaled.clone()) / scaling_factor.clone();
+//         }
+//         base_scaled = (base_scaled.clone() * base_scaled.clone()) / scaling_factor.clone();
+//         exp /= 2;
+//     }
+
+//     result
+// }
+
+
+
+
+
+#[query]
+pub fn out_given_in_past(b_i: f64, w_i: f64, b_o: f64, w_o: f64, amount_in: f64, fee: f64) -> f64 {
+    b_o * (
+        1.0 - (b_i / (b_i + amount_in * (1.0 - fee/100.0))).powf(w_i / w_o) )
+    }
 
 /**********************************************************************************************
 // calcInGivenOut                                                                            //
@@ -118,14 +228,14 @@ pub fn out_given_in(b_i: Nat, w_i: Nat, b_o: Nat, w_o: Nat, amount_in: Nat, fee:
 //     }
 // }
 
-fn power_of(base: Nat, exponent: Nat) -> Nat {
-    let mut result = Nat::from(1u128); 
-    let mut exp = exponent.clone(); 
+// fn power_of(base: Nat, exponent: Nat) -> Nat {
+//     let mut result = Nat::from(1u128); 
+//     let mut exp = exponent.clone(); 
     
-    while exp > Nat::from(0u128) {
-        result *= base.clone();
-        exp -= Nat::from(1u128);
-    }
+//     while exp > Nat::from(0u128) {
+//         result *= base.clone();
+//         exp -= Nat::from(1u128);
+//     }
     
-    result
-}
+//     result
+// }
