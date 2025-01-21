@@ -208,9 +208,7 @@ const PortfolioDataComponent = () => {
         <div className='flex flex-col font-gilroy min-h-[30%]  bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl '>
           <div className='-my-2 overflow-x-auto'>
             <div className='inline-block min-w-full py-2 align-middle'>
-              {isAuthenticated && allDataInPool.length == 0 ? (
-                <div className='mx-auto text-center px-12'>  No Pool found ! </div>
-              ) : (
+              
                 <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5'>
                   <SkeletonTheme
                     baseColor='#1f2029'
@@ -246,7 +244,7 @@ const PortfolioDataComponent = () => {
                       <tbody>
                         {isAuthenticated ? (
                           //  allDataInPool
-                          !currentItems.length == 0 ? (
+                          allDataInPool.length == 0  ? (
                             Array.from({ length: 3 }).map((_, index) => (
                               <tr key={index}>
                                 <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
@@ -370,7 +368,7 @@ const PortfolioDataComponent = () => {
                   </div>
                 )}
                 </div>
-              )}
+              
             </div>
           </div>
         </div>
