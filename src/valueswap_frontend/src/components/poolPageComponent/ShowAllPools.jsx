@@ -204,7 +204,7 @@ console.log("currentItems", currentItems)
                     </thead>
 
                     <tbody>
-                      {!currentItems
+                      {!currentItems || currentItems.length === 0 
                         ? Array.from({ length: 8 }).map((_, index) => (
                           <tr key={index}>
                             <td className='px-0 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
