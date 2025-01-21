@@ -17,16 +17,21 @@ const PoolInfo = () => {
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
  const [openWithdraw, setOpenWithdraw] = useState(false)
  const [specificPool, setSpecificPool] = useState([])
- const {backendActor, getBalance} = useAuth()
+ const [lp, setLp] = useState(0)
+ const { backendActor, principal, fetchMetadata } = useAuth()
+
  const navigate = useNavigate()
   useEffect(() => {
-    console.log("pool id", id)
-    console.log("getBalance", getBalance("bkyz2-fmaaa-aaaaa-qaaaq-cai"));
     const poolData = async () =>{
      const pool = await backendActor.get_specific_pool_data(id)
+     
+     console.log("pool info", pool);
      const poolDataArray = pool.Ok[0].pool_data;
      console.log("specific pool data array", poolDataArray);
      setSpecificPool(poolDataArray);
+     const getLp = await backendActor.get_user_pools_with_lp(principal);
+    console.log("getLp", getLp[0][0][1])
+     setLp(Number(getLp[0][0][1])/100000000);
     }
     poolData()
   }, [id])
@@ -39,6 +44,7 @@ const PoolInfo = () => {
     "1Y",
     "All Time"
   ]
+  
 
   return (
     <div className=' max-w-[1200px] mx-auto relative '>
@@ -47,7 +53,7 @@ const PoolInfo = () => {
         <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg'>
         <div className='flex flex-col justify-between  p-2  py-6  rounded-t-lg'>
           <div className='flex justify-between items-center  mx-2  md:ml-8'>
-            <div className='font-gilroy text-base md:text-3xl font-medium flex items-center gap-4'>
+            {/* <div className='font-gilroy text-base md:text-3xl font-medium flex items-center gap-4'>
               <div className='flex gap-1 sm:gap-2'>
                 {
                   specificPool?.map((token, index) => (
@@ -69,19 +75,19 @@ const PoolInfo = () => {
                     </div>
                   ))
                 }
-                {/* <span className='mx-1'>:  :</span> */}
+                <span className='mx-1'>:  :</span>
 
-                {/* <span>{specificPool?.[0]?.weight * 100}</span> */}
+                <span>{Number(specificPool?.[0]?.weight)}</span>
                 {
                   specificPool?.slice(1).map((token, index) => (
                     <div key={index} className=''>
                       <span className='mx-0.5'>/</span>
-                      {token.weight *100}
+                      {Number(token.weight)}
                     </div>
                   ))
                 }
               </div>
-            </div>
+            </div> */}
           </div>
           <div className='flex flex-col lg:flex-row justify-between w-full gap-11 mx-auto mt-7'>
             <div className='min-w-[320px] flex flex-col justify-around items-start backdrop-blur-[32px] rounded-lg p-4 border border-white'>
@@ -137,15 +143,12 @@ const PoolInfo = () => {
           </div>
 
           <div className='flex md:flex-row flex-col items-center justify-between mt-2'>
-          <div className='gap-2 font-gilroy flex items-center'>
-            <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:</span>
-            <span className='mx-3 text-2xl font-normal leading-6'>${specificPool?.PoolMetaData?.PersonalPoolBalance.toLocaleString('en-US')}</span>
-          </div>
+          
 
          
           <div className='flex gap-3 md:gap-6 my-4'>
             <div>
-              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
+              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`} onClick={()=> navigate("/valueswap")}>
                 Swap Tokens
               </GradientButton>
             </div>
@@ -155,7 +158,7 @@ const PoolInfo = () => {
               </GradientButton>
             </div>
             <div onClick={()=> setOpenWithdraw(true)}>
-              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`} onClick={()=> navigate("/valueswap/on-withdraw")}>
+              <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`} onClick={()=> navigate(`/valueswap/on-withdraw/${id}`)}>
                 Withdraw
               </GradientButton>
             </div>
@@ -175,8 +178,8 @@ const PoolInfo = () => {
           </div> */}
 
           <div className='w-full grid grid-cols-1 md:grid-cols-2 gap-4'>
-            <PoolCompositions TableData={specificPool?.PoolData} />
-            <PoolAttributes pool={specificPool}/>
+            <PoolCompositions TableData={specificPool?.PoolData} lp={lp}  specificPool={specificPool}/>
+            <PoolAttributes pool={specificPool} id={id}/>
           </div>
           {/* <div >
             {currIndex === 0 && <PoolCompositions TableData={specificPool?.PoolData} />}

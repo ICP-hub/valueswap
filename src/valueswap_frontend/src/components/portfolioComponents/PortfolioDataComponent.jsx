@@ -29,6 +29,8 @@ const PortfolioDataComponent = () => {
   useEffect(() => {
     const userPools = async () => {
       const AllPool = await backendActor?.get_user_pools_with_lp(principal)
+      if(!AllPool || AllPool.length ===0) return;
+
       console.log(" get_user_pools_with_lp", AllPool)
 
       setPoolName(AllPool)
@@ -40,7 +42,7 @@ const PortfolioDataComponent = () => {
         console.log("poolData", poolData)
         let specificData = poolData.Ok[0]
        
-        setAllDataInPool(prev => [...prev, {...specificData, Lp: AllPool[0][i][1]}])
+        setAllDataInPool(prev => [...prev, {...specificData, Lp: AllPool[0][i][1], pool_name: AllPool[0][i][0]}])  
       }
       setDisplayCount(Math.min(5, AllPool.length))
     }
@@ -66,7 +68,7 @@ const PortfolioDataComponent = () => {
       return isAscending ? bValue - aValue : aValue - bValue
     })
 
-    setAllDataInPool({ ...allDataInPool, TableData: sortedTableData })
+    setAllDataInPool( sortedTableData)
     setIsAscending(!isAscending)
   }
 
@@ -82,7 +84,7 @@ const PortfolioDataComponent = () => {
           : b.PoolMetaData.PoolValue
       return isAscending ? bVolume - aVolume : aVolume - bVolume
     })
-    setAllDataInPool({ ...allDataInPool, TableData: sortedTableData })
+    setAllDataInPool( sortedTableData )
     setIsAscending(!isAscending)
   }
 
@@ -100,7 +102,7 @@ const PortfolioDataComponent = () => {
       }
       return 0
     })
-    setAllDataInPool({ ...allDataInPool, TableData: sortedTableData })
+    setAllDataInPool(sortedTableData)
     setIsAscending(!isAscending)
   }
 
@@ -120,11 +122,11 @@ const PortfolioDataComponent = () => {
   // pagination logic
   const  totalPages = Math.ceil(allDataInPool?.length / itemsPerPage);
 
-  const currentItems = allDataInPool?.slice(
+  const currentItems =   allDataInPool?.slice(
     (currentPage -1) * itemsPerPage, 
     currentPage * itemsPerPage
   )
-
+  console.log("is array", Array.isArray(allDataInPool));
 
   const handleNextPage = () => {
     if(currentPage < totalPages) setCurrentPage(currentPage + 1);
@@ -206,8 +208,8 @@ const PortfolioDataComponent = () => {
         <div className='flex flex-col font-gilroy min-h-[30%]  bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl '>
           <div className='-my-2 overflow-x-auto'>
             <div className='inline-block min-w-full py-2 align-middle'>
-              {allDataInPool.Ok?.length <= 0 ? (
-                <div> No Pool found ! </div>
+              {isAuthenticated && allDataInPool.length == 0 ? (
+                <div className='mx-auto text-center px-12'>  No Pool found ! </div>
               ) : (
                 <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5'>
                   <SkeletonTheme
@@ -244,7 +246,7 @@ const PortfolioDataComponent = () => {
                       <tbody>
                         {isAuthenticated ? (
                           //  allDataInPool
-                          !currentItems ? (
+                          !currentItems.length < 0 ? (
                             Array.from({ length: 3 }).map((_, index) => (
                               <tr key={index}>
                                 <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
@@ -263,17 +265,19 @@ const PortfolioDataComponent = () => {
                             ))
                           ) : (
                             currentItems?.map((Poolinfo, index) => (
+                              
                               <tr
                                 key={index}
-                                className='hover:bg-[#546093] rounded-xl cursor-pointer'
+                                className=' rounded-xl cursor-pointer'
                                 onClick={() => {
                                   navigate(
                                     `/valueswap/portfolio/pool-info/${
-                                      Poolinfo.pool_name || index
+                                      Poolinfo?.pool_name || index
                                     }`
                                   )
                                 }}
                               >
+                             
                                 <td className='min-w-80 whitespace-nowrap my-4 text-sm md:text-base font-medium text-white flex flex-wrap items-center gap-5 justify-start ml-4'>
                                   {Poolinfo?.pool_data.map((pool, indx) => (
                                     <span
