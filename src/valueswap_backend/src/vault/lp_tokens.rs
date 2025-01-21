@@ -37,7 +37,7 @@ pub fn increase_pool_lp_tokens(params: Pool_Data) -> Result<(), CustomError> {
                     return Err(CustomError::InvalidInput(
                         "Pool value and balance must be greater than zero.".to_string(),
                     ));
-                }
+                }  
                 Ok(acc + (value * balance))
             })
             .unwrap_or_else(|err| {

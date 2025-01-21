@@ -52,8 +52,9 @@ type RejectionCode = variant {
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok; Err : CustomError };
 type Result_10 = variant { Ok : vec float64; Err : text };
-type Result_11 = variant { Ok; Err : InstallError };
-type Result_12 = variant { Ok : vec text; Err : text };
+type Result_11 = variant { Ok : opt vec text; Err : CustomError };
+type Result_12 = variant { Ok; Err : InstallError };
+type Result_13 = variant { Ok : vec text; Err : text };
 type Result_2 = variant { Ok : principal; Err : CreateCanisterError };
 type Result_3 = variant { Ok : nat; Err : text };
 type Result_4 = variant { Ok : nat; Err : text };
@@ -97,17 +98,25 @@ service : () -> {
   get_user_pools_with_lp : (principal) -> (opt vec record { text; nat }) query;
   get_user_share_ratio : (Pool_Data, text, nat) -> (Result_10);
   get_users_lp : (principal) -> (opt nat) query;
-  get_users_pool : (principal) -> (opt vec text) query;
+  get_users_pool : (principal) -> (Result_11) query;
   icrc1_transfer : (principal, nat) -> (Result_4);
   icrc_get_balance : (principal, principal) -> (Result_4);
-  increase_pool_lp_tokens : (Pool_Data) -> ();
-  install_wasm_on_new_canister : (principal) -> (Result_11);
-  out_given_in : (nat, nat, nat, nat, nat, nat) -> (nat) query;
+  increase_pool_lp_tokens : (Pool_Data) -> (Result_1);
+  install_wasm_on_new_canister : (principal) -> (Result_12);
+  out_given_in : (nat, nat, nat, nat, nat) -> (nat) query;
+  out_given_in_past : (
+      float64,
+      float64,
+      float64,
+      float64,
+      float64,
+      float64,
+    ) -> (float64) query;
   pre_compute_swap : (SwapParams) -> (text, nat);
-  search_swap_pool : (SwapParams) -> (Result_12) query;
+  search_swap_pool : (SwapParams) -> (Result_13) query;
   store_pool_data : (Pool_Data, principal) -> (Result);
   store_pool_data_curr : (Pool_Data) -> (Result);
   total_lp_tokens : () -> () query;
   users_lp_share : (Pool_Data) -> (Result);
-  users_pool : (Pool_Data) -> ();
+  users_pool : (Pool_Data) -> (Result_1);
 }

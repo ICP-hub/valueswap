@@ -1,0 +1,1 @@
+dfx canister call valueswap_backend out_given_in_past '(5.0 : float64, 0.5 : float64, 141.0 : float64, 0.5 : float64, 1.0 : float64, 0.3 : float64)'

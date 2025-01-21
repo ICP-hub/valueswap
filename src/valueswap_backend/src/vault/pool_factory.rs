@@ -672,13 +672,13 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
                 // let b_i_f128 = convert_nat_to_u64(b_i).unwrap();
                 // let b_o_f128 = convert_nat_to_u64(b_o).unwrap();
 
-                b_i = b_i / Nat::from(100000000u128);
-                b_o = b_o / Nat::from(100000000u128);
+                // b_i = b_i / Nat::from(100000000u128);
+                // b_o = b_o / Nat::from(100000000u128);
 
                 ic_cdk::println!("The balance of First token is {}{}", b_i.clone(),b_o.clone());
 
                 // Calculate the required input using the out_given_in formula
-                let required_input = out_given_in(b_i, w_i , b_o, w_o, amount_out, fee);
+                let required_input = out_given_in(b_i, w_i , b_o, w_o, amount_out );
 
                 // Ensure the user has enough balance to provide the input
                 if required_input >= max_output_amount {
