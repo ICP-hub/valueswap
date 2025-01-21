@@ -244,6 +244,7 @@ const PortfolioDataComponent = () => {
                       <tbody>
                         {isAuthenticated ? (
                           //  allDataInPool
+
                           allDataInPool.length == 0  ? (
                             Array.from({ length: 3 }).map((_, index) => (
                               <tr key={index}>
