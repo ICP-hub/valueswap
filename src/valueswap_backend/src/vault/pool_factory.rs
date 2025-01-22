@@ -81,8 +81,12 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
 
                 ic_cdk::println!("The second debug statement for first token ");
             }
-
+            
             ic_cdk::println!("1The first break point for debugging ");
+
+            increase_pool_lp_tokens(params.clone())?;
+
+            users_pool(params.clone())?;
 
             if let Err(e) = users_lp_share(params.clone()).await {
                 // Log the error and attempt rollback
@@ -119,9 +123,6 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                 .await
                 .map_err(|_| CustomError::TokenDepositFailed)?;
 
-            increase_pool_lp_tokens(params.clone())?;
-
-            users_pool(params.clone())?;
 
             store_pool_data(params.clone(), canister_id.principal)
                 .await
@@ -193,6 +194,10 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                     ic_cdk::println!("The first break point for debugging {} ",canister_id.clone());
                     // ic_cdk::println!("Successfully installed WASM on canister: {}", canister_id);
 
+                    increase_pool_lp_tokens(params.clone())?;
+
+                    users_pool(params.clone())?;
+
                     if let Err(e) = users_lp_share(params.clone()).await {
                         ic_cdk::call::<_, ()>(
                             canister_id,
@@ -220,9 +225,6 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                         .await
                         .map_err(|e| CustomError::UnableToStorePoolData(e))?;
 
-                    increase_pool_lp_tokens(params.clone())?;
-
-                    users_pool(params.clone())?;
 
                     store_pool_data_curr(params.clone())
                         .map_err(|e| CustomError::UnableToStorePoolData(e))?;
@@ -594,9 +596,6 @@ fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
         }
     })
 }
-
-
-
 
 #[update]
 async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {

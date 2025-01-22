@@ -1,6 +1,6 @@
 #!/bin/bash
-dfx deploy swap
-./LP.sh
+# dfx deploy swap
+# ./LP.sh
 set -e
 
 # Create and use the DevJourney identity
@@ -38,6 +38,8 @@ export NUM_OF_BLOCK_TO_ARCHIVE=1000
 export CYCLE_FOR_ARCHIVE_CREATION=10000000000000
 export FEATURE_FLAGS=true
 
+# export METADATA_DECIMALS='record { key = "icrc1:decimals"; value = variant { Nat = 18 }; }'
+
 # Deploy the ckbtc canister with the specified initialization arguments
 DEPLOY_ARGUMENTS="(variant {Init = record {
   token_symbol = \"${TOKEN_SYMBOL}\";
@@ -62,8 +64,9 @@ dfx deploy ckbtc --argument "$DEPLOY_ARGUMENTS"
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
-./deploy_cketh.sh
-dfx deploy
+
+# ./deploy_cketh.sh
+# dfx deploy
 # 
 
 # dfx deploy valueswap_fontend

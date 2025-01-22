@@ -6,20 +6,20 @@
 
 body {
   margin: 0;
-  color: white;
+  color: rgb(253, 253, 253);
   background-color: #000711;
   background-image:
 
-    linear-gradient(
+    /* linear-gradient(
       180deg,
       rgba(217, 217, 217, 0.04) 0%,
       rgba(115, 115, 115, 0.0) 100%
-    ),
-    url('/image/bg_1.webp');
-  /* background-position: center; */
+    ), */
+    url('/image/overlay.png');
+    /* url('/image/bg_1.webp'); */
   background-size: contain;
-  /* background-repeat: no-repeat; */
- 
+  /* opacity: 120%; */
+  /* mix-blend-mode: color-dodge; */
 }
 
 
