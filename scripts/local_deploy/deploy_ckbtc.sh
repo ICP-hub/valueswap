@@ -1,6 +1,6 @@
 #!/bin/bash
-# dfx deploy swap
-# ./LP.sh
+dfx deploy swap
+./LP.sh
 set -e
 
 # Create and use the DevJourney identity
@@ -65,8 +65,8 @@ dfx deploy ckbtc --argument "$DEPLOY_ARGUMENTS"
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
 
-# ./deploy_cketh.sh
-# dfx deploy
+./deploy_cketh.sh
+dfx deploy
 # 
 
 # dfx deploy valueswap_fontend
