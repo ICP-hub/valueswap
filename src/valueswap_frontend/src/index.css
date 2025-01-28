@@ -247,3 +247,9 @@ input[type='number'] {
 #navLink:hover:after {
   transform: scaleX(1);
 }
+
+.whitepaper{
+  background-position : left center;
+  background-repeat : no-repeat;
+  background-origin : left; 
+}
