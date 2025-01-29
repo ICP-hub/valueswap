@@ -44,14 +44,14 @@ const Swap = () => {
     if (payCoin) {
       getBalance(payCoin.CanisterId)
         .then(balance => {
-          setPayCoinBalance(Number(balance) / 100000000)
+          setPayCoinBalance(Number(balance) / Math.pow(10,payCoin.metaData.decimals))
         })
         .catch(err => console.log(err))
     }
     if (receiveCoin) {
       getBalance(receiveCoin?.CanisterId)
         .then(balance => {
-          setReceiveCoinBalance(Number(balance) / 100000000)
+          setReceiveCoinBalance(Number(balance) / Math.pow(10,receiveCoin.metaData.decimals))
         })
         .catch(err => console.log(err))
     }
@@ -66,12 +66,12 @@ const Swap = () => {
 
         const precomputedSwap = await backendActor.pre_compute_swap({
           token1_name: payCoin.ShortForm,
-          token_amount: amount,
+          token_amount: amount * Math.pow(10, payCoin.metaData.decimals),
           token2_name: receiveCoin.ShortForm,
-          ledger_canister_id1: Principal.fromText(receiveCoin.CanisterId),
+          ledger_canister_id1: Principal.fromText(payCoin.CanisterId), // Fix canister id issue
           ledger_canister_id2: Principal.fromText(receiveCoin.CanisterId)
         })
-        console.log('precomputedSwap', precomputedSwap)
+        console.log('precomputedSwap', precomputedSwap, amount)
         setInitialSlipageAmount(precomputedSwap[1])
         // if (precomputedSwap.length == 2) {
         //   setPoolNotFound(true)
@@ -84,7 +84,7 @@ const Swap = () => {
       if (payCoin) {
         getBalance(payCoin.CanisterId)
           .then(balance => {
-            setPayCoinBalance(Number(balance) / 100000000)
+            setPayCoinBalance(Number(balance) / Math.pow(10,payCoin.metaData.decimals))
           })
           .catch(err => console.log(err))
         // console.log("Balance", payCoinBalance);
@@ -97,7 +97,7 @@ const Swap = () => {
     if (receiveCoin) {
       getBalance(receiveCoin?.CanisterId)
         .then(balance => {
-          setReceiveCoinBalance(Number(balance) / 100000000)
+          setReceiveCoinBalance(Number(balance) / Math.pow(10,receiveCoin.metaData.decimals))
         })
         .catch(err => console.log(err))
     }
@@ -115,6 +115,7 @@ const Swap = () => {
     setCoinAmount(value >= 0 ? parseFloat(value) : 0)
   }
 
+  console.log("Receive coint", receiveCoin)
   // Handle token approval
   const transferApprove = async (
     sendAmount,
@@ -390,7 +391,7 @@ const Swap = () => {
           <div className='flex justify-between'>
             <div className='text-4xl w-1/2 overflow-x-auto  scroll-smooth'>
               {coinAmount && payCoin && receiveCoin
-                ? (Number(receiveValue) / 100000000).toLocaleString('fullwide', { useGrouping: false })
+                ? (Number(receiveValue) / (Math.pow(10,receiveCoin.metaData.decimals))).toLocaleString('fullwide', { useGrouping: false })
                 : 0}
             </div>
             <BorderGradientButton customCss={`bg-gray-700 z-10`}>
