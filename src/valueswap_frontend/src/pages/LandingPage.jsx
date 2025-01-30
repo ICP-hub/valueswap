@@ -24,7 +24,7 @@ const LandingPage = ({ setClickConnectWallet }) => {
 
                 <About />
                 <LiquidityInfo />
-                <Partnership />
+                {/* <Partnership /> */}
                 {/* <Methods /> */}
 
                 <div className='mt-4'>
