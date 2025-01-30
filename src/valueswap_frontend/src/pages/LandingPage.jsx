@@ -18,13 +18,13 @@ const LandingPage = ({ setClickConnectWallet }) => {
     return (
         <div className=''>
 
-            <div className=' mx-4 '>
-                <div className=' relative'>
+            <div className='mx-4'>
+                <div className='relative min-h-screen h-auto'>
                     <Hero setClickConnectWallet={setClickConnectWallet} />
                     <FloatingIcons/>
                 </div>
 
-                <About />
+                {/* <About /> */}
                 <LiquidityInfo />
                 {/* <Partnership /> */}
                 {/* <Methods /> */}
