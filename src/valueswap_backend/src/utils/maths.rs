@@ -82,6 +82,9 @@ pub fn out_given_in(b_i: Nat, w_i: Nat, b_o: Nat, w_o: Nat, amount_in: Nat) -> N
     while temp_exp > Nat::from(0u128) {
         power = (power * base.clone()) / base_scaling.clone();
         ic_cdk::println!("Step 4 - Power after iteration: {:?}", power);
+        if temp_exp < exp_scaling {
+            break; // Avoid subtracting below zero
+        }
         temp_exp -= exp_scaling.clone();  // Decrement exponent by the scaling factor
     }
 
