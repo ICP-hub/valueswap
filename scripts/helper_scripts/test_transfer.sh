@@ -10,3 +10,5 @@ dfx canister call $CANISTER_NAME icrc1_transfer "(
   principal \"$USER_PRINCIPAL\", 
   $AMOUNT : nat
 )"
+
+

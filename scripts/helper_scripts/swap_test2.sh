@@ -23,21 +23,21 @@ VALUESWAP_BACKEND=$(dfx canister id valueswap_backend)
 echo "Approving valueswap_backend to transfer 1000000000 tokens on behalf of DevJourney"
 
 APPROVE=$(
-    dfx --identity Harshit canister call ckbtc icrc2_approve "(record{ amount = 1000000000 ; spender = record { owner = principal \"$VALUESWAP_BACKEND\"}})"
+    dfx --identity default canister call ckbtc icrc2_approve "(record{ amount = 1000000000 ; spender = record { owner = principal \"$VALUESWAP_BACKEND\"}})"
 )
 echo "Approve result: $APPROVE"
 
 echo "Checking allowance"
 ALLOWANCE=$(
-    dfx --identity Harshit canister call ckbtc icrc2_allowance "(record { account = record {owner = principal \"$IDENTITY\"}; spender = record { owner = principal \"$VALUESWAP_BACKEND\"}})"
+    dfx --identity default canister call ckbtc icrc2_allowance "(record { account = record {owner = principal \"$IDENTITY\"}; spender = record { owner = principal \"$VALUESWAP_BACKEND\"}})"
 )
 echo "Allowance result : $ALLOWANCE"
 
 # dfx canister call ckbtc icrc1_balance_of "(record {owner=principal\"hyhkx-53cuq-lmkqq-yhjmt-eve7b-j5pyf-3evrj-tncch-ilmtl-nrcee-sqe\"; subaccount=null; memo=null; from_subaccount=null; created_at_time=null;})"
 
-dfx canister call ckbtc icrc1_transfer ' (record {to=record {owner = principal "um2uc-3w7jg-5lycg-pmjio-is7ms-jjzwo-kvwfa-xdeus-ur2tx-4sbzd-cae"; subaccount=null}; fee=null; memo=null; from_subaccount=null; created_at_time=null; amount=100000000})'
+dfx canister call ckbtc icrc1_transfer ' (record {to=record {owner = principal "xrinq-kad56-qulgo-h6pa5-gdqps-jif5v-ghngz-gcxac-5rbp3-acjjs-kae"; subaccount=null}; fee=null; memo=null; from_subaccount=null; created_at_time=null; amount=100000000})'
 
-dfx identity use Harshit
+dfx identity use default
 
 dfx canister call valueswap_backend compute_swap '(
     record {
@@ -49,8 +49,8 @@ dfx canister call valueswap_backend compute_swap '(
     }
 )'
 
-dfx canister call ckbtc icrc1_balance_of "(record {owner=principal\"um2uc-3w7jg-5lycg-pmjio-is7ms-jjzwo-kvwfa-xdeus-ur2tx-4sbzd-cae\"; subaccount=null; memo=null; from_subaccount=null; created_at_time=null;})"
-dfx canister call cketh icrc1_balance_of "(record {owner=principal\"um2uc-3w7jg-5lycg-pmjio-is7ms-jjzwo-kvwfa-xdeus-ur2tx-4sbzd-cae\"; subaccount=null; memo=null; from_subaccount=null; created_at_time=null;})"
+dfx canister call ckbtc icrc1_balance_of "(record {owner=principal\"xrinq-kad56-qulgo-h6pa5-gdqps-jif5v-ghngz-gcxac-5rbp3-acjjs-kae\"; subaccount=null; memo=null; from_subaccount=null; created_at_time=null;})"
+dfx canister call cketh icrc1_balance_of "(record {owner=principal\"xrinq-kad56-qulgo-h6pa5-gdqps-jif5v-ghngz-gcxac-5rbp3-acjjs-kae\"; subaccount=null; memo=null; from_subaccount=null; created_at_time=null;})"
 
 
 
