@@ -33,7 +33,7 @@ const whitePaper = () => {
            
 
             <div 
-            style={{backgroundImage : "url('/image/astro-new.png')"}}
+            style={{backgroundImage : "url('/image/infinity.svg')"}}
             className='shadow-[0_0_25px_rgba(51,90,255,0.15)] whitepaper w-full flex flex-col items-end mx-auto max-w-[1200px] gap-8 md:gap-y-12 py-12 md:py-20 bg-linear-to-r from-[#C0D9FF] to-[#D9D9D9] border border-1 border-[#C0D9FF] rounded-lg h-4/6'>
 
                 <img src="/image/astro-new.png" alt="astro" style={{display:'none'}}/>
