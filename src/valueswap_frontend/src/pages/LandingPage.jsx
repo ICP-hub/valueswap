@@ -6,6 +6,7 @@ import Methods from '../components/landingPageComponents/Methods'
 import WhitePaper from '../components/landingPageComponents/WhitePaper'
 import LiquidityInfo from '../components/landingPageComponents/LiquidityInfo'
 import Footer from '../components/footer/Footer'
+import { FloatingIcons } from '../components/landingPageComponents/FloatingIcons'
 // import DialogBox from '../Modals/Dialouge'
 // import Navbar from '../navbar/Navbar'
 // import { LandingPageNavbarData } from '../TextData'
@@ -17,14 +18,15 @@ const LandingPage = ({ setClickConnectWallet }) => {
     return (
         <div className=''>
 
-            <div className=' mx-4 '>
-                <div className=' relative'>
+            <div className='mx-4'>
+                <div className='relative min-h-screen h-auto'>
                     <Hero setClickConnectWallet={setClickConnectWallet} />
+                    <FloatingIcons/>
                 </div>
 
-                <About />
+                {/* <About /> */}
                 <LiquidityInfo />
-                <Partnership />
+                {/* <Partnership /> */}
                 {/* <Methods /> */}
 
                 <div className='mt-4'>
