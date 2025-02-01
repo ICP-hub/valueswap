@@ -391,7 +391,7 @@ const Swap = () => {
           <div className='flex justify-between'>
             <div className='text-4xl w-1/2 overflow-x-auto  scroll-smooth'>
               {coinAmount && payCoin && receiveCoin
-                ? (Number(receiveValue) / (Math.pow(10,receiveCoin.metaData.decimals))).toLocaleString('fullwide', { useGrouping: false })
+                ? (Number(receiveValue) / (Math.pow(10,Math.max(payCoin.metaData.decimals,receiveCoin.metaData.decimals)))).toLocaleString('fullwide', { useGrouping: false })
                 : 0}
             </div>
             <BorderGradientButton customCss={`bg-gray-700 z-10`}>
