@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from 'react-toastify'
 import { useAuth } from '../components/utils/useAuthClient'
 import { Principal } from '@dfinity/principal'
@@ -44,14 +44,14 @@ const Swap = () => {
     if (payCoin) {
       getBalance(payCoin.CanisterId)
         .then(balance => {
-          setPayCoinBalance(Number(balance) / 100000000)
+          setPayCoinBalance(Number(balance) / Math.pow(10,payCoin.metaData.decimals))
         })
         .catch(err => console.log(err))
     }
     if (receiveCoin) {
       getBalance(receiveCoin?.CanisterId)
         .then(balance => {
-          setReceiveCoinBalance(Number(balance) / 100000000)
+          setReceiveCoinBalance(Number(balance) / Math.pow(10,receiveCoin.metaData.decimals))
         })
         .catch(err => console.log(err))
     }
@@ -60,23 +60,23 @@ const Swap = () => {
   // Helper to fetch balance
 
   useEffect(() => {
-    const getSwapValue = async () => {
+    const fetchSwapValue = async () => {
       if (coinAmount) {
         const amount = parseFloat(coinAmount)
 
-        const swapValue = await backendActor.pre_compute_swap({
+        const precomputedSwap = await backendActor.pre_compute_swap({
           token1_name: payCoin.ShortForm,
-          token_amount: amount,
+          token_amount: amount * Math.pow(10, payCoin.metaData.decimals),
           token2_name: receiveCoin.ShortForm,
-          ledger_canister_id1: Principal.fromText(receiveCoin.CanisterId),
+          ledger_canister_id1: Principal.fromText(payCoin.CanisterId), // Fix canister id issue
           ledger_canister_id2: Principal.fromText(receiveCoin.CanisterId)
         })
-        console.log('swapValue', swapValue)
-        setInitialSlipageAmount(swapValue[1])
-        // if (swapValue.length == 2) {
+        console.log('precomputedSwap', precomputedSwap, amount)
+        setInitialSlipageAmount(precomputedSwap[1])
+        // if (precomputedSwap.length == 2) {
         //   setPoolNotFound(true)
         // }
-        setReceiveValue(swapValue[1])
+        setReceiveValue(precomputedSwap[1])
       } else {
         console.log('no coin Amount enter')
         setPoolNotFound(false)
@@ -84,20 +84,20 @@ const Swap = () => {
       if (payCoin) {
         getBalance(payCoin.CanisterId)
           .then(balance => {
-            setPayCoinBalance(Number(balance) / 100000000)
+            setPayCoinBalance(Number(balance) / Math.pow(10,payCoin.metaData.decimals))
           })
           .catch(err => console.log(err))
         // console.log("Balance", payCoinBalance);
       }
     }
-    getSwapValue()
+    fetchSwapValue()
   }, [payCoin, getBalance, coinAmount, receiveCoin])
 
   useEffect(() => {
     if (receiveCoin) {
       getBalance(receiveCoin?.CanisterId)
         .then(balance => {
-          setReceiveCoinBalance(Number(balance) / 100000000)
+          setReceiveCoinBalance(Number(balance) / Math.pow(10,receiveCoin.metaData.decimals))
         })
         .catch(err => console.log(err))
     }
@@ -115,6 +115,7 @@ const Swap = () => {
     setCoinAmount(value >= 0 ? parseFloat(value) : 0)
   }
 
+  console.log("Receive coint", receiveCoin)
   // Handle token approval
   const transferApprove = async (
     sendAmount,
@@ -311,7 +312,7 @@ const Swap = () => {
  const handleSettings = () => {
     setSettings((prev) => !prev)
  }
-
+ 
  const openModalWithSteps = async () => {
  
   setIsModalOpen(true);
@@ -390,7 +391,7 @@ const Swap = () => {
           <div className='flex justify-between'>
             <div className='text-4xl w-1/2 overflow-x-auto  scroll-smooth'>
               {coinAmount && payCoin && receiveCoin
-                ? Number(receiveValue)/100000000
+                ? (Number(receiveValue) / (Math.pow(10,Math.max(payCoin.metaData.decimals,receiveCoin.metaData.decimals)))).toLocaleString('fullwide', { useGrouping: false })
                 : 0}
             </div>
             <BorderGradientButton customCss={`bg-gray-700 z-10`}>
