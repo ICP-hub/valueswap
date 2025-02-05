@@ -1,83 +1,86 @@
-import React from 'react'
-import { LandingPageData } from '../../TextData'
-import { LandingPageNavbarData as NavbarData } from '../../TextData'
-import LiquidityPageImageOne from '../../assets/images/LiquidityPageImageOne.png'
-import LiquidityPageImageTwo from '../../assets/images/LiquidityPageImageTwo.png'
-import LiquidityPageImageThree from '../../assets/images/LiquidityPageImageThree.png'
-import LiquidityPageImageFour from '../../assets/images/LiquidityPageImageFour.png'
-const LiquidityInfo = () => {
+export default function LiquidityInfo() {
     return (
-        <div className='w-full '>
-            <div className='flex flex-row flex-wrap md:flex-nowrap justify-center gap-4 md:gap-8 max-w-[1200px] text-center mx-auto items-center mb-8 pb-32 ' id={`${NavbarData.Links[1].LinkId}`}>
-
-                <div className='w-[46%] md:w-4/12 relative'>
-                    <div className=" bg-cover bg-center h-36 md:h-80  w-full rounded-lg border-2  border-white border-opacity-60 p-4" style={{ backgroundImage: `url(${LiquidityPageImageOne})` }} >
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#000000] to-[#00308E] opacity-70  p-4 h-full flex flex-col justify-end rounded-lg"></div>
-                        <div className="relative z-10   flex   text-center md:top-[10%] md:text-start md:justify-start">
-                            <div className='flex gap-y-2 md:gap-y-4 flex-col'>
-                                <h2 className=" my-auto text-3xl sm:text-5xl  md:text-6xl font-medium m-1 font-gilroy">{LandingPageData.LiquiditySectionData.Box1.NumberData}</h2>
-                                <p className="my-auto text-sm sm:text-lg md:text-xl font-gilroy">{LandingPageData.LiquiditySectionData.Box1.Description}</p>
-                            </div>
-                        </div>
-                    </div>
+      <div className="relative min-h-screen bg-[#020817] overflow-hidden">
+        <div
+          className="absolute inset-0 z-0 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              "url('/image/globe.svg')",
+            filter: "brightness(0.4) blur(3px)",
+            backgroundSize:'contain',
+            backgroundRepeat:'no-repeat',
+            backgroundPosition:'center center'
+          }}
+        />
+  
+        <div className="relative z-10 p-4 sm:p-6 md:p-8 font-gilroy">
+          <div className="max-w-7xl mx-auto relative" style={{ height: "90vh" }}>
+            {/* Total Liquidity Card - Largest */}
+            <div
+              className="absolute left-[5%] sm:left-[10%] top-[5%] sm:top-[10%] w-[80%] sm:w-[60%] md:w-[50%] lg:w-[40%] xl:w-[35%] transition-transform duration-300 hover:scale-105"
+              style={{ zIndex: 4 }}
+            >
+              <div className="relative backdrop-blur-md bg-white/5 rounded-lg p-4 sm:p-6 md:p-8 border border-white/10 shadow-[0_0_25px_rgba(51,90,255,0.15)]">
+                <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight">
+                  1.58B
                 </div>
-
-                {/*  */}
-                <div className="w-[46%] relative bg-cover bg-center h-36 md:h-36 md:hidden rounded-lg border-2  border-[#6c6b6b]  p-4" style={{ backgroundImage: `url(${LiquidityPageImageTwo})` }} >
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#000000] to-[#00308E] opacity-70 p-4 h-full flex flex-col justify-end rounded-lg"></div>
-                        <div className="relative z-10   flex md:justify-start justify-end  text-center md:text-start md:top-0">
-                            <div className='flex gap-y-2 flex-col'>
-                                <h2 className=" text-3xl sm:text-5xl font-medium  m-1 font-gilroy">{LandingPageData.LiquiditySectionData.Box2.SubBox1.NumberData}</h2>
-                                <p className=" text-sm sm:text-lg font-gilroy">{LandingPageData.LiquiditySectionData.Box2.SubBox1.Description}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="w-[46%] relative bg-cover bg-center h-36  md:h-36  md:hidden rounded-lg border-2  border-[#6c6b6b]  p-4" style={{ backgroundImage: `url(${LiquidityPageImageThree})` }} >
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#000000] to-[#00308E] opacity-70 p-4 h-full flex flex-col justify-end rounded-lg"></div>
-                        <div className="relative z-10   flex md:justify-end  text-center  md:text-start md:top-0">
-                            <div className='flex gap-y-2 flex-col'>
-                                <h2 className=" text-3xl sm:text-5xl  font-medium m-1 font-gilroy">{LandingPageData.LiquiditySectionData.Box2.SubBox2.NumberData}</h2>
-                                <p className=" text-sm sm:text-lg font-gilroy">{LandingPageData.LiquiditySectionData.Box2.SubBox2.Description}</p>
-                            </div>
-                        </div>
-                    </div>
-                {/*  */}
-                <div className='hidden md:flex flex-col justify-evenly gap-8 lg:w-4/12 xl:w-6/12'>
-                    <div className="relative bg-cover bg-center h-80 md:h-36 w-full rounded-lg border-2  border-[#6c6b6b] p-2" style={{ backgroundImage: `url(${LiquidityPageImageTwo})` }} >
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#000000] to-[#00308E] opacity-70 p-4 h-full flex flex-col justify-end rounded-lg"></div>
-                        <div className="relative z-10   flex md:justify-start justify-center top-1/3 text-center md:text-start md:top-0">
-                            <div className='flex gap-y-4 flex-col'>
-                                <h2 className="  text-xl md:text-6xl font-normal m-1 font-gilroy">{LandingPageData.LiquiditySectionData.Box2.SubBox1.NumberData}</h2>
-                                <p className=" mx-1 text-xl font-gilroy">{LandingPageData.LiquiditySectionData.Box2.SubBox1.Description}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="relative bg-cover bg-center h-80  md:h-36  w-full rounded-lg border-2  border-[#6c6b6b]  p-4" style={{ backgroundImage: `url(${LiquidityPageImageThree})` }} >
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#000000] to-[#00308E] opacity-70 p-4 h-full flex flex-col justify-end rounded-lg"></div>
-                        <div className="relative z-10   flex md:justify-end justify-center top-1/3 text-center  md:text-start md:top-0">
-                            <div className='flex gap-y-4 flex-col'>
-                                <h2 className="  text-xl md:text-6xl font-normal m-1 font-gilroy">{LandingPageData.LiquiditySectionData.Box2.SubBox2.NumberData}</h2>
-                                <p className="  text-xl font-gilroy mx-1">{LandingPageData.LiquiditySectionData.Box2.SubBox2.Description}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className='w-[46%] md:w-4/12 relative'>
-                    <div className=" bg-cover bg-center h-36 md:h-80 w-full  rounded-lg border-2  border-white border-opacity-60 p-4" style={{ backgroundImage: `url(${LiquidityPageImageFour})` }} >
-                        <div className="absolute inset-0 bg-gradient-to-b from-[#000000] to-[#00308E] opacity-70 p-4 h-full flex flex-col justify-end rounded-lg"></div>
-                        <div className="relative z-10  flex md:flex-col  md:h-full   text-center justify-end  md:text-start md:bottom-10">
-                            <div className='flex gap-y-2 md:gap-y-4 flex-col'>
-                                <h2 className="text-3xl sm:text-5xl  md:text-6xl font-medium m-1 font-gilroy">{LandingPageData.LiquiditySectionData.Box3.NumberData}</h2>
-                                <p className="text-sm sm:text-lg md:text-xl font-gilroy">{LandingPageData.LiquiditySectionData.Box3.Description}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
+                <div className="text-xs sm:text-sm text-gray-400 mb-1 sm:mb-2">Total Liquidity</div>
+              </div>
             </div>
+  
+            {/* Swap Volume Card - Medium */}
+            <div
+              className="absolute right-[5%] sm:right-[15%] top-[30%] sm:top-[20%] w-[70%] sm:w-[50%] md:w-[40%] lg:w-[30%] xl:w-[25%] transition-transform duration-300 hover:scale-105"
+              style={{ zIndex: 3 }}
+            >
+              <div className="relative backdrop-blur-md bg-white/5 rounded-lg p-4 sm:p-6 border border-white/10 shadow-[0_0_20px_rgba(51,90,255,0.15)]">
+                <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight">
+                  250.59M
+                </div>
+                <div className="text-xs sm:text-sm text-gray-400 mb-1 sm:mb-2">Swap Vol</div>
+              </div>
+            </div>
+  
+            {/* Liquidity Providers Card - Medium Small */}
+            <div
+              className="absolute left-[10%] sm:left-[25%] bottom-[30%] sm:bottom-[35%] w-[60%] sm:w-[45%] md:w-[35%] lg:w-[28%] xl:w-[22%] transition-transform duration-300 hover:scale-105"
+              style={{ zIndex: 2 }}
+            >
+              <div className="relative backdrop-blur-md bg-white/5 rounded-lg p-4 sm:p-6 border border-white/10 shadow-[0_0_15px_rgba(51,90,255,0.15)]">
+                <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight">
+                  170.30K
+                </div>
+                <div className="text-xs sm:text-sm text-gray-400 mb-1 sm:mb-2">Liquidity Providers</div>
+              </div>
+            </div>
+  
+            {/* Total Pools Card - Smallest */}
+            <div
+              className="absolute right-[15%] sm:right-[30%] bottom-[10%] sm:bottom-[20%] w-[50%] sm:w-[35%] md:w-[25%] lg:w-[20%] xl:w-[18%] transition-transform duration-300 hover:scale-105"
+              style={{ zIndex: 1 }}
+            >
+              <div className="relative backdrop-blur-md bg-white/5 rounded-lg p-3 sm:p-4 border border-white/10 shadow-[0_0_15px_rgba(51,90,255,0.15)]">
+                <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white tracking-tight">7.5K</div>
+                <div className="text-xs sm:text-sm text-gray-400 mb-1 sm:mb-2">Total Pools</div>
+              </div>
+            </div>
+  
+            {/* Floating Elements */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-1/4 left-1/3 w-1 h-1 sm:w-2 sm:h-2 bg-blue-500 rounded-full animate-ping" />
+              <div
+                className="absolute top-2/3 right-1/4 w-1 h-1 sm:w-2 sm:h-2 bg-purple-500 rounded-full animate-ping"
+                style={{ animationDelay: "1s" }}
+              />
+              <div
+                className="absolute bottom-1/4 left-1/2 w-1 h-1 sm:w-2 sm:h-2 bg-cyan-500 rounded-full animate-ping"
+                style={{ animationDelay: "1.5s" }}
+              />
+            </div>
+          </div>
         </div>
+      </div>
     )
-}
-
-export default LiquidityInfo
+  }
+  
+  
