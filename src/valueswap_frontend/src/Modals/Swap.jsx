@@ -39,6 +39,7 @@ const Swap = () => {
   const [Id, setId] = useState(0)
   const [subModel, setSubModel] = useState(1)
   const [initialSlipageAmount, setInitialSlipageAmount] = useState(0)
+  const [afterSlipageAmnt, setAfterSlipageAmnt] = useState(0)
   // Fetch balances whenever payCoin or receiveCoin changes
   useEffect(() => {
     if (payCoin) {
@@ -288,7 +289,6 @@ const Swap = () => {
       if (res.Ok) {
         getSwapValue()
       }
-      console.log('slipage:', receiveValue)
 
       if (res.Ok == null) {
         console.log('Swap successful')
@@ -486,7 +486,7 @@ const Swap = () => {
                         {SwapModalData.MainButtonsText.ConfirmSwapping}
                       </GradientButton>
                       <p>
-                        Slipage:   Slipage
+                        Slipage:   {afterSlipageAmnt!== 0 && (((parseFloat(afterSlipageAmnt) - parseFloat(initialSlipageAmount)) / parseFloat(initialSlipageAmount)) / 100) + '%'}
                       </p>
                     </div>
 
@@ -495,8 +495,17 @@ const Swap = () => {
                     <div className=''>
                       {coinAmount !== 0  ? (
                         <div
-                          onClick={() => {
+                          onClick={async() => {
                             setClickSwap(true)
+                            const precomputedSwap = await backendActor.pre_compute_swap({
+                              token1_name: payCoin.ShortForm,
+                              token_amount: parseFloat(coinAmount) * Math.pow(10, payCoin.metaData.decimals),
+                              token2_name: receiveCoin.ShortForm,
+                              ledger_canister_id1: Principal.fromText(payCoin.CanisterId),
+                              ledger_canister_id2: Principal.fromText(receiveCoin.CanisterId)
+                            })
+                            console.log("after slippage : ", precomputedSwap[1])
+                            setAfterSlipageAmnt(precomputedSwap[1]);
                           }}
                         >
                           <GradientButton CustomCss='w-full md:w-full font-extrabold text-3xl'>
