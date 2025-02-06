@@ -14,8 +14,8 @@ thread_local! {
     static TOTAL_LP_SUPPLY : RefCell<Nat> = RefCell::new(Nat::from(0u128));
     static POOL_LP_SHARE : RefCell<BTreeMap<String , Nat>> = RefCell::new(BTreeMap::new());
     static USERS_LP : RefCell<BTreeMap<Principal, Nat>> = RefCell::new(BTreeMap::new());
-    static USERS_POOL : RefCell<BTreeMap<Principal , Vec<String>>> = RefCell::new(BTreeMap::new());
-    static USERS_POOL_LP: RefCell<BTreeMap<Principal, BTreeMap<String, Nat>>> = RefCell::new(BTreeMap::new());
+    pub static USERS_POOL : RefCell<BTreeMap<Principal , Vec<String>>> = RefCell::new(BTreeMap::new());
+    pub static USERS_POOL_LP: RefCell<BTreeMap<Principal, BTreeMap<String, Nat>>> = RefCell::new(BTreeMap::new());
 }
 
 #[update]
@@ -171,7 +171,6 @@ fn get_users_pool(user: Principal) -> Result<Option<Vec<String>>, CustomError> {
         }
     })
 }
-
 
 // To get all lp tokens
 

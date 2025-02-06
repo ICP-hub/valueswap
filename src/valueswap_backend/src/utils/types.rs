@@ -318,7 +318,8 @@ pub struct SwapParams {
     pub token_amount : Nat,
     pub token2_name : String,
     pub ledger_canister_id1 : Principal,
-    pub ledger_canister_id2 : Principal
+    pub ledger_canister_id2 : Principal,
+    pub fee : Nat
 }
 
 
