@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'react-router-dom';
 import { portfolioSampleData } from '../../TextData';
 import PoolInfoBox from '../../displayBoxes/PoolInfoBox';
@@ -7,6 +7,7 @@ import { PoolCompositions, Swapping, LiquidityOverview } from '../../tables'
 import Echarts from '../portfolioComponents/Echarts';
 import { IOSSwitch } from '../../buttons/SwitchButton';
 import { convertTokenEquivalentUSD } from '../../utils';
+import { useAuth } from '../utils/useAuthClient';
 
 const RestTokens = [
   {
@@ -52,11 +53,54 @@ const AddLiquidity = () => {
   const { id } = useParams()
   const [currIndex, setCurrIndex] = useState(0)
   const [currentRang, setCurrentRange] = useState(0)
+  const [tokens, setTokens] = useState([])
+  const [restTokens, setRestTokens] = useState([])
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
+  const {backendActor,principal} = useAuth()
 
   useEffect(() => {
     console.log("pool id", id)
-  }, [id])
+    getPoolData(id)
+  }, [id,principal])
+
+  useEffect(()=>{
+    setRestTokens(()=>{
+      const splittedTokenArr = tokens.slice(1)
+      const restTT = splittedTokenArr.map(token=>{
+        return {
+            ImagePath: token.image,
+            ShortForm: token.token_name.toUpperCase(),
+            weights: parseFloat(token.weight),
+            currencyAmount: 1000,
+            balance : parseFloat(token.balance) / Math.pow(10,8) // Get decimals from backend
+        }
+      })
+      return restTT
+    })
+  },[tokens])
+
+  /**
+   * Fetches the pool data from the backend
+   * @param {string} pool_id
+   * @returns {void}
+   */
+  const getPoolData = useCallback(async(pool_id)=>{
+    try{
+      const data = await backendActor.get_specific_pool_data(pool_id)
+      if(data?.Ok){
+        console.log("pool data", data.Ok)
+        const pool_datas = data.Ok 
+        setTokens(pool_datas[0].pool_data)
+      }else{
+        throw new Error(data.Err)
+      }
+    }catch(err){
+      console.error("Error fetching pool data", JSON.stringify(err))
+      setTokens([])
+    }finally{
+      console.log("done fetching pool data",tokens)
+    }
+  },[id])
 
   // let TokenData = portfolioSampleData.TableData[id]
 
@@ -84,8 +128,23 @@ const AddLiquidity = () => {
     currencyAmount: 500,
   };
 
+  const init = useMemo(()=>{
+    const initialToken = tokens[0]
+    console.log("II : ", initialToken)
+    return {
+      weights : initialToken?.weight.toString(),
+      currencyAmount : 0,
+      LongForm : "",
+      ShortForm: initialToken?.token_name.toUpperCase(),
+      ImagePath : initialToken?.image,
+      balance : parseFloat(initialToken?.balance) / Math.pow(10,8) // Get Decimals from backend
+    }
+  },[id,principal,tokens])
+
+  console.log("Init : \n",init,"\nRest :",restTokens)
+
   const fetchCurrPrice=useCallback(async()=>{
-    const price = await convertTokenEquivalentUSD(InitialToken.LongForm, initialTokenAmount)
+    const price = await convertTokenEquivalentUSD(init?.ShortForm, initialTokenAmount)
     return price
   },[id, initialTokenAmount])
 
@@ -132,30 +191,30 @@ const AddLiquidity = () => {
               />
             </div>
             <span className='text-sm sm:text-base font-normal'>
-              ${InitialToken.currencyAmount?.toLocaleString() || 0}
+              ${init?.currencyAmount.toLocaleString() || 0}
             </span>
           </div>
           <div className='flex flex-col justify-center'>
             <div className='flex gap-3 items-center'>
-              <img src={InitialToken.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
+              <img src={init?.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
               <span className='text-base sm:text-2xl font-normal'>
-                {InitialToken.ShortForm.toUpperCase()}
+                {init?.ShortForm}
               </span>
               <span className='text-sm sm:text-2xl font-normal'>•</span>
               <span className='py-1 px-2 sm:px-3'>
-                {InitialToken.weights} %
+                {init?.weights} %
               </span>
             </div>
             <span className='inline-flex justify-center gap-2 w-full text-center font-normal leading-5 text-sm sm:text-base'>
-              <p className={`${initialTokenAmount > initialTokenBalance ? "text-red-500" : ""}`}>{initialTokenBalance?.toLocaleString()} {InitialToken.ShortForm.toUpperCase()}</p>
+              <p className={`${initialTokenAmount > initialTokenBalance ? "text-red-500" : ""}`}>{init?.balance.toLocaleString()} {init?.ShortForm}</p>
               <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
             </span>
           </div>
         </div>
 
         <div className='flex flex-col gap-4'>
-          {RestTokens.map((token, index) => {
-            const balance = 1000; // Example static balance
+          {restTokens.map((token, index) => {
+            const balance = token.balance; // Example static balance
 
             return (
               <div key={index}>
