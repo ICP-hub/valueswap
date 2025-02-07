@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use candid::{Nat, Principal};
-use ic_cdk::update;
+use ic_cdk::{query, update};
 use std::collections::BTreeMap;
 
 use crate::vault::lp_tokens::*;
@@ -76,13 +76,49 @@ pub async fn users_apy(canister_id: Principal, pool_name: String, fee: Nat, toke
 }
 
 
-
+// yet to complete
 // #[update]
 // pub fn total_apr() {
 //     FEE_SHARE.with(|fee_share| {
 //         let mut fee_data = fee_share.borrow_mut();
+//         for {user , fee_data} in fee_data.iter() {
 
+//         }
 
 //     });
 //     ic_cdk::println!("Total APR distribution completed successfully.");
+// }
+
+
+// pub static FEE_SHARE: RefCell<BTreeMap<Principal, BTreeMap<String, Nat>>> = RefCell::new(BTreeMap::new());
+#[query]
+pub fn get_users_pool_apy(pool_name : String , user : Principal) -> Nat {
+    FEE_SHARE.with(|fee_share|{
+        let fee = fee_share.borrow();
+       fee.get(&user)
+       .and_then(|pool| pool.get(&pool_name))
+       .cloned()
+       .unwrap_or(Nat::from(0u128))
+    })
+}
+
+
+#[update]
+pub fn decrease_users_apy(user : Principal , pool_name : String){
+    FEE_SHARE.with(|fee_share|{
+        let mut fee = fee_share.borrow_mut();
+        
+        if let Some(pool) = fee.get_mut(&user){
+            if let Some(value) = pool.get_mut(&pool_name){
+                let old_value = value.clone();
+                *value = Nat::from(0u128);
+            }
+        }
+    });
+    // decrease_total_apr();
+}
+
+// #[update]
+// fn decrease_total_apr(){
+
 // }

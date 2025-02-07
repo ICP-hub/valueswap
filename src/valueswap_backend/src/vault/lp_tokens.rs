@@ -9,6 +9,7 @@ use crate::api::transfer::icrc1_transfer;
 use crate::constants::asset_address::LP_LEDGER_ADDRESS;
 use crate::utils::types::*;
 use crate::with_state;
+use crate::vault::apy::*;
 
 thread_local! {
     static TOTAL_LP_SUPPLY : RefCell<Nat> = RefCell::new(Nat::from(0u128));
@@ -357,7 +358,6 @@ fn get_users_lp(user_id: Principal) -> Option<Nat> {
     })
 }
 
-
 // TODO Send token amount to pool canister instead of user_share ratio
 #[update]
 async fn burn_lp_tokens(params: Pool_Data, pool_name: String, amount: Nat) -> Result<(), String> {
@@ -430,7 +430,11 @@ async fn burn_lp_tokens(params: Pool_Data, pool_name: String, amount: Nat) -> Re
         Err(_) => return Err("Failed to parse pool_value to f64.".to_string()),
     };
 
-    let tokens_to_transfer = pool_value_f64 * user_share_ratio;
+    let mut tokens_to_transfer = pool_value_f64 * user_share_ratio;
+
+    let apy_earned = get_users_pool_apy(pool_name.clone() , user.clone());
+
+    tokens_to_transfer += apy_earned.to_string().parse::<f64>().unwrap_or_default();
 
     let result: Result<(), String> = call(
         canister_id,
@@ -444,6 +448,7 @@ async fn burn_lp_tokens(params: Pool_Data, pool_name: String, amount: Nat) -> Re
         return Err(e);
     }
 
+    decrease_users_apy(user.clone() , pool_name.clone());
     decrease_pool_lp(pool_name.clone(), amount.clone());
     decrease_user_pool_lp(user, pool_name, amount.clone());
     decrease_total_lp(amount);
