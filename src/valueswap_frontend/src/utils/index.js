@@ -22,10 +22,31 @@ export const convertIntToCurrencyString = (value) => {
     return formattedValue;
 }
 
+let tokenListCache = null 
+
+export const getTokenId = async (tokenSymbol) => {
+    try {
+        if (!tokenListCache) {
+            const response = await fetch("https://api.coingecko.com/api/v3/coins/list");
+            tokenListCache = response.data;
+        }
+
+        const token = tokenListCache.find(
+            (t) => t.symbol.toLowerCase() === tokenSymbol.toLowerCase()
+        );
+
+        return token ? token.id : null;
+    } catch (err) {
+        console.error("Error fetching token list:", err);
+        return null;
+    }
+};
+
 // Use CoinGecko API to get the current price of the token
 export const convertTokenEquivalentUSD = async(tokenName, tokenPrice) => {
     try {
-        const token = await searchCoinGeckoById(tokenName.toLowerCase());
+        const tokenID = await getTokenId(tokenName.toLowerCase())
+        const token = await searchCoinGeckoById(tokenID);
         if (!token) {
             throw new Error('Token not found');
         }
