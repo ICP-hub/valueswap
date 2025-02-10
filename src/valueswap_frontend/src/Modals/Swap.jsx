@@ -486,7 +486,7 @@ const Swap = () => {
                         {SwapModalData.MainButtonsText.ConfirmSwapping}
                       </GradientButton>
                       <p>
-                        Slipage:   {afterSlipageAmnt!== 0 && (((parseFloat(afterSlipageAmnt) - parseFloat(initialSlipageAmount)) / parseFloat(initialSlipageAmount)) / 100) + '%'}
+                        Slipage:   {afterSlipageAmnt!== 0 && (((parseFloat(afterSlipageAmnt) - parseFloat(initialSlipageAmount)) / parseFloat(initialSlipageAmount)) / 100).toPrecision(1) + '%'}
                       </p>
                     </div>
 
