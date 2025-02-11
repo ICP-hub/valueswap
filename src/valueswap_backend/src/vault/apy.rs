@@ -72,25 +72,30 @@ pub async fn users_apy(canister_id: Principal, pool_name: String, fee: Nat, toke
         });
     }
 
-    // total_apr();
+    total_apr();
 }
 
 
 // yet to complete
-// #[update]
-// pub fn total_apr() {
-//     FEE_SHARE.with(|fee_share| {
-//         let mut fee_data = fee_share.borrow_mut();
-//         for {user , fee_data} in fee_data.iter() {
+#[update]
+pub fn total_apr() {
+    FEE_SHARE.with(|fee_share| {
+        let fee_data = fee_share.borrow();
+        
+        for (users, pools) in fee_data.iter() {
+            for (pool_name, total_fee) in pools.iter() {
+                ic_cdk::println!(
+                    "Total APR for pool {} in canister {}: {}",
+                    pool_name, users, total_fee
+                );
+            }
+        }
+    });
+    
+    ic_cdk::println!("Total APR distribution completed successfully.");
+}
 
-//         }
 
-//     });
-//     ic_cdk::println!("Total APR distribution completed successfully.");
-// }
-
-
-// pub static FEE_SHARE: RefCell<BTreeMap<Principal, BTreeMap<String, Nat>>> = RefCell::new(BTreeMap::new());
 #[query]
 pub fn get_users_pool_apy(pool_name : String , user : Principal) -> Nat {
     FEE_SHARE.with(|fee_share|{
@@ -115,10 +120,4 @@ pub fn decrease_users_apy(user : Principal , pool_name : String){
             }
         }
     });
-    // decrease_total_apr();
 }
-
-// #[update]
-// fn decrease_total_apr(){
-
-// }
