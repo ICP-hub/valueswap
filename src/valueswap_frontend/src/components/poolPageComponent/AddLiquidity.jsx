@@ -55,8 +55,102 @@ const AddLiquidity = () => {
   const [currentRang, setCurrentRange] = useState(0)
   const [tokens, setTokens] = useState([])
   const [restTokens, setRestTokens] = useState([])
+  const [token1, setToken1] = useState(null);
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
-  const {backendActor,principal} = useAuth()
+  const {backendActor,principal, createTokenActor} = useAuth()
+
+
+  const fetchMetadata = async (CanisterId) => {
+    try {
+      const ledgerActor = await createTokenActor(CanisterId);
+      const result = await ledgerActor?.icrc1_metadata();
+      console.log("Fetched metadata:", result);
+  
+      // Extract decimals and symbol from the metadata
+      const decimalsEntry = result.find(([key]) => key === "icrc1:decimals");
+      const symbolEntry = result.find(([key]) => key === "icrc1:symbol");
+  
+      const decimals = decimalsEntry ? Number(decimalsEntry[1]?.Nat) : null; // Convert BigInt to Number
+      const symbol = symbolEntry ? symbolEntry[1]?.Text : null;
+      console.log("meta", decimals, symbol)
+      return {
+        decimals,
+        symbol,
+      };
+    } catch (error) {
+      console.error("Error fetching metadata:", error);
+      return null; // Return null in case of an error
+    }
+  };
+
+  const initToken = useCallback(async()=>{
+    const initialToken = tokens[0]
+    let data = {}
+    console.log("II : ", initialToken)
+    try{
+      const {decimals, symbol} = await fetchMetadata(initialToken?.token_name == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC)
+      console.log("D  : ",decimals)
+      if(initialToken && decimals){
+        const {weight, token_name, image, balance} = initialToken
+        data =  {
+          weights : weight.toString(),
+          currencyAmount : 0,
+          LongForm : "",
+          ShortForm: token_name.toUpperCase(),
+          ImagePath : image,
+          balance : parseFloat(balance) / Math.pow(10,decimals),
+          canisterId :  token_name == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC
+        }
+      }
+      if(initialToken?.token_name){
+        data.currencyAmount = await convertTokenEquivalentUSD(initialToken?.token_name)
+      }
+    }catch(err){
+      console.error(err)
+    }finally{
+      setToken1(data)
+    }
+
+  },[id,principal,tokens])
+
+  const initRestToken = useCallback(async () => {
+    const splittedTokenArr = tokens.slice(1);
+  
+    try {
+      // Step 1: Fetch metadata for all tokens in parallel
+      const metadataResults = await Promise.all(splittedTokenArr.map(async (token) => {
+        const canisterId = token?.token_name === "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC;
+        const metadata = await fetchMetadata(canisterId);
+        return { token, decimals : metadata?.decimals, canisterId };
+      }));
+  
+      // Step 2: Process tokens and fetch USD equivalents in parallel
+      const restTT = await Promise.all(metadataResults.map(async ({ token, decimals, canisterId }) => {
+        // if (!decimals) return null; // Skip if decimals are missing
+  
+        let data = {
+          ImagePath: token.image,
+          ShortForm: token.token_name.toUpperCase(),
+          weights: parseFloat(token.weight),
+          balance: parseFloat(token.balance) / Math.pow(10, 8), // TODO : Use fetched decimals
+          CanisterId: canisterId,
+          currencyAmount: 0 // Initialize for now
+        };
+  
+        // Fetch USD conversion
+        data.currencyAmount = await convertTokenEquivalentUSD(token?.token_name);
+        return data;
+      }));
+  
+      setRestTokens(restTT); // Remove any null values
+    } catch (err) {
+      console.error(err);
+    }
+  }, [id, principal, tokens]);
+  
+  
+  
+  
 
   useEffect(() => {
     console.log("pool id", id)
@@ -64,19 +158,8 @@ const AddLiquidity = () => {
   }, [id,principal])
 
   useEffect(()=>{
-    setRestTokens(()=>{
-      const splittedTokenArr = tokens.slice(1)
-      const restTT = splittedTokenArr.map(token=>{
-        return {
-            ImagePath: token.image,
-            ShortForm: token.token_name.toUpperCase(),
-            weights: parseFloat(token.weight),
-            currencyAmount: 1000,
-            balance : parseFloat(token.balance) / Math.pow(10,8) // Get decimals from backend
-        }
-      })
-      return restTT
-    })
+    initToken()
+    initRestToken()
   },[tokens])
 
   /**
@@ -95,7 +178,7 @@ const AddLiquidity = () => {
         throw new Error(data.Err)
       }
     }catch(err){
-      console.error("Error fetching pool data", JSON.stringify(err))
+      console.error("Error fetching pool data")
       setTokens([])
     }finally{
       console.log("done fetching pool data",tokens)
@@ -115,9 +198,8 @@ const AddLiquidity = () => {
   const [optimizeEnable, setOptimizeEnable] = React.useState(true);
   const [initialTokenAmount, setInitialTokenAmount] = React.useState(0);
   const [equivalentUSD, setEquivalentUSD] = React.useState(0);
-  const initialTokenBalance = 500; // Static value
   const initialTokenRef = React.useRef(null);
-  const restTokensAmount = [100, 200]; // Example static data
+  const [restTokensAmount,setRestTokenAmount] = useState([]);
   const restTokensRefs = React.useRef([]);
 
   const InitialToken = {
@@ -128,47 +210,39 @@ const AddLiquidity = () => {
     currencyAmount: 500,
   };
 
-  const init = useMemo(()=>{
-    const initialToken = tokens[0]
-    console.log("II : ", initialToken)
-    return {
-      weights : initialToken?.weight.toString(),
-      currencyAmount : 0,
-      LongForm : "",
-      ShortForm: initialToken?.token_name.toUpperCase(),
-      ImagePath : initialToken?.image,
-      balance : parseFloat(initialToken?.balance) / Math.pow(10,8) // Get Decimals from backend
-    }
-  },[id,principal,tokens])
+  console.log("Init : \n",token1,"\nRest :",restTokens)
 
-  console.log("Init : \n",init,"\nRest :",restTokens)
 
-  const fetchCurrPrice=useCallback(async()=>{
-    const price = await convertTokenEquivalentUSD(init?.ShortForm, initialTokenAmount)
-    return price
-  },[id, initialTokenAmount])
-
-  useEffect(()=>{
-    fetchCurrPrice()
-    .then((price)=>{
-      console.log("price", price)
-      setEquivalentUSD(price)
-    })
-  },[id, initialTokenAmount])
-
-  const handleInput = (e, index) => {
+  const handleInput = (e) => {
     const value = parseFloat(e.target.value) || 0;
-    if (index === 0) {
-      setInitialTokenAmount(value);
-    } else {
-      restTokensAmount[index - 1] = value;
-    }
+    setInitialTokenAmount(value);
   };
 
   const ButtonActive = true; // Static value
   const isAuthenticated = true; // Static value
   const AmountSelectCheck = true; // Static value
   const poolName = "ExamplePool"; // Static value
+
+  // Function to calculate equivalent rest token amounts
+  const calculateEquivalentAmounts = useCallback((initCurrencyAmount, restTokens) => {
+    console.log("Init Currency Amount : ", token1?.currencyAmount)
+    const initToUSD = 1 / token1?.currencyAmount; // 1 USD = ? token1
+    const equivalentAmounts = restTokens.map(token => {
+      const restTokenToUSD = 1 / token.currencyAmount; // 1 USD = ? restToken
+      const equivalentAmount = token1?.currencyAmount * (initToUSD / restTokenToUSD);
+      return equivalentAmount;
+    });
+    console.log("Equivalent Amounts : ", equivalentAmounts)
+    setRestTokenAmount(equivalentAmounts);
+  }, [token1]);
+
+  // Call the function after fetching the pool data
+  useEffect(() => {
+    if (tokens.length > 0) {
+      const initCurrencyAmount = token1?.currencyAmount; // Initial currency amount is 0
+      calculateEquivalentAmounts(initCurrencyAmount, restTokens);
+    }
+  }, [restTokens, calculateEquivalentAmounts,token1?.currencyAmount]);
 
   return (
     <div className=''>
@@ -182,31 +256,31 @@ const AddLiquidity = () => {
           <div className='flex flex-col'>
             <div>
               <input
-                className={`${initialTokenAmount > initialTokenBalance ? "text-red-500" : ""} font-normal leading-5 text-xl sm:text-3xl py-1 inline-block bg-transparent border-none outline-none`}
+                className={`${initialTokenAmount > token1?.balance ? "text-red-500" : ""} font-normal leading-5 text-xl sm:text-3xl py-1 inline-block bg-transparent border-none outline-none`}
                 type="number"
                 min='0'
                 value={isNaN(initialTokenAmount) ? "" : initialTokenAmount}
                 ref={initialTokenRef}
-                onChange={(e) => handleInput(e, 0)}
+                onChange={(e) => handleInput(e)}
               />
             </div>
             <span className='text-sm sm:text-base font-normal'>
-              ${init?.currencyAmount.toLocaleString() || 0}
+              ${(token1?.currencyAmount * initialTokenAmount) || 0}
             </span>
           </div>
           <div className='flex flex-col justify-center'>
             <div className='flex gap-3 items-center'>
-              <img src={init?.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
+              <img src={token1?.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
               <span className='text-base sm:text-2xl font-normal'>
-                {init?.ShortForm}
+                {token1?.ShortForm}
               </span>
               <span className='text-sm sm:text-2xl font-normal'>•</span>
               <span className='py-1 px-2 sm:px-3'>
-                {init?.weights} %
+                {token1?.weights} %
               </span>
             </div>
             <span className='inline-flex justify-center gap-2 w-full text-center font-normal leading-5 text-sm sm:text-base'>
-              <p className={`${initialTokenAmount > initialTokenBalance ? "text-red-500" : ""}`}>{init?.balance.toLocaleString()} {init?.ShortForm}</p>
+              <p className={`${initialTokenAmount > token1?.balance ? "text-red-500" : ""}`}>{token1?.balance} {token1?.ShortForm}</p>
               <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
             </span>
           </div>
@@ -214,7 +288,7 @@ const AddLiquidity = () => {
 
         <div className='flex flex-col gap-4'>
           {restTokens.map((token, index) => {
-            const balance = token.balance; // Example static balance
+            const balance = token.balance;
 
             return (
               <div key={index}>
@@ -226,14 +300,14 @@ const AddLiquidity = () => {
                         className="font-normal leading-5 text-xl sm:text-3xl py-1 inline-block outline-none bg-transparent"
                         type="number"
                         min="0"
-                        value={isNaN(restTokensAmount[index]) ? "" : restTokensAmount[index]}
+                        value={isNaN(restTokensAmount[index]) ? "" : restTokensAmount[index] * initialTokenAmount}
                         placeholder="0"
                         ref={(el) => (restTokensRefs.current[index] = el)}
-                        onChange={(e) => handleInput(e, index + 1)}
+                        // onChange={(e) => handleInput(e, index + 1)}
                       />
                     </div>
                     <span className='text-sm sm:text-base font-normal'>
-                      ${token.currencyAmount?.toLocaleString() || "0"}
+                      ${token.currencyAmount * (restTokensAmount[index] * initialTokenAmount) || "0"}
                     </span>
                   </div>
                   <div className='flex flex-col justify-center'>
@@ -289,7 +363,7 @@ const AddLiquidity = () => {
                   <td>{data.title}</td>
                   {
                     data.title === 'Gas fee' ? (
-                      <td>{`${data.value} ${InitialToken.ShortForm} ( $${equivalentUSD} )`}</td>
+                      <td>{`${data.value} ${token1?.ShortForm} ( $${equivalentUSD} )`}</td>
                     ) : (
                       <td>{data.value.toLocaleString()}</td>
                     )
@@ -450,4 +524,4 @@ const AddLiquidity = () => {
   
 }
 
-export default AddLiquidity 
+export default AddLiquidity
