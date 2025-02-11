@@ -28,12 +28,15 @@ export const getTokenId = async (tokenSymbol) => {
     try {
         if (!tokenListCache) {
             const response = await fetch("https://api.coingecko.com/api/v3/coins/list");
-            tokenListCache = response.data;
+            tokenListCache = await response.json(); // Ensure response is parsed as JSON
+            console.log("Token list fetched:", tokenListCache); // Log the token list
         }
 
         const token = tokenListCache.find(
             (t) => t.symbol.toLowerCase() === tokenSymbol.toLowerCase()
         );
+
+        console.log("Token found:", token); // Log the found token
 
         return token ? token.id : null;
     } catch (err) {
@@ -43,16 +46,21 @@ export const getTokenId = async (tokenSymbol) => {
 };
 
 // Use CoinGecko API to get the current price of the token
-export const convertTokenEquivalentUSD = async(tokenName, tokenPrice) => {
+export const convertTokenEquivalentUSD = async (tokenName) => {
     try {
-        const tokenID = await getTokenId(tokenName.toLowerCase())
+        console.log("Token name:", tokenName);
+        const tokenID = await getTokenId(tokenName.toLowerCase());
+        console.log("Token ID:", tokenID);
+        if (!tokenID) {
+            throw new Error('Token ID not found');
+        }
         const token = await searchCoinGeckoById(tokenID);
         if (!token) {
             throw new Error('Token not found');
         }
-        const currentPrice = token?.market_data?.current_price?.usd
-        return currentPrice * tokenPrice;
+        const currentPrice = token?.market_data?.current_price?.usd;
+        return currentPrice;
     } catch (err) {
         console.error('Error fetching token data:', err);
     }
-}
+};
