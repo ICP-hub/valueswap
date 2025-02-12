@@ -8,6 +8,7 @@ import Echarts from '../portfolioComponents/Echarts';
 import { IOSSwitch } from '../../buttons/SwitchButton';
 import { convertTokenEquivalentUSD } from '../../utils';
 import { useAuth } from '../utils/useAuthClient';
+import { Principal } from '@dfinity/principal';
 
 const RestTokens = [
   {
@@ -33,10 +34,6 @@ const Result = {
       value : '$125,165'
     },
     {
-      title : 'LP Tokens',
-      value : 0.0086
-    },
-    {
       title : 'Your pool share',
       value : '0.0001%',
     },
@@ -56,6 +53,7 @@ const AddLiquidity = () => {
   const [tokens, setTokens] = useState([])
   const [restTokens, setRestTokens] = useState([])
   const [token1, setToken1] = useState(null);
+  const [poolData, setPoolData] = useState([]);
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
   const {backendActor,principal, createTokenActor} = useAuth()
 
@@ -88,18 +86,22 @@ const AddLiquidity = () => {
     let data = {}
     console.log("II : ", initialToken)
     try{
-      const {decimals, symbol} = await fetchMetadata(initialToken?.token_name == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC)
-      console.log("D  : ",decimals)
+      const response = await await backendActor.get_decimals(initialToken?.ledger_canister_id);
+      let decimals = 0;
+      if(response?.Ok){
+        decimals = parseInt(response.Ok);
+      }
       if(initialToken && decimals){
-        const {weight, token_name, image, balance} = initialToken
+        const {weight, token_name, image, balance, ledger_canister_id} = initialToken
         data =  {
           weights : weight.toString(),
           currencyAmount : 0,
           LongForm : "",
           ShortForm: token_name.toUpperCase(),
           ImagePath : image,
+          decimals,
           balance : parseFloat(balance) / Math.pow(10,decimals),
-          canisterId :  token_name == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC
+          canisterId :  ledger_canister_id
         }
       }
       if(initialToken?.token_name){
@@ -119,28 +121,48 @@ const AddLiquidity = () => {
     try {
       // Step 1: Fetch metadata for all tokens in parallel
       const metadataResults = await Promise.all(splittedTokenArr.map(async (token) => {
-        const canisterId = token?.token_name === "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC;
-        const metadata = await fetchMetadata(canisterId);
-        return { token, decimals : metadata?.decimals, canisterId };
+        const canisterId = token?.ledger_canister_id
+        try{
+          const response = await backendActor.get_decimals(canisterId);
+          console.log(response, "Meta")
+          if(response?.Ok){
+            const decimals = parseInt(response.Ok);
+            return {
+              token,
+              decimals,
+              canisterId
+            };
+          }
+        }catch(err){
+          console.error(err)
+          return {
+            token,
+            decimals : null,
+            canisterId
+          };
+        }
       }));
   
       // Step 2: Process tokens and fetch USD equivalents in parallel
       const restTT = await Promise.all(metadataResults.map(async ({ token, decimals, canisterId }) => {
-        // if (!decimals) return null; // Skip if decimals are missing
+        if (!decimals) return null; // Skip if decimals are missing
   
         let data = {
           ImagePath: token.image,
           ShortForm: token.token_name.toUpperCase(),
           weights: parseFloat(token.weight),
-          balance: parseFloat(token.balance) / Math.pow(10, 8), // TODO : Use fetched decimals
+          balance: parseFloat(token.balance) / Math.pow(10, decimals), // TODO : Use fetched decimals
           CanisterId: canisterId,
-          currencyAmount: 0 // Initialize for now
+          currencyAmount: 0 ,// Initialize for now,
+          decimals
         };
   
         // Fetch USD conversion
         data.currencyAmount = await convertTokenEquivalentUSD(token?.token_name);
         return data;
       }));
+
+      console.log(restTT)
   
       setRestTokens(restTT); // Remove any null values
     } catch (err) {
@@ -148,14 +170,6 @@ const AddLiquidity = () => {
     }
   }, [id, principal, tokens]);
   
-  
-  
-  
-
-  useEffect(() => {
-    console.log("pool id", id)
-    getPoolData(id)
-  }, [id,principal])
 
   useEffect(()=>{
     initToken()
@@ -173,6 +187,7 @@ const AddLiquidity = () => {
       if(data?.Ok){
         console.log("pool data", data.Ok)
         const pool_datas = data.Ok 
+        setPoolData(pool_datas)
         setTokens(pool_datas[0].pool_data)
       }else{
         throw new Error(data.Err)
@@ -184,6 +199,11 @@ const AddLiquidity = () => {
       console.log("done fetching pool data",tokens)
     }
   },[id])
+
+  useEffect(() => {
+    console.log("pool id", id)
+    getPoolData(id)
+  }, [id,principal])
 
   // let TokenData = portfolioSampleData.TableData[id]
 
@@ -212,6 +232,37 @@ const AddLiquidity = () => {
 
   console.log("Init : \n",token1,"\nRest :",restTokens)
 
+  const addLiquidity = useCallback(async()=>{
+    const pool_data = poolData.map((pool)=>{
+      const params = pool.pool_data
+      const param = params.map((token,index)=>{
+        const amount = index === 0 ? initialTokenAmount : parseInt(restTokensAmount[index - 1])
+        const decimal = index === 0 ? token1?.decimals : restTokens[index - 1].decimals // TODO : Use fetched decimals
+        return {
+          value : BigInt(amount * Math.pow(10,decimal)),
+          weight : BigInt(token.weight),
+          token_name : token.token_name,
+          ledger_canister_id : token.ledger_canister_id,
+          image : token.image,
+          balance : BigInt(token.balance)
+        }
+      })
+      console.log("Param : ", param)
+      return param
+    })
+    console.log(pool_data)
+    try{
+      const response = await backendActor.create_pools({pool_data : pool_data[0], swap_fee : BigInt(0)})
+      console.log(response)
+      if(response?.Ok){
+        console.log("Success")
+      }else{
+        throw new Error(JSON.stringify(response.Err))
+      }
+    }catch(err){
+      console.error(err)
+    }
+  },[poolData])
 
   const handleInput = (e) => {
     const value = parseFloat(e.target.value) || 0;
@@ -224,25 +275,38 @@ const AddLiquidity = () => {
   const poolName = "ExamplePool"; // Static value
 
   // Function to calculate equivalent rest token amounts
-  const calculateEquivalentAmounts = useCallback((initCurrencyAmount, restTokens) => {
-    console.log("Init Currency Amount : ", token1?.currencyAmount)
-    const initToUSD = 1 / token1?.currencyAmount; // 1 USD = ? token1
-    const equivalentAmounts = restTokens.map(token => {
-      const restTokenToUSD = 1 / token.currencyAmount; // 1 USD = ? restToken
-      const equivalentAmount = token1?.currencyAmount * (initToUSD / restTokenToUSD);
-      return equivalentAmount;
+  const calculateEquivalentAmounts = useCallback(async (canisterID1) => {
+    if (!token1 || !restTokens.length > 0) return;
+    
+    const equivalentAmounts = await Promise.all(
+      restTokens.map(async (token) => {
+        const precomputedSwap = await backendActor.pre_compute_swap({
+          token1_name: token1?.ShortForm?.toLowerCase(),
+          token_amount: initialTokenAmount * Math.pow(10, token1?.decimals),
+          token2_name: token.ShortForm?.toLowerCase(),
+          ledger_canister_id1: Principal.fromText(canisterID1),
+          ledger_canister_id2: token.CanisterId,
+        });
+        console.log(precomputedSwap)
+        return parseFloat(precomputedSwap[1]).toLocaleString() // TODO : Use fetched decimals
+      })
+    );
+
+    equivalentAmounts.forEach((amount, index) => {
+      amount = (parseInt(amount) / Math.pow(10, 8)); // TODO : Use fetched decimals
     });
-    console.log("Equivalent Amounts : ", equivalentAmounts)
+
+    console.log("Equivalent Amounts : ", equivalentAmounts);
     setRestTokenAmount(equivalentAmounts);
-  }, [token1]);
+  }, [token1, backendActor,restTokens, initialTokenAmount]);
 
   // Call the function after fetching the pool data
   useEffect(() => {
     if (tokens.length > 0) {
-      const initCurrencyAmount = token1?.currencyAmount; // Initial currency amount is 0
-      calculateEquivalentAmounts(initCurrencyAmount, restTokens);
+      const canisterID1 = tokens[0].token_name === "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC;
+      calculateEquivalentAmounts(canisterID1);
     }
-  }, [restTokens, calculateEquivalentAmounts,token1?.currencyAmount]);
+  }, [restTokens, calculateEquivalentAmounts,token1?.currencyAmount,initialTokenAmount]);
 
   return (
     <div className=''>
@@ -300,14 +364,15 @@ const AddLiquidity = () => {
                         className="font-normal leading-5 text-xl sm:text-3xl py-1 inline-block outline-none bg-transparent"
                         type="number"
                         min="0"
-                        value={isNaN(restTokensAmount[index]) ? "" : restTokensAmount[index] * initialTokenAmount}
+                        value={isNaN(parseInt(restTokensAmount[index])) ? "" : parseInt(restTokensAmount[index])}
                         placeholder="0"
                         ref={(el) => (restTokensRefs.current[index] = el)}
                         // onChange={(e) => handleInput(e, index + 1)}
+                        disabled={true}
                       />
                     </div>
                     <span className='text-sm sm:text-base font-normal'>
-                      ${token.currencyAmount * (restTokensAmount[index] * initialTokenAmount) || "0"}
+                      ${parseInt(restTokensAmount[index]) * token.currencyAmount || "0"}
                     </span>
                   </div>
                   <div className='flex flex-col justify-center'>
@@ -341,7 +406,8 @@ const AddLiquidity = () => {
             } else if (!AmountSelectCheck) {
               toast.warn('You do not have enough tokens.');
             } else {
-              fetchPoolName(poolName);
+              // fetchPoolName(poolName);
+              addLiquidity();
               console.log("dispatched finished");
             }
           }}
