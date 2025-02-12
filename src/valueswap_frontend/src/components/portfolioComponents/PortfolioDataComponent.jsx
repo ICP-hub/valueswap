@@ -241,33 +241,12 @@ const PortfolioDataComponent = () => {
                           ))}
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className='relative'>
                         {isAuthenticated ? (
                           //  allDataInPool
 
                           allDataInPool.length == 0  ? (
-                            Array.from({ length: 3 }).map((_, index) => (
-                              <tr key={index}>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                              </tr>
-                            ))
+                            <p className='absolute w-full text-center'>No Pools Found!</p>
                           ) : (
                             currentItems?.map((Poolinfo, index) => (
                               
