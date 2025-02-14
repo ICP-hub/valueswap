@@ -10,40 +10,6 @@ import { convertTokenEquivalentUSD } from '../../utils';
 import { useAuth } from '../utils/useAuthClient';
 import { Principal } from '@dfinity/principal';
 
-const RestTokens = [
-  {
-    ImagePath: "path/to/image1.png",
-    ShortForm: "ETH",
-    weights: 50,
-    currencyAmount: 1000,
-  },
-  {
-    ImagePath: "path/to/image2.png",
-    ShortForm: "BTC",
-    weights: 30,
-    currencyAmount: 2000,
-  },
-];
-
-const Result = {
-  heading : 'Total',
-  headingData : '$0.00',
-  data : [
-    {
-      title : 'Total Pool value locked',
-      value : '$125,165'
-    },
-    {
-      title : 'Your pool share',
-      value : '0.0001%',
-    },
-    {
-      title : 'Gas fee',
-      value : 0.00052
-    }
-  ]
-}
-
 
 const AddLiquidity = () => {
 
@@ -54,8 +20,11 @@ const AddLiquidity = () => {
   const [restTokens, setRestTokens] = useState([])
   const [token1, setToken1] = useState(null);
   const [poolData, setPoolData] = useState([]);
+  const [swapFee, setSwapFee] = useState(0)
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
-  const {backendActor,principal, createTokenActor} = useAuth()
+  const {backendActor,principal, createTokenActor, getBalance} = useAuth()
+
+
 
 
   const fetchMetadata = async (CanisterId) => {
@@ -86,23 +55,27 @@ const AddLiquidity = () => {
     let data = {}
     console.log("II : ", initialToken)
     try{
-      const response = await await backendActor.get_decimals(initialToken?.ledger_canister_id);
+      const response = await backendActor.get_decimals(initialToken?.ledger_canister_id);
       let decimals = 0;
       if(response?.Ok){
         decimals = parseInt(response.Ok);
       }
       if(initialToken && decimals){
-        const {weight, token_name, image, balance, ledger_canister_id} = initialToken
-        data =  {
-          weights : weight.toString(),
-          currencyAmount : 0,
-          LongForm : "",
-          ShortForm: token_name.toUpperCase(),
-          ImagePath : image,
-          decimals,
-          balance : parseFloat(balance) / Math.pow(10,decimals),
-          canisterId :  ledger_canister_id
-        }
+        const {weight, token_name, image,  ledger_canister_id} = initialToken
+        console.log("Ledger : ", ledger_canister_id.toText())
+        data = await getBalance(ledger_canister_id.toText()).then(balance=>{
+          console.log("Balance : ", balance)
+          return {
+            weights: weight.toString(),
+            currencyAmount: 0,
+            LongForm: "",
+            ShortForm: token_name.toUpperCase(),
+            ImagePath: image,
+            decimals,
+            balance: parseFloat(balance) / Math.pow(10, decimals),
+            canisterId: ledger_canister_id
+          }
+      });
       }
       if(initialToken?.token_name){
         data.currencyAmount = await convertTokenEquivalentUSD(initialToken?.token_name)
@@ -113,7 +86,7 @@ const AddLiquidity = () => {
       setToken1(data)
     }
 
-  },[id,principal,tokens])
+  },[id,principal,tokens,getBalance])
 
   const initRestToken = useCallback(async () => {
     const splittedTokenArr = tokens.slice(1);
@@ -146,16 +119,17 @@ const AddLiquidity = () => {
       // Step 2: Process tokens and fetch USD equivalents in parallel
       const restTT = await Promise.all(metadataResults.map(async ({ token, decimals, canisterId }) => {
         if (!decimals) return null; // Skip if decimals are missing
-  
-        let data = {
+        const data = await getBalance(canisterId.toText()).then(balance=>{
+        return {
           ImagePath: token.image,
           ShortForm: token.token_name.toUpperCase(),
           weights: parseFloat(token.weight),
-          balance: parseFloat(token.balance) / Math.pow(10, decimals), // TODO : Use fetched decimals
+          balance: parseFloat(balance) / Math.pow(10, decimals), // TODO : Use fetched decimals
           CanisterId: canisterId,
           currencyAmount: 0 ,// Initialize for now,
           decimals
         };
+      })
   
         // Fetch USD conversion
         data.currencyAmount = await convertTokenEquivalentUSD(token?.token_name);
@@ -181,19 +155,20 @@ const AddLiquidity = () => {
    * @param {string} pool_id
    * @returns {void}
    */
-  const getPoolData = useCallback(async(pool_id)=>{
+  const getPoolData = useCallback(async()=>{
     try{
-      const data = await backendActor.get_specific_pool_data(pool_id)
+      const data = await backendActor.get_specific_pool_data(id)
       if(data?.Ok){
         console.log("pool data", data.Ok)
         const pool_datas = data.Ok 
         setPoolData(pool_datas)
         setTokens(pool_datas[0].pool_data)
+        setSwapFee(pool_datas[0].swap_fee)
       }else{
         throw new Error(data.Err)
       }
     }catch(err){
-      console.error("Error fetching pool data")
+      console.error("Error fetching pool data", err)
       setTokens([])
     }finally{
       console.log("done fetching pool data",tokens)
@@ -202,7 +177,7 @@ const AddLiquidity = () => {
 
   useEffect(() => {
     console.log("pool id", id)
-    getPoolData(id)
+    getPoolData()
   }, [id,principal])
 
   // let TokenData = portfolioSampleData.TableData[id]
@@ -222,13 +197,24 @@ const AddLiquidity = () => {
   const [restTokensAmount,setRestTokenAmount] = useState([]);
   const restTokensRefs = React.useRef([]);
 
-  const InitialToken = {
-    ImagePath: "path/to/initial-image.png",
-    ShortForm: "USDT",
-    LongForm : "Tether",
-    weights: 20,
-    currencyAmount: 500,
-  };
+  const Result = useMemo(()=>({
+    heading : 'Total',
+    headingData : '$0.00',
+    data : [
+      {
+        title : 'Total Pool value locked',
+        value : '$125,165'
+      },
+      {
+        title : 'Your pool share',
+        value : '0.0001%',
+      },
+      {
+        title : 'Gas fee',
+        value : swapFee.toLocaleString()
+      }
+    ]
+  }), [])
 
   console.log("Init : \n",token1,"\nRest :",restTokens)
 
@@ -237,14 +223,16 @@ const AddLiquidity = () => {
       const params = pool.pool_data
       const param = params.map((token,index)=>{
         const amount = index === 0 ? initialTokenAmount : parseInt(restTokensAmount[index - 1])
-        const decimal = index === 0 ? token1?.decimals : restTokens[index - 1].decimals // TODO : Use fetched decimals
+        const decimal = index === 0 ? token1?.decimals : restTokens[index - 1]?.decimals // TODO : Use fetched decimals
+        const balance = index  === 0 ? token1?.balance : restTokens[index - 1]?.balance
+        console.log("TYPE FOF AMOUNT : ", typeof amount, amount)
         return {
-          value : BigInt(amount * Math.pow(10,decimal)),
-          weight : BigInt(token.weight),
+          value : BigInt(amount) * BigInt(10 ** decimal),
+          weight : parseFloat(token.weight),
           token_name : token.token_name,
           ledger_canister_id : token.ledger_canister_id,
           image : token.image,
-          balance : BigInt(token.balance)
+          balance : parseFloat(balance) * Math.pow(10, decimal)
         }
       })
       console.log("Param : ", param)
@@ -252,7 +240,7 @@ const AddLiquidity = () => {
     })
     console.log(pool_data)
     try{
-      const response = await backendActor.create_pools({pool_data : pool_data[0], swap_fee : BigInt(0)})
+      const response = await backendActor.create_pools({pool_data : pool_data[0], swap_fee : parseFloat(swapFee) || 0})
       console.log(response)
       if(response?.Ok){
         console.log("Success")
@@ -262,7 +250,7 @@ const AddLiquidity = () => {
     }catch(err){
       console.error(err)
     }
-  },[poolData])
+  },[poolData,initialTokenAmount,restTokensAmount,swapFee])
 
   const handleInput = (e) => {
     const value = parseFloat(e.target.value) || 0;
@@ -307,6 +295,8 @@ const AddLiquidity = () => {
       calculateEquivalentAmounts(canisterID1);
     }
   }, [restTokens, calculateEquivalentAmounts,token1?.currencyAmount,initialTokenAmount]);
+
+  
 
   return (
     <div className=''>
