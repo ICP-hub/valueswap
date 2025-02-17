@@ -25,15 +25,15 @@ const ShowAllPools = () => {
   const navigate = useNavigate();
   const [filterData, setFilterData] = useState(""); // Search input value
   const ref = useRef();
+  const [loading, setLoading] = useState(true);
+  // const [currentItems, setCurrentItems] = useState(null);
 
-
-
-  
   // Fetch pool data from backend
   // console.log("allPool a")
   useEffect(() => {
     const fetchPoolData = async () => {
       try {
+        setLoading(true);
         const AllPoolsData = await valueswap_backend?.get_pool_data();
         if (AllPoolsData.Ok[0].length > 0) {
     
@@ -45,6 +45,10 @@ const ShowAllPools = () => {
         return;
       } catch (error) {
         console.error("Error fetching pool data", error);
+      }finally{
+        setTimeout(() => {
+          setLoading(false);
+        }, 2000);
       }
     };
     fetchPoolData();
@@ -64,7 +68,14 @@ const ShowAllPools = () => {
     }
   }, [filterData, allDataInPool]);
 
-
+  // useEffect(() => {
+  //   // Simulate fetching data
+  //   setTimeout(() => {
+  //     // Replace this with actual data fetching logic
+  //     setCurrentItems([]); // Example: set to an empty array to simulate no items found
+  //     setLoading(false);
+  //   }, 2000);
+  // }, []);
 
    // Calculate total pages for pagination
    const totalPages = Math.ceil(filteredPools?.length / itemsPerPage);
@@ -204,8 +215,8 @@ console.log("currentItems", currentItems)
                     </thead>
 
                     <tbody>
-                      {!currentItems || currentItems.length === 0 
-                        ? Array.from({ length: 8 }).map((_, index) => (
+                      {loading ? (
+                        Array.from({ length: 8 }).map((_, index) => (
                           <tr key={index}>
                             <td className='px-0 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
                               <Skeleton height={30} />
@@ -221,14 +232,17 @@ console.log("currentItems", currentItems)
                             </td>
                           </tr>
                         ))
-                        : currentItems[1]?.map((pool, index) => (
-                          <tr key={index} className='min-w-[1000px] mx-auto text-center'  onClick={() => {
-                                  navigate(
-                                    `/valueswap/portfolio/pool-info/${
-                                      currentItems[0] || index
-                                    }`
-                                  )
-                                }}>
+                      ) : !currentItems || currentItems.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
+                            No pool found
+                          </td>
+                        </tr>
+                      ) : (
+                        currentItems[1]?.map((pool, index) => (
+                          <tr key={index} className='min-w-[1000px] mx-auto text-center' onClick={() => {
+                            navigate(`/valueswap/portfolio/pool-info/${currentItems[0] || index}`);
+                          }}>
                             <td className='flex items-center   pr-3 gap-2 md:gap-5 my-4 text-sm font-medium text-white min-w-52 whitespace-nowrap md:text-base'>
                               <span className='flex items-center gap-x-2 flex-wrap gap-y-2'>
                                
@@ -261,7 +275,8 @@ console.log("currentItems", currentItems)
                               {pool.APR || "04% - 6%"}
                             </td>
                           </tr>
-                        ))}
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </SkeletonTheme>
