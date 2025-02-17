@@ -274,6 +274,7 @@ const AddLiquidity = () => {
           token2_name: token.ShortForm?.toLowerCase(),
           ledger_canister_id1: Principal.fromText(canisterID1),
           ledger_canister_id2: token.CanisterId,
+          fee : 30
         });
         console.log(precomputedSwap)
         return parseFloat(precomputedSwap[1]).toLocaleString() // TODO : Use fetched decimals

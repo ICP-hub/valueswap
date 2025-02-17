@@ -67,6 +67,7 @@ type Result_9 = variant {
   Err : CustomError;
 };
 type SwapParams = record {
+  fee : nat;
   token_amount : nat;
   ledger_canister_id1 : principal;
   ledger_canister_id2 : principal;
@@ -83,6 +84,7 @@ service : () -> {
   decrease_pool_lp : (text, nat) -> ();
   decrease_total_lp : (nat) -> ();
   decrease_user_pool_lp : (principal, text, nat) -> ();
+  decrease_users_apy : (principal, text) -> ();
   deposit_tokens : (nat, principal, principal) -> (Result_3);
   faucet : (principal, principal, nat) -> (Result_3);
   get_constant_product_value : () -> (float64) query;
@@ -99,6 +101,7 @@ service : () -> {
   get_user_share_ratio : (Pool_Data, text, nat) -> (Result_10);
   get_users_lp : (principal) -> (opt nat) query;
   get_users_pool : (principal) -> (Result_11) query;
+  get_users_pool_apy : (text, principal) -> (nat) query;
   icrc1_transfer : (principal, nat) -> (Result_4);
   icrc_get_balance : (principal, principal) -> (Result_4);
   increase_pool_lp_tokens : (Pool_Data) -> (Result_1);
@@ -116,7 +119,9 @@ service : () -> {
   search_swap_pool : (SwapParams) -> (Result_13) query;
   store_pool_data : (Pool_Data, principal) -> (Result);
   store_pool_data_curr : (Pool_Data) -> (Result);
+  total_apr : () -> ();
   total_lp_tokens : () -> () query;
+  users_apy : (principal, text, nat, nat) -> ();
   users_lp_share : (Pool_Data) -> (Result);
   users_pool : (Pool_Data) -> (Result_1);
 }
