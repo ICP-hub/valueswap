@@ -9,7 +9,7 @@ dfx canister call cketh icrc2_approve '(
     expected_allowance = null;
     expires_at = null;
     spender = record {
-      owner = principal "b77ix-eeaaa-aaaaa-qaada-cai";
+      owner = principal "be2us-64aaa-aaaaa-qaabq-cai";
       subaccount = null;
     };
   },
@@ -24,7 +24,7 @@ dfx canister call ckbtc icrc2_approve '(
     expected_allowance = null;
     expires_at = null;
     spender = record {
-      owner = principal "b77ix-eeaaa-aaaaa-qaada-cai";
+      owner = principal "be2us-64aaa-aaaaa-qaabq-cai";
       subaccount = null;
     };
   },

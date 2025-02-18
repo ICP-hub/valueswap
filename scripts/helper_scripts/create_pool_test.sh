@@ -4,11 +4,11 @@
 base_command="dfx canister call valueswap_backend create_pools"
 
 # Ledger IDs for cketh and ckbtc
-cketh_ledger_id="br5f7-7uaaa-aaaaa-qaaca-cai"
-ckbtc_ledger_id="bw4dl-smaaa-aaaaa-qaacq-cai"
+cketh_ledger_id="$(dfx canister id cketh)"
+ckbtc_ledger_id="$(dfx canister id ckbtc)"
 
 # Simulate multiple simultaneous calls using both ledger IDs alternately
-for i in {1..5}
+for i in {1..1}
 do
    # Use cketh_ledger_id for odd indexed calls and ckbtc_ledger_id for even indexed calls
    if [ $((i % 2)) -eq 0 ]; then
