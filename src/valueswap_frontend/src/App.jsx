@@ -10,6 +10,7 @@ import ConnectWallet from './Modals/ConnectWallet';
 import { CommonNavbarData } from './TextData';
 import LandingPage from './pages/LandingPage';
 import { useAuth } from './components/utils/useAuthClient';
+import Footer from './components/footer/Footer';
 function App() {
   const [clickConnectWallet, setClickConnectWallet] = useState(false);
   const [walletClicked, setWalletClicked] = useState(false);
@@ -23,11 +24,11 @@ function App() {
 
   
   return (
-    <div>
+    <div className=''>
       <div>
         {clickConnectWallet && <ConnectWallet setClickConnectWallet={setClickConnectWallet} setWalletClicked={setWalletClicked} />}
       </div>
-      <div className='sticky top-16 z-50'>
+      <div className=' sticky top-16 z-50'>
         {show && <Alert type={type} text={text} />}
       </div>
       <Router>
@@ -46,6 +47,7 @@ function App() {
             ))}
           </Routes>
         </Suspense>
+        <Footer/>
       </Router>  {/* Close Router */}
     </div>
   );

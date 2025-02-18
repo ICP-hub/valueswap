@@ -15,11 +15,11 @@ import { nanoid } from 'nanoid';
 export const LandingPageNavbarData = {
     ButtonText: 'Explore Pools',
     Links: [
-        {
-            LinkName: 'Home',
-            LinkId: 'home',
-            LinkPath: '/',
-        },
+        // {
+        //     LinkName: 'Home',
+        //     LinkId: 'home',
+        //     LinkPath: '/',
+        // },
         {
             LinkName: 'Swap',
             LinkId: 'swap',
@@ -44,14 +44,14 @@ export const LandingPageNavbarData = {
 }
 
 export const CommonNavbarData = {
-    ButtonText: 'Connect Wallet',
+    ButtonText: 'Connect',
     ButtonTextDisconnet: "Disconnect",
     Links: [
-        {
-            LinkName: 'Home',
-            LinkId: 'home',
-            LinkPath: '/',
-        },
+        // {
+        //     LinkName: 'Home',
+        //     LinkId: 'home',
+        //     LinkPath: '/',
+        // },
         {
             LinkName: 'Swap',
             LinkId: 'swap',
@@ -101,62 +101,62 @@ export const LandingPageData = {
         PartnershipData: [
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             },
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             },
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             },
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             },
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             },
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             },
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             },
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             },
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             },
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             },
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             },
             {
                 LogoLink: PartnerShipLogo,
-                CompanyName: 'Balancer App',
+                CompanyName: 'Valueswap App',
                 CompanyDesc: 'AMM/DEX'
             }
         ],
@@ -168,7 +168,7 @@ export const LandingPageData = {
             HeadingWordOne: "Our",
             HeadingWordTwo: "Innovative",
             HeadingWordThree: "techniques",
-            Description: "By integrating Balancer-like liquidity pool techniques, our decentralized exchange offers unparalleled asset handling, empowering users with optimized trading and portfolio ",
+            Description: "By integrating Valueswap-like liquidity pool techniques, our decentralized exchange offers unparalleled asset handling, empowering users with optimized trading and portfolio ",
             ButtonText: "Get Deatils",
         },
         LowerSection: {
@@ -184,7 +184,7 @@ export const LandingPageData = {
             WordOne: 'Why',
             WordTwo: 'choose',
             WordThree: 'us?',
-            Description: 'Dedicated to providing a modern trading environment, our platform integrates Balancer-like liquidity pools for optimized financial strategies.',
+            Description: 'Dedicated to providing a modern trading environment, our platform integrates Valueswap-like liquidity pools for optimized financial strategies.',
         },
         ElementTwo: {
             WordOne: 'Our',
@@ -295,16 +295,16 @@ export const SwapModalData = {
         Heading: 'Pay',
         Balance: 'Balance',
         Max: 'Max',
-        NoTokenSelectBalanceMessage: 'Select a Coin to Fetch Balance',
-        TokenSelectButtonText: 'Select a Token',
+        NoTokenSelectBalanceMessage: 'Select Coin to Fetch Balance',
+        TokenSelectButtonText: 'Select Token',
     },
 
     RecieveSection: {
         Heading: 'Recieve',
         Balance: 'Balance',
         Max: 'Max',
-        NoTokenSelectBalanceMessage: 'Select a Coin to Fetch Balance',
-        TokenSelectButtonText: 'Select a Token',
+        NoTokenSelectBalanceMessage: 'Select Coin to Fetch Balance',
+        TokenSelectButtonText: 'Select Token',
     },
     bothCoinsPresent: {
         Price: 'Price',
@@ -479,84 +479,115 @@ export const CreatePoolsData = {
     ]
 }
 
-
-export const portfolioSampleData = {
-    SeeMoreButtonText: 'See more',
-    SeeLessButtonText: 'See Less',
-    Headings: ['Token Composition', 'Balance', 'Pool value', 'APR', 'Time'],
-    TableData: [
+export const portfolioSampleData = [
+    {
+      pool_name: "Ethereum Pool",
+      pool_data: [
         {
-            PoolData: [
-                {
-                    Name: "BitCoin",
-                    ShortForm: "BTC",
-                    weights: 50,
-                    ImagePath: Bitcoin,
-                    Balance: 189050,
-                    Value: 189050
-                },
-                {
-                    Name: "LiteCoin",
-                    ShortForm: "LTC",
-                    weights: 25,
-                    ImagePath: LiteCoin,
-                    Balance: 189050,
-                    Value: 189050
-                },
-                {
-                    Name: "Ethereum",
-                    ShortForm: "ETH",
-                    weights: 25,
-                    ImagePath: Etherum,
-                    Balance: 189050,
-                    Value: 189050
-                },
-            ],
-            PoolMetaData: {
-                Balance: 125625170,
-                PoolValue: 125625172,
-                APRstart: 0.05,
-                APRend: 0.95,
-                Time: new Date(),
-                PoolId: nanoid(),
-                TwentyFourHourFees: 950.859,
-                TwentyFourHourVolume: 625175,
-                PersonalPoolBalance: 189.05
-            }
+          token_name: "ETH",
+          image: "https://example.com/images/eth.png",
+          weight: 0.5,
+          value: "50000000",
+          balance: "25000000",
+          APR: "2% - 3%",
         },
         {
-            PoolData: [
-                {
-                    Name: "BitCoin",
-                    ShortForm: "BTC",
-                    weights: 50,
-                    ImagePath: Bitcoin,
-                    Balance: 189050,
-                    Value: 189050
-                },
-                {
-                    Name: "LiteCoin",
-                    ShortForm: "LTC",
-                    weights: 50,
-                    ImagePath: LiteCoin,
-                    Balance: 189050,
-                    Value: 189050
-                },
-            ],
-            PoolMetaData: {
-                Balance: 125625175,
-                PoolValue: 125625175,
-                APRstart: 0.05,
-                APRend: 0.95,
-                Time: new Date(),
-                PoolId: nanoid(),
-                TwentyFourHourFees: 950.859,
-                TwentyFourHourVolume: 625175,
-                PersonalPoolBalance: 200
-            }
-        }
-    ]
-}
+          token_name: "USDT",
+          image: "https://example.com/images/usdt.png",
+          weight: 0.3,
+          value: "30000000",
+          balance: "15000000",
+        },
+        {
+          token_name: "DAI",
+          image: "https://example.com/images/dai.png",
+          weight: 0.2,
+          value: "20000000",
+          balance: "10000000",
+        },
+      ],
+    },
+    {
+      pool_name: "DeFi Pool",
+      pool_data: [
+        {
+          token_name: "UNI",
+          image: "https://example.com/images/uni.png",
+          weight: 0.4,
+          value: "40000000",
+          balance: "20000000",
+        },
+        {
+          token_name: "SUSHI",
+          image: "https://example.com/images/sushi.png",
+          weight: 0.4,
+          value: "40000000",
+          balance: "20000000",
+        },
+        {
+          token_name: "AAVE",
+          image: "https://example.com/images/aave.png",
+          weight: 0.2,
+          value: "20000000",
+          balance: "10000000",
+        },
+      ],
+    },
+    {
+      pool_name: "Stablecoin Pool",
+      pool_data: [
+        {
+          token_name: "USDC",
+          image: "https://example.com/images/usdc.png",
+          weight: 0.33,
+          value: "33000000",
+          balance: "16500000",
+        },
+        {
+          token_name: "USDT",
+          image: "https://example.com/images/usdt.png",
+          weight: 0.33,
+          value: "33000000",
+          balance: "16500000",
+        },
+        {
+          token_name: "DAI",
+          image: "https://example.com/images/dai.png",
+          weight: 0.34,
+          value: "34000000",
+          balance: "17000000",
+        },
+      ],
+    },
+    ...Array.from({ length: 17 }).map((_, i) => ({
+      pool_name: `Custom Pool ${i + 1}`,
+      pool_data: [
+        {
+          token_name: "TokenA",
+          image: `https://example.com/images/tokenA${i + 1}.png`,
+          weight: 0.4,
+          value: "40000000",
+          balance: "20000000",
+        },
+        {
+          token_name: "TokenB",
+          image: `https://example.com/images/tokenB${i + 1}.png`,
+          weight: 0.35,
+          value: "35000000",
+          balance: "17500000",
+        },
+        {
+          token_name: "TokenC",
+          image: `https://example.com/images/tokenC${i + 1}.png`,
+          weight: 0.25,
+          value: "25000000",
+          balance: "12500000",
+        },
+      ],
+    })),
+  ];
+     
+
 
 
 export const PoolCompositionsData = {

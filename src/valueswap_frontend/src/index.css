@@ -2,37 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 body {
+  margin: 0;
+  color: rgb(253, 253, 253);
   background-color: #000711;
-  color: white
+  background-image:
+
+    /* linear-gradient(
+      180deg,
+      rgba(217, 217, 217, 0.04) 0%,
+      rgba(115, 115, 115, 0.0) 100%
+    ), */
+    url('/image/overlay.png');
+    /* url('/image/bg_1.webp'); */
+  background-size: contain;
+  /* background-repeat: no-repeat; */
+  /* opacity: 120%; */
+  /* mix-blend-mode: color-dodge; */
 }
 
+
+
+
+
+
 @font-face {
-  font-family: "gilroy";
+  font-family: 'gilroy';
   src: url('./assets/fonts/gilroy/Gilroy-Regular.ttf');
 }
 
 @font-face {
-  font-family: "cabin";
+  font-family: 'cabin';
   src: url('./assets/fonts/gilroy-Regular.ttf');
 }
 
 @layer utilities {
-
   /* Act as a border */
   .button-gradient-wrapper {
     @apply relative overflow-hidden bg-gradient-to-r from-[#FFFFFF] to-[#99999900];
   }
 
   /* Gradient */
-  .button-gradient-wrapper::before {
-    background: conic-gradient(rgba(255, 255, 255, 0.906) 0deg,
-        transparent 80deg);
-    /* @apply absolute left-[-250%] top-[-85%] h-[300%] w-[600%] animate-border-spin content-['']; in Case the Css is broken this is old one to roll back */
-    @apply absolute left-[-250%] top-[-475%] h-[1050%] w-[600%] animate-border-spin content-[''];
-  }
-
-
+.button-gradient-wrapper:hover::before {
+  background: conic-gradient(
+    rgba(255, 255, 255, 0.87) 0deg,
+    transparent 80deg
+  );
+  /* @apply absolute left-[-250%] top-[-85%] h-[300%] w-[600%] animate-border-spin content-['']; in Case the Css is broken this is old one to roll back */
+  @apply absolute left-[-250%] top-[-475%] h-[1050%] w-[600%] animate-border-spin content-[''];
+}
   /* Body */
   .button-gradient-content {
     @apply absolute left-[1px] top-[1px] h-[calc(100%-2px)] w-[calc(100%-2px)] rounded-lg bg-[#C16800];
@@ -49,7 +69,6 @@ body {
   .custom-gradient {
     @apply absolute left-[1px] top-[1px] h-[calc(100%-2px)] w-[calc(100%-2px)] rounded-lg bg-[#C16800];
   }
-
 }
 .swiper-slide-active {
   width: 650px !important; /* Adjust the width as needed */
@@ -71,8 +90,6 @@ body {
   height: 3px;
 }
 
-
-
 .text-custom-size-14 {
   font-size: 14px;
 }
@@ -80,7 +97,6 @@ body {
 .text-custom-size-20 {
   font-size: 20px;
 }
-
 
 .hide-arrows::-webkit-inner-spin-button,
 .hide-arrows::-webkit-outer-spin-button {
@@ -96,25 +112,20 @@ body {
   z-index: 45;
 }
 
-input[type="number"]::-webkit-inner-spin-button {
+input[type='number']::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-input[type="number"] {
+input[type='number'] {
   -moz-appearance: textfield; /* Firefox */
 }
-
-
-
 
 /* swiper */
 /* index.css */
 
 /* Container for the entire component */
 .container {
- 
-
   margin: 0 auto;
   text-align: center;
 }
@@ -133,7 +144,7 @@ input[type="number"] {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background-color: #8D4C00;
+  background-color: #8d4c00;
   color: white;
   border: none;
   padding: 10px;
@@ -147,7 +158,6 @@ input[type="number"] {
 
 /* Step content area */
 .step-content {
-
 }
 
 /* Tooltip styling for the slider */
@@ -178,50 +188,68 @@ input[type="number"] {
 :root {
   --left-percent: 8%;
   --width-percent: 80%;
-  --container-width: calc(var(--width-percent) * 1vw); /* Calculate width in viewport width */
-  --left-px: calc(var(--left-percent) * 1px); /* Calculate left in viewport width */
-  --width-px: calc(var(--width-percent) * 1px); /* Calculate width in viewport width */
+  --container-width: calc(
+    var(--width-percent) * 1vw
+  ); /* Calculate width in viewport width */
+  --left-px: calc(
+    var(--left-percent) * 1px
+  ); /* Calculate left in viewport width */
+  --width-px: calc(
+    var(--width-percent) * 1px
+  ); /* Calculate width in viewport width */
 }
 
 @keyframes moveRight {
-from {
+  from {
     transform: translateX(0px);
-}
-to {
-    transform: translateX(80vw); /* Adjust this value to control how far they move */
-}
+  }
+  to {
+    transform: translateX(
+      80vw
+    ); /* Adjust this value to control how far they move */
+  }
 }
 @keyframes moveLeft {
-from {
+  from {
     transform: translateX(40px);
-}
-to {
-    transform: translateX(-80vw); /* Adjust this value to control how far they move */
-}
+  }
+  to {
+    transform: translateX(
+      -80vw
+    ); /* Adjust this value to control how far they move */
+  }
 }
 
-
-.animate-spin{
+.animate-spin {
   animation: spin 8s linear infinite !important;
 }
 
-
-
 #c1 {
-animation: moveRight 5s infinite linear; /* Adjust the duration and timing function as needed */
+  animation: moveRight 5s infinite linear; /* Adjust the duration and timing function as needed */
 }
 #c2 {
-animation: moveLeft 5s infinite linear; /* Adjust the duration and timing function as needed */
+  animation: moveLeft 5s infinite linear; /* Adjust the duration and timing function as needed */
 }
 
-
-.card-loader{
+.card-loader {
   background-color: blue !important;
 }
 
-
 /* width */
-::-webkit-scrollbar {
-display: none;
-  
+
+#navLink:after {
+  display: block;
+  content: '';
+  border-bottom: solid 1px #f7931a;
+  transform: scaleX(0);
+  transition: transform 250ms ease-in-out;
+}
+#navLink:hover:after {
+  transform: scaleX(1);
+}
+
+.whitepaper{
+  background-position : left center;
+  background-repeat : no-repeat;
+  background-origin : left; 
 }

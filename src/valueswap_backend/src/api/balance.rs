@@ -1,38 +1,3 @@
-// use ic_cdk::api::call;
-// use candid::Principal;
-// use icrc1::ledger::{Account, QueryError, QueryResult};
-
-// // Define the function to query the balance of an account
-// async fn icrc1_balance_of(token_canister_id: Principal, account: Account) -> Result<u64, QueryError> {
-//     // Construct the method name and arguments
-//     let method = "balance_of";
-//     let args = (account,);
-
-//     // Call the ICRC-1 token canister's balance_of function
-//     let result: QueryResult<u64> = call::query(
-//         token_canister_id,
-//         method,
-//         args,
-//     )
-//     .await
-//     .map_err(|err| QueryError::CallError(err.to_string()))?;
-
-//     // Return the result
-//     result.map_err(|err| QueryError::QueryError(err.to_string()))
-// }
-
-
-// // let token_canister_id = Principal::from_text("your-token-canister-id").unwrap();
-// // let account = Account {
-// //     owner: Principal::from_text("account-principal-id").unwrap(),
-// //     subaccount: None,  // You can provide an optional subaccount if needed
-// // };
-
-// // let balance = icrc1_balance_of(token_canister_id, account).await;
-// // match balance {
-// //     Ok(amount) => println!("Balance: {}", amount),
-// //     Err(e) => eprintln!("Error: {}", e),
-// // }
 
 use ic_cdk::api::call::CallResult;
 use candid::Principal;
@@ -50,16 +15,49 @@ pub struct Account {
 
 
 #[update]
-pub async fn icrc_get_balance(ledger_canister_id : Principal, id: Principal) -> Result<Nat, String> {
-    call_inter_canister::<Account, Nat>(
+pub async fn icrc_get_balance(
+    ledger_canister_id: Principal,
+    id: Principal,
+) -> Result<Nat, String> {
+    // Validate inputs
+    if ledger_canister_id == Principal::anonymous() {
+        return Err("Invalid ledger canister ID: Cannot be anonymous.".to_string());
+    }
+    if id == Principal::anonymous() {
+        return Err("Invalid account ID: Cannot be anonymous.".to_string());
+    }
+
+    // Debug: Logging input parameters
+    ic_cdk::println!(
+        "Debug: Fetching balance for account {} from ledger canister {}",
+        id,
+        ledger_canister_id
+    );
+
+    // Call inter-canister function
+    match call_inter_canister::<Account, Nat>(
         "icrc1_balance_of",
         Account {
             owner: id,
             subaccount: None,
         },
         ledger_canister_id,
-    ).await
+    )
+    .await
+    {
+        Ok(balance) => {
+            // Debug: Logging the returned balance
+            ic_cdk::println!("Debug: Retrieved balance: {}", balance);
+            Ok(balance)
+        }
+        Err(err) => {
+            // Debug: Logging the error
+            ic_cdk::println!("Error: Failed to fetch balance: {}", err);
+            Err(format!("Failed to retrieve balance: {}", err))
+        }
+    }
 }
+
 
 
 // execute methods of other canisters

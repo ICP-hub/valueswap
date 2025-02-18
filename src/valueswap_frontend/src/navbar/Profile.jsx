@@ -8,7 +8,7 @@ import DarkModeToggle from "./DarkModeToggle"
 import onClickOutside from 'react-onclickoutside';
 import { useAuth } from '../components/utils/useAuthClient';
 import { toast } from 'react-toastify';
-
+import { IOSSwitch } from '../buttons/SwitchButton';
 
 function Profile({ Principal, isAuthenticated, logout, principal }) {
     const [showProfile, setShowProfile] = useState(false)
@@ -44,7 +44,7 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
         setShowProfile(false);
     };
 
-    console.log("principal, ", principal)
+    console.log("principal, ", principal.toString())
 
     return (
         <div className='relative '>
@@ -55,7 +55,7 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
                 </div> */}
                 <img src="/image/Ellipse.png" alt="" className='' onClick={() => setShowProfile((prev) => !prev)} />
             </div>
-            {showProfile ? <div className='absolute bg-[#010427] top-16 w-[27vw] lg:w-[20vw] right-[-2rem] rounded-md py-2 px-2 lg:px-4 flex flex-col gap-y-4'>
+            {showProfile ? <div className='absolute font-gilroy bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl p-8 mb-8 top-16 w-[27vw] lg:w-[20vw] right-[-2rem]  py-2 px-2 lg:px-4 flex flex-col gap-y-4'>
                 <div className='flex gap-x-4 w-full'>
                     <img src="/image/Ellipse.png" alt="" className='' />
                     <div className='w-full flex'>
@@ -84,44 +84,19 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
                                 }
                             </div>
                         }
-                        {/* <div>
-                            <img src="" alt="" />
-                            <p className='text-xs  font-light'>Meta Mask</p>
-                        </div> */}
+                        
                     </div>
                 </div>
                 <hr />
-                {/* <div className='flex justify-between items-center'>
-                    <span className='text-3xl font-normal'>$ {parseFloat(balance)}</span>
-                    <ArrowCircleRightOutlinedIcon sx={{ transform: 'rotate(-45deg)', fontSize: '23px', cursor: 'pointer' }} />
-                </div> */}
-                <div className='w-full'>
-                    <GradientButton CustomCss={`w-full md:w-full h-[37px] font-[500]`}>
-                        Buy
-                    </GradientButton>
+                <div className='flex justify-between items-center'>
+                    <p>Testnet mode</p>
+                     <IOSSwitch sx={{ m: 1 }}   />
                 </div>
-                {/* <div className={`flex items-center justify-between`}>
-                    <p className='text-[#FFFFFFBF] font-normal'>Theme</p>
-                    <DarkModeToggle onToggle={setIsDarkMode} />
-                </div> */}
-                {/* <div className='text-[#FFFFFFBF] font-normal flex justify-between'>
-                    <p>Language</p>
-                    <select name="" id="English" className='focus:outline-none focus:shadow-outline bg-transparent'>
-                        <option value="English">English</option>
-                    </select>
-                </div> */}
-                {/* <div className='text-[#FFFFFFBF] font-normal flex justify-between'>
-                    <p>Network</p>
-                    <select name="" className='focus:outline-none focus:shadow-outline bg-transparent'>
-                        <option value="Ethereum">Ethereum</option>
-                    </select>
-                </div> */}
-                <hr />
-                <div className='flex justify-center gap-x-4'>
-                    <img src="./image/disconnect.png" alt="disconnect logo" />
-                    <button className='text-base font-gilroy font-medium' onClick={() => logout()}>
-                        Disconnect Wallet
-                    </button>
+                
+                <div className='w-full'>
+                    <GradientButton CustomCss={`w-full md:w-full h-[37px] font-[500]`} onClick={() => logout()}>
+                        Log out
+                    </GradientButton>
                 </div>
             </div> : ""}
         </div>

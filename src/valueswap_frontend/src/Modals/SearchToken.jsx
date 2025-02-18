@@ -1,28 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
-import { SearchTokenData, DummyDataTokens } from '../TextData';
-import { useSelector } from 'react-redux';
-import { useAuth } from '../components/utils/useAuthClient';
-import SearchIcon from '@mui/icons-material/Search';
-import { fetchCoinGeckoData, searchCoinGeckoById } from '../components/utils/fetchCoinGeckoData';
-import Skeleton from 'react-loading-skeleton';
+import React, { useEffect, useState } from "react";
+import { X } from "lucide-react";
+import { SearchTokenData } from "../TextData";
+import { useSelector } from "react-redux";
+import { useAuth } from "../components/utils/useAuthClient";
+import SearchIcon from "@mui/icons-material/Search";
+import { fetchCoinGeckoData, searchCoinGeckoById } from "../components/utils/fetchCoinGeckoData";
+import Skeleton from '@mui/material/Skeleton';
+import Stack from '@mui/material/Stack';
+import CloseIcon from '@mui/icons-material/Close';
+import Box from '@mui/material/Box';
 
-const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id, setTokenData }) => {
+
+const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenData }) => {
   const { createTokenActor } = useAuth();
   const { Tokens } = useSelector((state) => state.pool);
 
   const [TokenOption, SetTokenOption] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [metadata, setMetadata] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [allTokens, setAllTokens] = useState([]);
   const [filteredTokens, setFilteredTokens] = useState([]);
   const [canisterIdToken, setCanisterIdToken] = useState([]);
-
+  const [metaData, setMetadata] = useState(0)
   const HandleClickToken = (index) => {
     SetTokenOption(TokenOption === index ? null : index);
   };
 
-  // Fetch all tokens data from CoinGecko API using fetchCoinGeckoData
+  // Fetch all tokens data
   useEffect(() => {
     const fetchListOfCoins = async () => {
       try {
@@ -30,7 +33,7 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
         setAllTokens(fetchedListOfData);
         setFilteredTokens(fetchedListOfData);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       }
     };
     fetchListOfCoins();
@@ -38,10 +41,10 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
 
   // Filter tokens based on search query
   useEffect(() => {
-    if (searchQuery.trim() !== '') {
+    if (searchQuery.trim() !== "") {
       const filtered = allTokens.filter((token) => {
-        const tokenName = token.name || '';
-        const tokenSymbol = token.symbol || '';
+        const tokenName = token.name || "";
+        const tokenSymbol = token.symbol || "";
         return (
           tokenName.toLowerCase().includes(searchQuery.toLowerCase()) ||
           tokenSymbol.toLowerCase().includes(searchQuery.toLowerCase())
@@ -53,89 +56,85 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
     }
   }, [searchQuery, allTokens]);
 
-  // Fetch metadata for tokens when canisterIdToken changes
-  useEffect(() => {
-    const fetchMetadata = async () => {
-      try {
-        const fetchedMetadata = await Promise.all(
-          canisterIdToken.map(async (token) => {
-            console.log('ledger', token.contract_address);
-            const ledgerActor = await createTokenActor(token?.contract_address);
-            console.log('ledgerActor', ledgerActor);
-            const result = await ledgerActor?.icrc1_metadata();
-            console.log('metadata result', result);
-            return {
-              CanisterId: token?.contract_address,
-              id: token.id,
-              image: token.image,
-              Name: token.name,
-              metadata: result,
-            };
-          })
-        );
-        setMetadata(fetchedMetadata);
-      } catch (error) {
-        console.error('Error fetching metadata:', error);
-      }
-    };
-    if (canisterIdToken.length > 0) {
-      fetchMetadata();
+  
+  const fetchMetadata = async (CanisterId) => {
+    try {
+      const ledgerActor = await createTokenActor(CanisterId);
+      const result = await ledgerActor?.icrc1_metadata();
+      console.log("Fetched metadata:", result);
+  
+      // Extract decimals and symbol from the metadata
+      const decimalsEntry = result.find(([key]) => key === "icrc1:decimals");
+      const symbolEntry = result.find(([key]) => key === "icrc1:symbol");
+  
+      const decimals = decimalsEntry ? Number(decimalsEntry[1]?.Nat) : null; // Convert BigInt to Number
+      const symbol = symbolEntry ? symbolEntry[1]?.Text : null;
+      console.log("meta", decimals, symbol)
+      return {
+        decimals,
+        symbol,
+      };
+    } catch (error) {
+      console.error("Error fetching metadata:", error);
+      return null; // Return null in case of an error
     }
-  }, [canisterIdToken, createTokenActor]);
-
+  };
+  
+  
+  
   // Fetch token containing mainnet Canister ID
   const fetchCanisterIdHandler = async (tokenName) => {
     try {
       const fetchResult = await searchCoinGeckoById(tokenName);
       if (!fetchResult) {
-        throw new Error('cannot call fetchCanisterIdHandler');
+        throw new Error("Failed to fetch Canister ID");
       }
-      console.log('fetchCanisterIdHandler', fetchResult);
-      // Ensure canisterIdToken is an array
+      console.log("Fetched Canister ID:", fetchResult);
       setCanisterIdToken([fetchResult]);
       return fetchResult;
     } catch (error) {
-      console.log(error);
-      return null;
+      console.error("Error in fetchCanisterIdHandler:", error);
+      return null; // Return null in case of an error
     }
   };
+     
+   
 
-  // const finalToken = canisterIdToken.length > 0 ? canisterIdToken : filteredTokens;
 
   return (
-    <div className='flex z-50 justify-center fixed inset-0 bg-opacity-50 backdrop-blur-sm'>
-      <div className='h-fit md:w-[40%] lg:w-[35%] border rounded-xl flex flex-col gap-2 bg-[#05071D] my-auto mx-auto'>
-        <div className='w-[90%] flex justify-center mx-4'>
-          <span className='font-cabin font-medium mx-auto md:text-2xl text-xl py-4'>
-            {SearchTokenData.Heading}
-          </span>
-          <span className='cursor-pointer self-center' onClick={() => setSearchToken(false)}>
-            <X />
-          </span>
+    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-screen h-screen overflow-y-auto text-[#FFFFFF] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50">
+      <div className="h-3/4 w-[90%] sm:w-[480px] bg-[#3B3D41] rounded-2xl shadow-lg flex flex-col">
+        {/* Header */}
+        <div className="flex justify-between items-center px-4 pt-6 border-b border-gray-700">
+          <h2 className="font-gilroy text-xl text-white">{SearchTokenData.Heading}</h2>
+          <button
+            onClick={() => setSearchToken(false)}
+            className="text-gray-400 hover:text-white"
+          >
+            <CloseIcon />
+          </button>
         </div>
 
-        <div className='border border-transparent font-bold custom-height-3 bg-gradient-to-r from-transparent via-[#00308E] to-transparent w-full mx-auto'></div>
-        <div className='flex m-4 w-10/12 mx-auto font-cabin font-normal text-xl'>
-          <input
-            type='text'
-            placeholder='Search token by Name or Symbol'
-            className='w-full rounded-s-lg outline-none text-white bg-[#303030] placeholder-gray-400 p-2'
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-            }}
-          />
-          <div className='bg-[#C16800] rounded-e-lg px-5 py-2 items-center flex gap-x-1'>
-            <div className='hidden lg:block'>
-              <SearchIcon />
-            </div>
-            <button>Search</button>
+        {/* Search Bar */}
+        <div className="flex items-center px-4 py-4 relative">
+          <div className="absolute pl-4">
+            <SearchIcon fontSize="medium" sx={{ color: '#C0D9FF66' }} />
           </div>
+          <input
+            type="text"
+            placeholder="Search token by name or symbol"
+            className="w-full p-3 pl-10 text-white bg-transparent rounded-xl outline-none border-2 border-[#C0D9FF66] placeholder-gray-400"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+
         </div>
 
-        <div className='flex flex-col items-center gap-4 mb-10 overflow-y-scroll h-72'>
-          {filteredTokens?.length > 0 ? (
+        {/* Token List */}
+        <div className="px-4 py-2 overflow-scroll h-full">
+          {filteredTokens.length > 0 ? (
             filteredTokens.map((token, index) => {
+
               // Extract data from token
               const TokenName = token.name || '';
               const TokenId = token.id || '';
@@ -144,70 +143,84 @@ const SearchToken = ({ setSearchToken,searchToken, setPayToken, setRecToken, id,
               const marketPrice = token.current_price || token.market_data?.current_price?.usd || '-';
 
               // Find corresponding metadata if available(mainnet)
-              const CanisterId = canisterIdToken? token.contract_address : null;
-              // const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC;
-
+              // const CanisterId = canisterIdToken? token.contract_address : null;
+              const CanisterId = ShortForm == "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC;
+              //  setMetadata()
 
               // Find the amount based on CanisterId
               const findAmount = Tokens?.find((t) => t?.CanisterId === CanisterId);
               const TokenAmount = findAmount ? findAmount.Amount : 0;
 
+
               return (
                 <div
-                  className={`flex gap-6 items-center w-10/12 p-2 bg-[#303030] hover:opacity-80 cursor-pointer opacity-100 rounded-xl ${
-                    TokenOption === index
-                      ? 'font-bold opacity-100 border bg-gradient-to-r from-[#000711] via-[#525E91] to-[#000711]'
-                      : ''
-                  }`}
                   key={index}
+                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer `}
                   onClick={async () => {
-                    const fetchResult = await fetchCanisterIdHandler(TokenId);
-                    if (fetchResult) {
-                      const CanisterId = await fetchResult?.contract_address;
+                    const fetchResult = await fetchCanisterIdHandler(token.id);
+                    if (!fetchResult) {
+                      console.error("Failed to fetch Canister ID for token:", token.id);
+                      return;
+                    }
+                    const meta = await  fetchMetadata(CanisterId);
+                    if (fetchResult && meta) {
                       const tokenData = {
-                        id: TokenId,
+                        id: token.id,
                         Name: TokenName,
                         ImagePath: ImagePath,
                         ShortForm: ShortForm,
-                        CanisterId: CanisterId,
+                        metaData: meta || [],
+//                         CanisterId: CanisterId,
                         // CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC,
+
+
+                        // CanisterId: CanisterId,
+                        CanisterId: ShortForm == "cketh" ?  process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC,
+
                         marketPrice: marketPrice,
-                        currencyAmount: marketPrice * TokenAmount,
                       };
-                      console.log("result hai", tokenData)
-                      console.log("result id", id)
                       if (id === 1) setPayToken(tokenData);
                       else if (id === 2) setRecToken(tokenData);
                       else if (id === 3) setTokenData(tokenData);
 
                       HandleClickToken(index);
                       setSearchToken(false);
-                    } else {
-                      console.error('Failed to fetch token details');
                     }
                   }}
                 >
-                  <div className='rounded-lg bg-[#3D3F47] p-2'>
-                    <img src={ImagePath} alt='' className='h-5 w-5 md:h-6 md:w-6 transform scale-150' />
-                  </div>
-                  <div className='font-normal text-base md:text-xl font-cabin text-start'>
-                    {TokenName} ({ShortForm})
+                  <img
+                    src={ImagePath}
+                    alt={TokenName}
+                    className="w-8 h-8 rounded-full"
+                  />
+                  <div>
+                    <p className="text-white">{TokenName}</p>
+                    <p className="text-gray-400 text-sm uppercase">{ShortForm}</p>
                   </div>
                 </div>
               );
             })
           ) : (
             <div>
-              <Skeleton count={5} />
-            </div>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Box
+                key={index}
+                sx={{ display: "flex", alignItems: "center", mb: 1, gap: 2 }} // Add margin between elements
+                spacing={1}
+              >
+                <Skeleton variant="circular" width={40} height={40} />
+                <Box>
+                  <Skeleton variant="text" sx={{ fontSize: "1rem" }} width={350} height={30}/>
+                  <Skeleton variant="text" sx={{ fontSize: "1rem" }} width={70} />
+                </Box>
+              </Box>
+            ))}
+          </div>
           )}
         </div>
-        <div className='border border-transparent font-bold custom-height-3 bg-gradient-to-r from-transparent via-[#00308E] to-transparent w-full mx-auto'></div>
       </div>
     </div>
   );
 };
 
 export default SearchToken;
-
-

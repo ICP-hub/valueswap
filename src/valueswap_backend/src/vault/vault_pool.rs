@@ -1,10 +1,10 @@
-use ic_cdk_macros::{init , query , update};
+use ic_cdk_macros::{init , query };
 use std::cell::RefCell;
 use std::collections::HashMap;
 
 use crate::utils::maths::*;
-use crate::utils::types::{PoolShare, UserShare , CreatePoolParams};
-use crate::Pool_Data;
+use crate::utils::types::{PoolShare, UserShare };
+use crate::CustomError;
 
 thread_local! {
     // Pool token balances, weights, and names
@@ -53,21 +53,49 @@ fn init() {
 
 // Query to get pool tokens
 #[query]
-fn get_tokens() -> HashMap<String, PoolShare> {
-    VAULT.with(|pool| pool.borrow().clone())
+fn get_tokens() -> Result<HashMap<String, PoolShare>, CustomError> {
+    VAULT.with(|pool| {
+        let pool_borrowed = pool.borrow();
+
+        ic_cdk::println!("Debug: VAULT size is {}", pool_borrowed.len());
+        if pool_borrowed.is_empty() {
+            ic_cdk::println!("Warning: VAULT is empty.");
+            return Err(CustomError::VaultEmpty(
+                "VAULT contains no tokens.".to_string(),
+            ));
+        }
+        for key in pool_borrowed.keys() {
+            ic_cdk::println!("Debug: VAULT contains key {}", key);
+        }
+
+        ic_cdk::println!("Debug: Returning VAULT data successfully.");
+        Ok(pool_borrowed.clone())
+    })
 }
+
 
 // Query to get the constant product value
 #[query]
 fn get_constant_product_value() -> f64 {
     VAULT.with(|vault| {
+        let vault_borrowed = vault.borrow();
+
+        ic_cdk::println!("Debug: VAULT size is {}", vault_borrowed.len());
+
         let mut total_product = 1.0;
-        for pool in vault.borrow().values() {
+
+        for (key, pool) in vault_borrowed.iter() {
+            ic_cdk::println!("Debug: Calculating constant product for pool with key {}", key);
+
             total_product += constant_product(&pool.token_balances, &pool.token_weights);
         }
+
+        ic_cdk::println!("Debug: Total constant product value is {}", total_product);
+
         total_product
     })
 }
+
 
 
 

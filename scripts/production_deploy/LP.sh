@@ -15,6 +15,10 @@ echo "Token Symbol: $TOKEN_SYMBOL"
 # Set initial parameters
 export PRE_MINTED_TOKENS=10_000_000_000
 export TRANSFER_FEE=10_000
+<<<<<<< HEAD
+=======
+
+>>>>>>> 26ad3fc (add faucet)
 # Switch to the default identity and get its principal ID
 dfx identity use DevJourney 
 export DEFAULT=$(dfx identity get-principal )
@@ -29,7 +33,7 @@ export NUM_OF_BLOCK_TO_ARCHIVE=1000
 export CYCLE_FOR_ARCHIVE_CREATION=10000000000000
 export FEATURE_FLAGS=true
 
-# Deploy the ckbtc_ledger canister with the specified initialization arguments
+# Deploy the ckbtc canister with the specified initialization arguments
 DEPLOY_ARGUMENTS="(variant {Init = record {
   token_symbol = \"${TOKEN_SYMBOL}\";
   token_name = \"${TOKEN_NAME}\";

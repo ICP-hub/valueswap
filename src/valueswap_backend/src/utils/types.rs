@@ -1,15 +1,16 @@
+
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use candid::CandidType;
 use candid::{Nat, Principal};
 use ic_cdk::{
     api::{
-        call::{call_with_payment128, CallResult},
-        canister_version,
+        // call::{call_with_payment128, CallResult},
+        // canister_version,
         management_canister::main::{CanisterInstallMode, WasmModule},
     },
-    call, api,
+    // call, api,
 };
-use std::collections::{BTreeMap , HashMap};
 // use std::fmt::Display;
 
 /// Represents the pool's share with token balances and weights.
@@ -59,6 +60,57 @@ pub struct Pool_Data{
     pub pool_data : Vec<CreatePoolParams>,
     pub swap_fee : Nat
 }
+
+impl Pool_Data {
+    pub fn validate(&self) -> Result<(), CustomError> {
+        // Define a regex pattern that matches valid token names
+        // For example, allowing alphanumeric characters, dashes, and underscores
+        let token_name_regex = Regex::new(r"^[a-zA-Z0-9_-]+$").unwrap();
+
+        // Check if pool_data is empty
+        if self.pool_data.is_empty() {
+            return Err(CustomError::PoolDataEmpty);
+        }
+
+        // Validate each pool data entry
+        for pool in &self.pool_data {
+            // Validate token name for emptiness, length, and character content
+            if pool.token_name.trim().is_empty() || pool.token_name.len() > 100 {
+                return Err(CustomError::InvalidInput(
+                    "Token name cannot be empty or exceed 100 characters".to_string(),
+                ));
+            }
+
+            // Check if the token name contains only valid characters
+            if !token_name_regex.is_match(&pool.token_name) {
+                return Err(CustomError::InvalidInput(
+                    "Token name contains invalid characters".to_string(),
+                ));
+            }
+
+            // Validate weight and value
+            if pool.weight == Nat::from(0u64) || pool.value == Nat::from(0u64) {
+                return Err(CustomError::InvalidInput(
+                    "Weight and value must be greater than zero".to_string(),
+                ));
+            }
+
+            // Validate ledger canister ID
+            if pool.ledger_canister_id.to_text().is_empty() {
+                return Err(CustomError::InvalidInput(
+                    "Ledger canister ID cannot be empty".to_string(),
+                ));
+            }
+
+            // Image URL validation is commented out; assuming it's handled elsewhere if needed
+        }
+
+        Ok(())
+    }
+    
+}
+
+
 
 /// Represents the user's share with their token balances.
 #[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
@@ -130,7 +182,7 @@ impl Default for UserShare {
 // }
 
 // Define the transfer_from arguments and result types
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize,Debug)]
 pub struct TransferFromArgs {
     pub to: TransferAccount,
     pub fee: Option<u64>,
@@ -141,13 +193,13 @@ pub struct TransferFromArgs {
     pub amount: Nat,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize,Debug)]
 pub struct TransferAccount {
     pub owner: Principal,
     pub subaccount: Option<Vec<u8>>,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Deserialize,Debug)]
 pub enum TransferFromResult {
     Ok(Nat),
     Err(TransferFromError),
@@ -227,6 +279,30 @@ pub(crate) struct CreateCanisterArgumentExtended {
     pub sender_canister_version: Option<u64>,
 }
 
+#[derive(Debug,CandidType)]
+pub enum CreateCanisterError {
+    CreateError(String),
+    DepositError(String),
+    InstallError(String),
+}
+
+impl std::fmt::Display for CreateCanisterError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Self::CreateError(e) => write!(f, "Canister creation failed: {}", e),
+            Self::DepositError(e) => write!(f, "Deposit cycles failed: {}", e),
+            Self::InstallError(e) => write!(f, "Install code failed: {}", e),
+        }
+    }
+}
+
+#[derive(Debug,CandidType)]
+pub enum InstallError {
+    InvalidArgument(String),
+    Rejection(ic_cdk::api::call::RejectionCode, String),
+    Unexpected(String),
+}
+
 
 // #[derive(Debug, Clone, CandidType, Deserialize, Serialize)]
 // pub struct TokenData{
@@ -244,5 +320,26 @@ pub struct SwapParams {
     pub token_amount : Nat,
     pub token2_name : String,
     pub ledger_canister_id1 : Principal,
-    pub ledger_canister_id2 : Principal
+    pub ledger_canister_id2 : Principal,
+    pub fee : Nat
+}
+
+
+#[derive(Debug, PartialEq , CandidType)]
+pub enum CustomError {
+    PoolDataEmpty,
+    AnotherOperationInProgress(String),
+    TokenDepositFailed,
+    CanisterCreationFailed(String),
+    LockAcquisitionFailed,
+    StringConversionFailed(String),
+    UnableToStorePoolData(String),
+    UnableToTransferLP(String),
+    NoCanisterIDFound,
+    SwappingFailed(String),
+    InvalidInput(String),
+    OperationFailed(String),
+    UnableToRollbackLP(String),
+    InvalidSwapParams(String), 
+    VaultEmpty(String),
 }

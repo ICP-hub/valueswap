@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { poolsSvg } from './PoolPageComponentsSvg';
 import GradientButton from '../../buttons/GradientButton';
-import {useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
@@ -9,37 +9,55 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useAuth } from "../utils/useAuthClient";
 import { valueswap_backend } from '../../../../declarations/valueswap_backend';
-
+import BorderGradientButton from '../../buttons/BorderGradientButton';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
+import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
 const ShowAllPools = () => {
   const [allDataInPool, setAllDataInPool] = useState(null);
-  const [filteredPools, setFilteredPools] = useState(null); // To store filtered results
+  const [filteredPools, setFilteredPools] = useState([]); // To store filtered results
   const [isAscending, setIsAscending] = useState(true); // Tracks sorting order
-  const [activeSort, setActiveSort] = useState(null); // Tracks which column is being sorted
-  const [displayCount, setDisplayCount] = useState(10); // Tracks how many rows to display
+  const [activeSort, setActiveSort] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Tracks which column is being sorted
+  const [itemsPerPage] = useState(10); // Tracks how many rows to display
   const { backendActor } = useAuth();
   const navigate = useNavigate();
   const [filterData, setFilterData] = useState(""); // Search input value
   const ref = useRef();
+  const [loading, setLoading] = useState(true);
+  // const [currentItems, setCurrentItems] = useState(null);
 
   // Fetch pool data from backend
+  // console.log("allPool a")
   useEffect(() => {
     const fetchPoolData = async () => {
       try {
-        const AllPoolsData = await valueswap_backend.get_pool_data();
-        console.log("pooldata", AllPoolsData)
-        setAllDataInPool(AllPoolsData); // Set the fetched data
-        setFilteredPools(AllPoolsData); // Initially set filteredPools to all data
+        setLoading(true);
+        const AllPoolsData = await valueswap_backend?.get_pool_data();
+        if (AllPoolsData.Ok[0].length > 0) {
+    
+         
+          setAllDataInPool(AllPoolsData.Ok[0]); // Set the fetched data
+          setFilteredPools(AllPoolsData.Ok[0]); // Initially set filteredPools to all data
+        }
+      
+        return;
       } catch (error) {
         console.error("Error fetching pool data", error);
+      }finally{
+        setTimeout(() => {
+          setLoading(false);
+        }, 2000);
       }
     };
     fetchPoolData();
-  }, [backendActor]);
+  }, []);
 
   // Filter logic based on search input
   useEffect(() => {
     if (filterData.trim() !== "") {
-      const filtered = allDataInPool?.filter(poolData => 
+      const filtered = allDataInPool.Ok[0]?.filter(poolData =>
         poolData[1][0].pool_data.some(token =>
           token.token_name.toLowerCase().includes(filterData.toLowerCase())
         )
@@ -49,6 +67,25 @@ const ShowAllPools = () => {
       setFilteredPools(allDataInPool);
     }
   }, [filterData, allDataInPool]);
+
+  // useEffect(() => {
+  //   // Simulate fetching data
+  //   setTimeout(() => {
+  //     // Replace this with actual data fetching logic
+  //     setCurrentItems([]); // Example: set to an empty array to simulate no items found
+  //     setLoading(false);
+  //   }, 2000);
+  // }, []);
+
+   // Calculate total pages for pagination
+   const totalPages = Math.ceil(filteredPools?.length / itemsPerPage);
+
+   // Calculate current items based on current page
+   const currentItems = filteredPools?.slice(
+     (currentPage - 1) * itemsPerPage,
+     currentPage * itemsPerPage
+   );
+console.log("currentItems", currentItems)
 
   // Sorting logic for PoolValue
   const sortValue = () => {
@@ -119,58 +156,50 @@ const ShowAllPools = () => {
     }
   };
 
-  const handleShowMore = () => {
-    setDisplayCount(prevCount => prevCount + 10);
+ 
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleFirstPage = () => {
+    setCurrentPage(1);
+  };
+
+  const handleLastPage = () => {
+    setCurrentPage(totalPages);
   };
 
   return (
-    <div className='max-w-[1200px] mx-auto h-screen relative'>
-      {/* search box */}
-      <div className="flex justify-end items-center">
-        <div className="relative w-full max-w-[17rem]">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17 10.5A6.5 6.5 0 104 10.5a6.5 6.5 0 0013 0z"></path>
-            </svg>
-          </div>
+    <div className='max-w-[1200px] mx-auto  relative'>
 
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full py-2 pl-10 pr-4 bg-transparent rounded-lg shadow-inner  text-gray-400 placeholder-gray-400 border border-transparent border-blue-300  ring-2 transition duration-200 ease-in-out"
-            value={filterData}
-            onChange={(e) => setFilterData(e.target.value)}
-          />
-        </div>
-      </div>
 
-      <div className='w-full h-screen text-white mt-4 z-20 mx-auto absolute'>
-        <div className='flex justify-between bg-[#010427] p-2 pb-6 pt-6 rounded-t-lg mx-auto'>
-          <div className='flex items-center justify-between gap-4 mx-8 md:gap-16 '>
-            <span className='font-medium text-white font-gilroy md:text-3xl'>Liquidity Pools</span>
-          </div>
-          <div className='mr-4' onClick={() => navigate('/valueswap/pool/create-pool/steps')}>
-            <GradientButton CustomCss={`hover:opacity-75 text-xs md:text-base lg:text-base h-[45px] w-[120px] py-2 lg:py-4`}>
-              Create Pool
-            </GradientButton>
-          </div>
-        </div>
+      <div className='w-full  text-white mt-4 z-20 mx-auto '>
+        
 
-        <div className='flex flex-col font-gilroy bg-[#05071D]'>
+        <div className='flex flex-col font-gilroy bg-gray-700 bg-clip-padding backdrop-filter backdrop-blur-sm bg-opacity-10 border  border-[#FFFFFF66] rounded-2xl p-8 mb-8'>
           <div className='-my-2 overflow-x-auto scroll-smooth'>
             <div className='inline-block min-w-full py-2 align-middle'>
               <div className='overflow-hidden shadow ring-1 ring-black ring-opacity-5'>
                 <SkeletonTheme baseColor="#1f2029" highlightColor="#2b2b2b" borderRadius="0.5rem" duration={2}>
                   <table className='min-w-full'>
-                    <thead>
-                      <tr>
-                        {['Pool Name', 'Value', 'Total Volume', 'APR'].map((heading, index) => (
+                    <thead className='border-b-2 border-[#FFFFFF66] '>
+                      <tr className='mx-auto'>
+                        {['Pool Name', 'TVL', 'Volume', 'APR'].map((heading, index) => (
                           <th
                             scope='col'
                             key={index}
-                            className={`pl-10 pr-0 text-sm font-medium text-center text-white py-7 md:text-base lg:text-xl ${heading == 'Pool Name' ?  'w-7/12': ""}`}
+                            className={`text-sm font-medium cursor-pointer text-white py-7 md:text-base lg:text-xl 
+                               ${index === 0 ? 'text-left w-7/12' : index === 3 ? 'text-right' : 'text-center'}`}
                           >
-                            <span className='flex cursor-pointer items-center gap-2' onClick={() => sortingConditional(index)}>
+                            <span
+                              className={`flex ${index === 0 ? 'justify-start' : index === 3 ? 'justify-end' : 'justify-center'
+                                } items-center gap-2 cursor-pointer`}
+                              onClick={() => sortingConditional(index)}
+                            >
                               {heading}
                               {index === activeSort ? (
                                 isAscending ? (
@@ -178,17 +207,18 @@ const ShowAllPools = () => {
                                 ) : (
                                   <ArrowDownwardIcon sx={{ color: '' }} />
                                 )
-                              ) : index !== 0 ? <ImportExportIcon /> : ""}
+                              ) : index !== 0 ? <ImportExportIcon /> : ''}
                             </span>
                           </th>
                         ))}
                       </tr>
                     </thead>
+
                     <tbody>
-                      {!filteredPools
-                        ? Array.from({ length: 5 }).map((_, index) => (
+                      {loading ? (
+                        Array.from({ length: 8 }).map((_, index) => (
                           <tr key={index}>
-                            <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
+                            <td className='px-0 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
                               <Skeleton height={30} />
                             </td>
                             <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
@@ -202,39 +232,79 @@ const ShowAllPools = () => {
                             </td>
                           </tr>
                         ))
-                        : filteredPools?.slice(0, displayCount).map((pool, index) => (
-                          <tr key={index} className='min-w-[1000px] ' onClick={() => navigate(`/valueswap/pool/addLiquidity/${pool[0]}`)}>
-                            <td className='flex items-center  pl-10 pr-3 gap-2 md:gap-5 my-4 text-sm font-medium text-white min-w-52 whitespace-nowrap md:text-base'>
+                      ) : !currentItems || currentItems.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
+                            No pool found
+                          </td>
+                        </tr>
+                      ) : (
+                        currentItems[1]?.map((pool, index) => (
+                          <tr key={index} className='min-w-[1000px] mx-auto text-center' onClick={() => {
+                            navigate(`/valueswap/portfolio/pool-info/${currentItems[0] || index}`);
+                          }}>
+                            <td className='flex items-center   pr-3 gap-2 md:gap-5 my-4 text-sm font-medium text-white min-w-52 whitespace-nowrap md:text-base'>
                               <span className='flex items-center gap-x-2 flex-wrap gap-y-2'>
-                                {pool[1][0]?.pool_data?.map((token) => (
-                                  <div className='flex items-center gap-x-1 cursor-pointer border-2 rounded-2xl py-1 px-2 ' key={token.token_name}>
+                               
+                                {pool?.pool_data?.map((token) => (
+                                  <div className='flex items-center gap-x-1 cursor-pointer border-2 border-[#FFFFFF66] rounded-2xl py-1 px-2 ' key={token.token_name}>
                                     <img className='w-6 h-6' src={token.image} alt="" />
                                     <span>{token.token_name}</span>
-                                    <span>{token.weight * 100}%</span>
+                                    <span>{Number(token.weight)}%</span>
                                   </div>
                                 ))}
                               </span>
                             </td>
-                            <td className='px-3 py-4 text-sm pl-10 pr-3 text-white whitespace-nowrap md:text-base'>
-                              $ {pool.PoolValue?.toLocaleString('en-US') || "46466464"}
+                            <td className='px-3 py-4 text-sm pl-4 pr-3 text-white whitespace-nowrap md:text-base'>
+                             ${
+                                
+                                (()=> {
+                                  const totalVolume = 
+                                  pool?.pool_data?.reduce((sum, volume) => 
+                                     sum + Number(volume.value), 0
+                                  )
+                                  return totalVolume;
+                                })()
+                            }
                             </td>
-                            <td className='px-3 py-4 text-sm pl-12 pr-3 text-white whitespace-nowrap md:text-base'>
-                              $ {pool.TotalVolume?.toLocaleString('en-US') || "35355"}
+                            <td className='px-3 py-4 text-sm  pr-3 text-white whitespace-nowrap md:text-base'>
+                             3
+                              
                             </td>
-                            <td className='py-4  text-sm font-medium pl-10 pr-3 whitespace-nowrap md:text-base'>
+                            <td className='py-4  text-sm font-medium   whitespace-nowrap md:text-base'>
                               {pool.APR || "04% - 6%"}
                             </td>
                           </tr>
-                        ))}
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </SkeletonTheme>
                 {/* Show More button */}
-                {filteredPools && displayCount < filteredPools.length && (
+                {/* filteredPools && displayCount < filteredPools.length  */}
+                {currentItems && (
                   <div className='mt-4 text-center'>
-                    <button className='px-4 py-2 text-white bg-gray-800 rounded-md hover:bg-gray-600' onClick={handleShowMore}>
-                      Show More
-                    </button>
+                    <div className="flex gap-x-4 ">
+                    <KeyboardDoubleArrowLeftIcon
+                    onClick={handleFirstPage}
+                    className='cursor-pointer'/>
+                    <div className='flex gap-4 '>
+                      <KeyboardArrowLeftIcon 
+                      onClick={handlePrevPage}
+                      className='cursor-pointer'/>
+                      <div className='flex gap-x-2'>
+                      <span className='text-gray-400'>
+                      Page {currentPage} of {totalPages}
+                    </span>
+                      </div>
+                      <KeyboardArrowRightIcon 
+                       onClick={handleNextPage}
+                      className='cursor-pointer'/>
+                    </div>
+                    <KeyboardDoubleArrowRightIcon 
+                     onClick={handleLastPage}
+                    className='cursor-pointer'/>
+                    </div>
                   </div>
                 )}
               </div>
