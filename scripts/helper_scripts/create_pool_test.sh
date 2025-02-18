@@ -18,7 +18,7 @@ do
    fi
    
    echo "Starting call $i with ledger ID $ledger_id in background"
-   $base_command "(record { pool_data = vec { record { token_name = \"Token$i\"; balance = 100 : nat; weight = 100 : nat; value = 100 : nat; ledger_canister_id = principal \"$ledger_id\"; image = \"https://example.com/image$i.png\"; }}; swap_fee = 5 : nat; })" &
+   $base_command "(record { pool_data = vec { record { token_name = \"Token$i\"; balance = 10000000 : nat; weight = 100 : nat; value = 100 : nat; ledger_canister_id = principal \"$ledger_id\"; image = \"https://example.com/image$i.png\"; }}; swap_fee = 5 : nat; })" &
 done
 
 wait
