@@ -1,4 +1,5 @@
 
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use candid::CandidType;
 use candid::{Nat, Principal};
@@ -62,6 +63,10 @@ pub struct Pool_Data{
 
 impl Pool_Data {
     pub fn validate(&self) -> Result<(), CustomError> {
+        // Define a regex pattern that matches valid token names
+        // For example, allowing alphanumeric characters, dashes, and underscores
+        let token_name_regex = Regex::new(r"^[a-zA-Z0-9_-]+$").unwrap();
+
         // Check if pool_data is empty
         if self.pool_data.is_empty() {
             return Err(CustomError::PoolDataEmpty);
@@ -69,13 +74,21 @@ impl Pool_Data {
 
         // Validate each pool data entry
         for pool in &self.pool_data {
-            // Validate token name
+            // Validate token name for emptiness, length, and character content
             if pool.token_name.trim().is_empty() || pool.token_name.len() > 100 {
                 return Err(CustomError::InvalidInput(
                     "Token name cannot be empty or exceed 100 characters".to_string(),
                 ));
             }
 
+            // Check if the token name contains only valid characters
+            if !token_name_regex.is_match(&pool.token_name) {
+                return Err(CustomError::InvalidInput(
+                    "Token name contains invalid characters".to_string(),
+                ));
+            }
+
+            // Validate weight and value
             if pool.weight == Nat::from(0u64) || pool.value == Nat::from(0u64) {
                 return Err(CustomError::InvalidInput(
                     "Weight and value must be greater than zero".to_string(),
@@ -89,22 +102,11 @@ impl Pool_Data {
                 ));
             }
 
-            // Validate image URL format
-            // if !self.is_valid_image_url(&pool.image) {
-            //     return Err(CustomError::InvalidInput("Invalid image URL".to_string()));
-            // }
+            // Image URL validation is commented out; assuming it's handled elsewhere if needed
         }
-
 
         Ok(())
     }
-
-    // Enhanced URL validation
-    // fn is_valid_image_url(&self, url: &str) -> bool {
-    //     let lower_url = url.to_lowercase();
-    //     (lower_url.starts_with("http://") || lower_url.starts_with("https://"))
-    //         && (lower_url.contains(".png?") || lower_url.contains(".jpg?") || lower_url.contains(".jpeg?") || lower_url.ends_with(".png") || lower_url.ends_with(".jpg") || lower_url.ends_with(".jpeg"))
-    // }
     
 }
 
