@@ -11,6 +11,7 @@ set -e
 # dfx  build --all
 
 # Get the principal ID for the minter account
+# minter=$(dfx )
 export MINTER="b77ix-eeaaa-aaaaa-qaada-cai"
 echo "MINTER principal: $MINTER"
 
