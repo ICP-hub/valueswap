@@ -145,7 +145,7 @@ const PortfolioDataComponent = () => {
   }
 
   const navigate = useNavigate()
-  const Headings = ['Pool name', 'Staking', 'TVL', 'Volume(24h)', "LP", 'APR']
+  const Headings = ['Pool name', 'TVL', 'Vol(24h)', 'APR']
   return (
     <div className='max-w-[1200px] mx-auto  relative'>
       <div className='flex justify-between mt-8 px-8 mx-auto'>
@@ -222,12 +222,12 @@ const PortfolioDataComponent = () => {
                             <th
                               scope='col'
                               key={index}
-                              className={`py-7    md:pr-0 text-center  text-sm md:text-base lg:text-base  font-bold text-white ${
+                              className={`py-7  ml-20  md:pr-0 text-center  text-sm md:text-base lg:text-base  font-bold text-white ${
                                 heading == 'Pool name' ? 'w-7/12' : ''
                               } `}
                             >
                               <span
-                                className={`flex  items-center ml-4 cursor-pointer ${index === activeSort ? "text-[#F7931A]": ""}`}
+                                className={`flex  items-center ml-12 cursor-pointer ${index === activeSort ? "text-[#F7931A]": ""}`}
                                 onClick={() => sortingConditional(index)}
                               >
                                 {heading}
@@ -241,33 +241,12 @@ const PortfolioDataComponent = () => {
                           ))}
                         </tr>
                       </thead>
-                      <tbody>
+                      <tbody className='relative'>
                         {isAuthenticated ? (
                           //  allDataInPool
 
                           allDataInPool.length == 0  ? (
-                            Array.from({ length: 3 }).map((_, index) => (
-                              <tr key={index}>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                                <td className='px-3 py-4 text-sm text-center text-white whitespace-nowrap md:text-base'>
-                                  <Skeleton height={30} />
-                                </td>
-                              </tr>
-                            ))
+                            <p className='absolute w-full text-center'>No Pools Found!</p>
                           ) : (
                             currentItems?.map((Poolinfo, index) => (
                               
@@ -310,21 +289,20 @@ const PortfolioDataComponent = () => {
                                   })()}
                                 </td>
                                 <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
+                                $
                                   {(() => {
-                                    const totalBalance =
-                                      Poolinfo?.pool_data?.reduce(
-                                        (sum, item) =>
-                                          sum + BigInt(item.balance),
-                                        BigInt(0)
-                                      )
-                                    return totalBalance?.toLocaleString('en-US')
+                                    const value = Poolinfo?.pool_data?.reduce(
+                                      (sum, item) => sum + BigInt(item.value),
+                                      BigInt(0)
+                                    )
+                                    return value?.toLocaleString('en-US')
                                   })()}
                                 </td>
-                                <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
+                                {/* <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
                                   1% - 2%
-                                </td>
+                                </td> */}
                                 <td className='whitespace-nowrap px-3 py-4 text-sm md:text-base text-white text-center'>
-                                  {(Number(Poolinfo?.Lp)/100000000).toFixed(4)}
+                                  {/* {(Number(Poolinfo?.Lp)/100000000).toFixed(4)}/ */}
                                 </td>
                               </tr>
                             ))
