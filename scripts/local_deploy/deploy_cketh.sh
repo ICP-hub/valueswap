@@ -8,7 +8,8 @@ set -e
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER="b77ix-eeaaa-aaaaa-qaada-cai"
+minter=$(dfx canister id valueswap_backend)
+export MINTER="$minter"
 echo "MINTER principal: $MINTER"
 
 # Set token details

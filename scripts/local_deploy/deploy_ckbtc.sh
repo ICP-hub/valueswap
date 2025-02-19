@@ -1,5 +1,6 @@
 #!/bin/bash
 dfx deploy swap
+dfx deploy valueswap_backend
 ./LP.sh
 set -e
 
@@ -11,8 +12,8 @@ set -e
 # dfx  build --all
 
 # Get the principal ID for the minter account
-# minter=$(dfx )
-export MINTER="b77ix-eeaaa-aaaaa-qaada-cai"
+minter=$(dfx canister id valueswap_backend)
+export MINTER="$minter"
 echo "MINTER principal: $MINTER"
 
 # Set token details
