@@ -177,7 +177,7 @@ const AddLiquidity = () => {
     const total = restTokensAmount.reduce((acc,amount)=>{
       return acc + parseFloat(amount)
     },initialTokenAmount)
-    console.log("Total : ", total)
+    return total + calculatePoolLocked() + calculatePoolShare() + parseFloat(swapFee)
   },[initialTokenAmount,restTokensAmount])
 
 
@@ -193,7 +193,7 @@ const AddLiquidity = () => {
     let ans;
     switch(type){
       case "total":
-        ans = calculateTotal()
+        ans = "$" + calculateTotal()
         break;
       case "pool_share":
         ans = calculatePoolShare()
