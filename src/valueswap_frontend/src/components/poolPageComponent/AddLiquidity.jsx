@@ -26,30 +26,6 @@ const AddLiquidity = () => {
 
 
 
-
-  const fetchMetadata = async (CanisterId) => {
-    try {
-      const ledgerActor = await createTokenActor(CanisterId);
-      const result = await ledgerActor?.icrc1_metadata();
-      console.log("Fetched metadata:", result);
-  
-      // Extract decimals and symbol from the metadata
-      const decimalsEntry = result.find(([key]) => key === "icrc1:decimals");
-      const symbolEntry = result.find(([key]) => key === "icrc1:symbol");
-  
-      const decimals = decimalsEntry ? Number(decimalsEntry[1]?.Nat) : null; // Convert BigInt to Number
-      const symbol = symbolEntry ? symbolEntry[1]?.Text : null;
-      console.log("meta", decimals, symbol)
-      return {
-        decimals,
-        symbol,
-      };
-    } catch (error) {
-      console.error("Error fetching metadata:", error);
-      return null; // Return null in case of an error
-    }
-  };
-
   const initToken = useCallback(async()=>{
     const initialToken = tokens[0]
     let data = {}
