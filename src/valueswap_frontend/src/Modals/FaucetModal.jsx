@@ -57,10 +57,10 @@ const FaucetModal = ({ setModelOpen, imgUrl, TokenName }) => {
                 <img src={imgUrl.imgUrl} alt='' className='w-10 h-10' />
                 <p className='font-medium text-lg'>{TokenName.TokenName}</p>
               </div>
-              <div className='flex gap-x-1 bg-[#37415173] p-1 px-2 rounded-md'>
+              {/*<div className='flex gap-x-1 bg-[#37415173] p-1 px-2 rounded-md'>
                 <p className='text-gray-300'>Approx.</p>
                 <p>$500 Max</p>
-              </div>
+              </div>*/}
             </div>
           </div>
 
