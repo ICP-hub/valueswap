@@ -273,7 +273,7 @@ const Swap = () => {
 
     try {
       console.log('Calling backendActor.compute_swap with:', {
-        token_amount: amount,
+        token_amount: amount * Math.pow(10, payCoin.metaData.decimals),
         token1_name: payCoin.ShortForm,
         token2_name: receiveCoin.ShortForm,
         ledger_canister_id1: payCoin.CanisterId,
@@ -281,7 +281,7 @@ const Swap = () => {
       })
       const res = await backendActor.compute_swap({
         token1_name: payCoin.ShortForm,
-        token_amount: amount,
+        token_amount: amount * Math.pow(10, payCoin.metaData.decimals),
         token2_name: receiveCoin.ShortForm,
         ledger_canister_id1: Principal.fromText(payCoin.CanisterId),
         ledger_canister_id2: Principal.fromText(receiveCoin.CanisterId),
