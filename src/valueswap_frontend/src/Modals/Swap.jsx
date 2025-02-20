@@ -40,7 +40,6 @@ const Swap = () => {
   const [subModel, setSubModel] = useState(1)
   const [initialSlipageAmount, setInitialSlipageAmount] = useState(0)
   const [afterSlipageAmnt, setAfterSlipageAmnt] = useState(0)
-  const [afterSlipageAmnt, setAfterSlipageAmnt] = useState(0)
   // Fetch balances whenever payCoin or receiveCoin changes
   useEffect(() => {
     if (payCoin) {
