@@ -23,6 +23,7 @@ use crate::api::deposit::deposit_tokens;
 use crate::utils::maths::*;
 use crate::utils::types::*;
 use crate::vault::lp_tokens::*;
+use crate::vault::apy::*;
 
 static LOCKS: Lazy<Mutex<HashMap<String, bool>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 static LOCKS1: Lazy<Mutex<HashMap<Principal, bool>>> = Lazy::new(|| Mutex::new(HashMap::new()));
@@ -122,7 +123,6 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
             add_liquidity(params.clone(), canister_id.principal.clone())
                 .await
                 .map_err(|_| CustomError::TokenDepositFailed)?;
-
 
             store_pool_data(params.clone(), canister_id.principal)
                 .await
@@ -229,8 +229,8 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                     store_pool_data_curr(params.clone())
                         .map_err(|e| CustomError::UnableToStorePoolData(e))?;
 
-                    release_lock();
                     
+                    release_lock();
                     Ok(())
                 }
                 Err(err_string) => Err(CustomError::CanisterCreationFailed(err_string.to_string())),
@@ -1003,6 +1003,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
     }
 
     release_lock();
+    users_apy(canister_id.clone(), pool_name.clone(), params.fee , params.token_amount);
 
     // ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
     // Proceed with the call using the extracted principal

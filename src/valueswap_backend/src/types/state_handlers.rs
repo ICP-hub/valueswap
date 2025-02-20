@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use candid::{CandidType, Decode, Encode, Principal};
+use candid::{CandidType, Decode, Encode, Nat, Principal};
 use ic_stable_structures::StableBTreeMap;
 use ic_stable_structures::{storable::Bound, Storable};
 
@@ -20,6 +20,7 @@ pub struct UserPrincipal{
 pub struct State{
     pub token_pools : StableBTreeMap<String , UserPrincipal , Memory>,
     pub users_tokens : StableBTreeMap<Principal ,Pool_Data , Memory >,
+    // pub users_pool_lp : StableBTreeMap<Principal , StableBTreeMap<String , Nat , Memory> , Memory>,
 }
 
 

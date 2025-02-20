@@ -8,14 +8,15 @@ use crate::api::deposit::deposit_tokens;
 use crate::api::transfer::icrc1_transfer;
 use crate::constants::asset_address::LP_LEDGER_ADDRESS;
 use crate::utils::types::*;
+use crate::vault::apy::*;
 use crate::with_state;
 
 thread_local! {
     static TOTAL_LP_SUPPLY : RefCell<Nat> = RefCell::new(Nat::from(0u128));
     static POOL_LP_SHARE : RefCell<BTreeMap<String , Nat>> = RefCell::new(BTreeMap::new());
     static USERS_LP : RefCell<BTreeMap<Principal, Nat>> = RefCell::new(BTreeMap::new());
-    static USERS_POOL : RefCell<BTreeMap<Principal , Vec<String>>> = RefCell::new(BTreeMap::new());
-    static USERS_POOL_LP: RefCell<BTreeMap<Principal, BTreeMap<String, Nat>>> = RefCell::new(BTreeMap::new());
+    pub static USERS_POOL : RefCell<BTreeMap<Principal , Vec<String>>> = RefCell::new(BTreeMap::new());
+    pub static USERS_POOL_LP: RefCell<BTreeMap<Principal, BTreeMap<String, Nat>>> = RefCell::new(BTreeMap::new());
 }
 
 #[update]
@@ -37,7 +38,7 @@ pub fn increase_pool_lp_tokens(params: Pool_Data) -> Result<(), CustomError> {
                     return Err(CustomError::InvalidInput(
                         "Pool value and balance must be greater than zero.".to_string(),
                     ));
-                }  
+                }
                 Ok(acc + (value * balance))
             })
             .unwrap_or_else(|err| {
@@ -61,11 +62,7 @@ pub fn increase_pool_lp_tokens(params: Pool_Data) -> Result<(), CustomError> {
             .entry(key.clone())
             .and_modify(|existing_supply| {
                 *existing_supply += pool_supply.clone() / Nat::from(1000u128);
-                ic_cdk::println!(
-                    "Updated LP share for pool {}: {}",
-                    key,
-                    *existing_supply
-                );
+                ic_cdk::println!("Updated LP share for pool {}: {}", key, *existing_supply);
             })
             .or_insert_with(|| {
                 let new_supply = pool_supply.clone() / Nat::from(1000u128);
@@ -116,7 +113,6 @@ pub fn increase_pool_lp_tokens(params: Pool_Data) -> Result<(), CustomError> {
     Ok(())
 }
 
-
 #[update]
 pub fn users_pool(params: Pool_Data) -> Result<(), CustomError> {
     // Validate input params
@@ -150,11 +146,12 @@ pub fn users_pool(params: Pool_Data) -> Result<(), CustomError> {
     Ok(())
 }
 
-
 #[query]
 fn get_users_pool(user: Principal) -> Result<Option<Vec<String>>, CustomError> {
     if user == Principal::anonymous() {
-        return Err(CustomError::InvalidInput("Anonymous principal is not allowed.".to_string()));
+        return Err(CustomError::InvalidInput(
+            "Anonymous principal is not allowed.".to_string(),
+        ));
     }
 
     USERS_POOL.with(|pool| {
@@ -171,7 +168,6 @@ fn get_users_pool(user: Principal) -> Result<Option<Vec<String>>, CustomError> {
         }
     })
 }
-
 
 // To get all lp tokens
 
@@ -204,7 +200,6 @@ fn total_lp_tokens() {
     });
 }
 
-
 #[query]
 fn get_total_lp() -> Nat {
     TOTAL_LP_SUPPLY.with(|total_lp| {
@@ -217,7 +212,6 @@ fn get_total_lp() -> Nat {
         total
     })
 }
-
 
 // Query to get LP tokens for a specific pool
 #[query]
@@ -239,7 +233,6 @@ pub fn get_pool_lp_tokens(pool_name: String) -> Nat {
         }
     })
 }
-
 
 #[query]
 pub fn get_user_pools_with_lp(user: Principal) -> Option<BTreeMap<String, Nat>> {
@@ -263,12 +256,13 @@ pub fn get_user_pools_with_lp(user: Principal) -> Option<BTreeMap<String, Nat>> 
     })
 }
 
-
 #[update]
 pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
     let user = ic_cdk::caller();
 
-    params.validate().map_err(|e| format!("Invalid pool data: {:?}", e))?;
+    params
+        .validate()
+        .map_err(|e| format!("Invalid pool data: {:?}", e))?;
 
     let mut users_contribution: Nat = Nat::from(1u128);
 
@@ -321,7 +315,11 @@ pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
                     );
 
                     if attempts == max_retries {
-                        log::error!("Transfer failed after {} attempts for user: {}", attempts, user);
+                        log::error!(
+                            "Transfer failed after {} attempts for user: {}",
+                            attempts,
+                            user
+                        );
                     }
                 }
             }
@@ -332,9 +330,6 @@ pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
 
     Ok(())
 }
-
-
-
 
 #[query]
 fn get_users_lp(user_id: Principal) -> Option<Nat> {
@@ -358,11 +353,12 @@ fn get_users_lp(user_id: Principal) -> Option<Nat> {
     })
 }
 
-
 // TODO Send token amount to pool canister instead of user_share ratio
 #[update]
 async fn burn_lp_tokens(params: Pool_Data, pool_name: String, amount: Nat) -> Result<(), String> {
-    params.validate().map_err(|e| format!("Invalid pool data: {:?}", e))?;
+    params
+        .validate()
+        .map_err(|e| format!("Invalid pool data: {:?}", e))?;
 
     let user = ic_cdk::caller();
 
@@ -385,53 +381,40 @@ async fn burn_lp_tokens(params: Pool_Data, pool_name: String, amount: Nat) -> Re
 
     let canister_id = with_state(|pool| {
         let pool_borrowed = &mut pool.token_pools;
-        pool_borrowed.get(&pool_name).map(|user_principal| user_principal.principal)
-    });
-
-    let canister_id = match canister_id {
-        Some(id) => id,
-        None => {
-            ic_cdk::println!("No canister ID found for pool: {}", pool_name);
-            return Err("No canister ID found for the pool.".to_string());
-        }
-    };
+        pool_borrowed
+            .get(&pool_name)
+            .map(|user_principal| user_principal.principal)
+    })
+    .ok_or_else(|| format!("No canister ID found for the pool: {}", pool_name))?;
 
     let pool_total_lp = POOL_LP_SHARE.with(|share| {
         let borrowed_share = share.borrow();
-        borrowed_share.get(&pool_name).cloned().unwrap_or(Nat::from(0u128))
+        borrowed_share
+            .get(&pool_name)
+            .cloned()
+            .unwrap_or(Nat::from(0u128))
     });
 
     if pool_total_lp <= Nat::from(0u128) {
         return Err(format!("No LP tokens in the pool: {}", pool_name));
     }
 
-    let user_share_ratio = match amount.clone().to_string().parse::<f64>() {
-        Ok(amount_f64) => match pool_total_lp.to_string().parse::<f64>() {
-            Ok(total_f64) => amount_f64 / total_f64,
-            Err(_) => return Err("Failed to parse pool_total_lp to f64.".to_string()),
-        },
-        Err(_) => return Err("Failed to parse amount to f64.".to_string()),
-    };
+    let base_scaling = Nat::from(10u128.pow(18));
+    let user_share_ratio = (amount.clone() * base_scaling.clone()) / pool_total_lp.clone();
 
     let pool_value: Nat = POOL_LP_SHARE.with(|pool_lp| {
         let borrowed_pool_lp = pool_lp.borrow();
-        if let Some(lp_value) = borrowed_pool_lp.get(&pool_name) {
-            lp_value.clone() * Nat::from(1000u128)
-        } else {
-            Nat::from(0u128)
-        }
+        borrowed_pool_lp
+            .get(&pool_name)
+            .map(|lp_value| lp_value.clone() * Nat::from(1000u128))
+            .unwrap_or(Nat::from(0u128))
     });
 
     if pool_value <= Nat::from(0u128) {
         return Err(format!("No tokens in the pool: {}", pool_name));
     }
 
-    let pool_value_f64 = match pool_value.to_string().parse::<f64>() {
-        Ok(value) => value,
-        Err(_) => return Err("Failed to parse pool_value to f64.".to_string()),
-    };
-
-    let tokens_to_transfer = pool_value_f64 * user_share_ratio;
+    let tokens_to_transfer = (pool_value * user_share_ratio.clone()) / base_scaling;
 
     let result: Result<(), String> = call(
         canister_id,
@@ -450,91 +433,70 @@ async fn burn_lp_tokens(params: Pool_Data, pool_name: String, amount: Nat) -> Re
     decrease_total_lp(amount);
 
     ic_cdk::println!("Successfully burned LP tokens for user: {}", user);
-
     Ok(())
 }
 
-
-
-// TODO Send token amount to pool canister instead of user_share ratio
 #[update]
 async fn get_user_share_ratio(
     params: Pool_Data,
     pool_name: String,
     amount: Nat,
-) -> Result<Vec<f64>, String> {
+) -> Result<Vec<Nat>, String> {
     let user = ic_cdk::caller();
+    ic_cdk::println!("Input Params: {:?}, Pool Name: {}, Amount: {}", params, pool_name, amount);
 
-    // Validate input: pool_name
     if pool_name.trim().is_empty() {
         return Err("Pool name cannot be empty.".to_string());
     }
 
-    // Validate input: amount
     if amount <= Nat::from(0u128) {
         return Err("Amount must be greater than zero.".to_string());
     }
 
-    // Validate params
     params.validate().map_err(|e| format!("Invalid pool data: {:?}", e))?;
 
-    // Retrieve the total LP share for the pool
     let pool_total_lp = POOL_LP_SHARE.with(|share| {
         let borrowed_share = share.borrow();
-        borrowed_share
-            .get(&pool_name)
-            .cloned()
-            .unwrap_or(Nat::from(0u128))
+        let val = borrowed_share.get(&pool_name).cloned();
+        ic_cdk::println!("pool_total_lp: {:?}", val);
+        val.unwrap_or(Nat::from(0u128))
     });
 
     if pool_total_lp <= Nat::from(0u128) {
         return Err(format!("No LP tokens found for the pool: {}", pool_name));
     }
 
-    // Retrieve the canister ID for the pool
     let canister_id = with_state(|pool| {
         let pool_borrowed = &mut pool.token_pools;
-        pool_borrowed
-            .get(&pool_name)
-            .map(|user_principal| user_principal.principal)
+        let val = pool_borrowed.get(&pool_name).map(|user_principal| user_principal.principal);
+        ic_cdk::println!("canister_id: {:?}", val);
+        val
     });
 
     let canister_id = match canister_id {
         Some(id) => id,
         None => return Err(format!("No canister ID found for the pool: {}", pool_name)),
     };
+    //nat usage
+    let base_scaling = Nat::from(10u64.pow(18));
+    let user_share_ratio = (amount.clone() * base_scaling.clone()) / pool_total_lp.clone();
+    ic_cdk::println!("user_share_ratio: {:?}", user_share_ratio);
 
-    // Retrieve the pool value
-    let pool_value: Nat = POOL_LP_SHARE.with(|pool_lp| {
+    let pool_value = POOL_LP_SHARE.with(|pool_lp| {
         let borrowed_pool_lp = pool_lp.borrow();
-        borrowed_pool_lp
-            .get(&pool_name)
-            .map(|lp_value| lp_value.clone() * Nat::from(1000u128))
-            .unwrap_or(Nat::from(0u128))
+        let val = borrowed_pool_lp.get(&pool_name).map(|lp_value| lp_value.clone() * base_scaling.clone());
+        ic_cdk::println!("pool_value: {:?}", val);
+        val.unwrap_or(Nat::from(0u128))
     });
 
     if pool_value <= Nat::from(0u128) {
         return Err(format!("No tokens in the pool: {}", pool_name));
     }
 
-    // Calculate the user share ratio
-    let user_share_ratio = match amount.clone().to_string().parse::<f64>() {
-        Ok(amount_f64) => match pool_total_lp.to_string().parse::<f64>() {
-            Ok(total_f64) => amount_f64 / total_f64,
-            Err(_) => return Err("Failed to parse pool_total_lp to f64.".to_string()),
-        },
-        Err(_) => return Err("Failed to parse amount to f64.".to_string()),
-    };
+    let tokens_to_transfer = (pool_value * user_share_ratio.clone()) / base_scaling;
+    ic_cdk::println!("tokens_to_transfer: {:?}", tokens_to_transfer);
 
-    let pool_value_f64 = match pool_value.to_string().parse::<f64>() {
-        Ok(value) => value,
-        Err(_) => return Err("Failed to parse pool_value to f64.".to_string()),
-    };
-
-    let tokens_to_transfer = pool_value_f64 * user_share_ratio;
-
-    // Call the `get_burned_tokens` function on the canister
-    let result: Result<(Vec<f64>,), String> = call(
+    let result: Result<(Vec<Nat>,), String> = call(
         canister_id,
         "get_burned_tokens",
         (params, user, tokens_to_transfer),
@@ -542,7 +504,7 @@ async fn get_user_share_ratio(
     .await
     .map_err(|e| format!("Failed to get token data: {:?}", e));
 
-    // Return the result from the call
+    ic_cdk::println!("get_burned_tokens result: {:?}", result);
     result.map(|(burned_tokens_vec,)| burned_tokens_vec)
 }
 
@@ -581,7 +543,6 @@ fn decrease_pool_lp(pool_name: String, amount: Nat) {
         }
     });
 }
-
 
 #[update]
 fn decrease_user_pool_lp(user: Principal, pool_name: String, amount: Nat) {
@@ -628,7 +589,6 @@ fn decrease_user_pool_lp(user: Principal, pool_name: String, amount: Nat) {
     });
 }
 
-
 #[update]
 fn decrease_total_lp(lp: Nat) {
     // Validation: LP amount must be greater than zero
@@ -646,4 +606,3 @@ fn decrease_total_lp(lp: Nat) {
         }
     });
 }
-
