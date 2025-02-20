@@ -281,7 +281,7 @@ const Swap = () => {
       })
       const res = await backendActor.compute_swap({
         token1_name: payCoin.ShortForm,
-        token_amount: amount,
+        token_amount: amount * 100000000,
         token2_name: receiveCoin.ShortForm,
         ledger_canister_id1: Principal.fromText(payCoin.CanisterId),
         ledger_canister_id2: Principal.fromText(receiveCoin.CanisterId),

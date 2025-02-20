@@ -945,7 +945,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
     // let user_principal_id = api::caller();
     let pool_lp_token = get_pool_lp_tokens(pool_name.clone());
 
-    let pool_lp_token_limit = (Nat::from(30u128) * (pool_lp_token)) / Nat::from(100u128);
+    let pool_lp_token_limit = (Nat::from(30u128) * (pool_lp_token)) / Nat::from(1000u128);
 
     let token_amount = params.token_amount.clone();
 
