@@ -197,24 +197,61 @@ const AddLiquidity = () => {
   const [restTokensAmount,setRestTokenAmount] = useState([]);
   const restTokensRefs = React.useRef([]);
 
+  const calculateTotal = useCallback(()=>{
+    const total = restTokensAmount.reduce((acc,amount)=>{
+      return acc + parseFloat(amount)
+    },initialTokenAmount)
+    console.log("Total : ", total)
+  },[initialTokenAmount,restTokensAmount])
+
+
+  const calculatePoolShare = useCallback(()=>{
+    return 0.001
+  },[])
+
+  const calculatePoolLocked = useCallback(()=>{
+    return 0
+  },[])
+
+  const calculateResult = useCallback((type)=>{
+    let ans;
+    switch(type){
+      case "total":
+        ans = calculateTotal()
+        break;
+      case "pool_share":
+        ans = calculatePoolShare()
+        break;
+      case "gas_fee":
+        ans = swapFee.toLocaleString()
+        break;
+      case "total_pool_value_locked":
+        ans = calculatePoolLocked()
+        break;
+      default:
+        break;
+    }
+    return ans
+  })
+
   const Result = useMemo(()=>({
     heading : 'Total',
-    headingData : '$0.00',
+    headingData : calculateResult("total"),
     data : [
       {
         title : 'Total Pool value locked',
-        value : '$125,165'
+        value : calculateResult("total_pool_value_locked")
       },
       {
         title : 'Your pool share',
-        value : '0.0001%',
+        value : calculateResult("pool_share"),
       },
       {
         title : 'Gas fee',
-        value : swapFee.toLocaleString()
+        value : calculateResult("gas_fee")
       }
     ]
-  }), [])
+  }), [tokens,initialTokenAmount,restTokensAmount,swapFee])
 
   console.log("Init : \n",token1,"\nRest :",restTokens)
 
@@ -263,27 +300,64 @@ const AddLiquidity = () => {
   const poolName = "ExamplePool"; // Static value
 
   // Function to calculate equivalent rest token amounts
-  const calculateEquivalentAmounts = useCallback(async (canisterID1) => {
-    if (!token1 || !restTokens.length > 0) return;
-    
-    const equivalentAmounts = await Promise.all(
-      restTokens.map(async (token) => {
-        const precomputedSwap = await backendActor.pre_compute_swap({
-          token1_name: token1?.ShortForm?.toLowerCase(),
-          token_amount: initialTokenAmount * Math.pow(10, token1?.decimals),
-          token2_name: token.ShortForm?.toLowerCase(),
-          ledger_canister_id1: Principal.fromText(canisterID1),
-          ledger_canister_id2: token.CanisterId,
-          fee : 30
-        });
-        console.log(precomputedSwap)
-        return parseFloat(precomputedSwap[1]).toLocaleString() // TODO : Use fetched decimals
+  const calculateEquivalentAmounts = useCallback(() => {
+    // const handleOptimize = useCallback(() => {
+    //   if (!Tokens[0].Amount || !Tokens[0].marketPrice || !Tokens[0].weights) {
+    //     console.error("Missing required data for first token");
+    //     return;
+    //   }
+    //   // Calculate total pool value based on first token
+    //   const firstTokenUSDValue = Tokens[0].Amount * Tokens[0].marketPrice;
+    //   if (firstTokenUSDValue <= 0) {
+    //     console.error("Invalid first token value");
+    //     return;
+    //   }
+    //   // Calculate total pool value based on first token's weight
+    //   const totalPoolValue = firstTokenUSDValue / (Tokens[0].weights / 100);
+    //   console.log("Total pool value:", totalPoolValue);
+    //   // Calculate and update amounts for other tokens
+    //   Tokens.slice(1).forEach((token, index) => {
+    //     if (!token.marketPrice || !token.weights) {
+    //       console.error(`Missing required data for token ${index + 1}`);
+    //       return;
+    //     }
+    //     const tokenTargetUSDValue = totalPoolValue * (token.weights / 100);
+    //     const requiredTokenAmount = tokenTargetUSDValue / token.marketPrice;
+    //     // Round to 8 decimal places to avoid floating point issues
+    //     const roundedAmount = Number(requiredTokenAmount.toFixed(8));
+    //     console.log(`Token ${index + 1} calculation:`, {
+    //       weight: token.weights,
+    //       targetUSD: tokenTargetUSDValue,
+    //       marketPrice: token.marketPrice,
+    //       requiredAmount: roundedAmount
+    //     });
+    //     dispatch(UpdateAmount({ 
+    //       index: index + 1, 
+    //       Amount: roundedAmount 
+    //     }));
+    //   });
+    // }, [Tokens, dispatch]);
+    if (!token1?.currencyAmount || !token1?.weights){ 
+      console.error("Missing required data for first token", token1);
+      return
+    };
+    const token1USD = token1.currencyAmount * initialTokenAmount;
+    console.log(token1USD,"Token1USD")
+    if(token1USD <= 0) return;
+    const totalPoolValue = token1USD / (parseInt(token1.weights) / 100);
+    console.log("Total pool value:", totalPoolValue);
+    const equivalentAmounts = restTokens.map((token, index) => {
+      const tokenTargetUSDValue = totalPoolValue * (parseInt(token.weights) / 100);
+      console.log("Token Target", tokenTargetUSDValue)
+      const requiredTokenAmount = tokenTargetUSDValue / token.currencyAmount;
+      console.log("Required Token Amount", requiredTokenAmount)
+      const roundedAmount = Number(requiredTokenAmount.toFixed(8));
+      return roundedAmount;
       })
-    );
 
-    equivalentAmounts.forEach((amount, index) => {
-      amount = (parseInt(amount) / Math.pow(10, 8)); // TODO : Use fetched decimals
-    });
+    // equivalentAmounts.forEach((amount, index) => {
+    //   amount = (parseInt(amount) / Math.pow(10, 8)); // TODO : Use fetched decimals
+    // });
 
     console.log("Equivalent Amounts : ", equivalentAmounts);
     setRestTokenAmount(equivalentAmounts);
@@ -292,12 +366,18 @@ const AddLiquidity = () => {
   // Call the function after fetching the pool data
   useEffect(() => {
     if (tokens.length > 0) {
-      const canisterID1 = tokens[0].token_name === "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC;
-      calculateEquivalentAmounts(canisterID1);
+      calculateEquivalentAmounts();
     }
-  }, [restTokens, calculateEquivalentAmounts,token1?.currencyAmount,initialTokenAmount]);
+  }, [restTokens, calculateEquivalentAmounts,token1?.currencyAmount,initialTokenAmount,optimizeEnable]);
 
-  
+  const handleRestTokenInput = (e, index) => {
+    const value = parseFloat(e.target.value) || 0;
+    const newAmounts = restTokensAmount.map((amount, i) => {
+      if (i === index) return value;
+      return amount;
+    });
+    setRestTokenAmount(newAmounts);
+  }
 
   return (
     <div className=''>
@@ -355,11 +435,11 @@ const AddLiquidity = () => {
                         className="font-normal leading-5 text-xl sm:text-3xl py-1 inline-block outline-none bg-transparent"
                         type="number"
                         min="0"
-                        value={isNaN(parseInt(restTokensAmount[index])) ? "" : parseInt(restTokensAmount[index])}
+                        value={restTokensAmount[index]}
                         placeholder="0"
                         ref={(el) => (restTokensRefs.current[index] = el)}
-                        // onChange={(e) => handleInput(e, index + 1)}
-                        disabled={true}
+                        onChange={(e) => handleRestTokenInput(e, index)}
+                        disabled={optimizeEnable}
                       />
                     </div>
                     <span className='text-sm sm:text-base font-normal'>
