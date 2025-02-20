@@ -2,6 +2,7 @@ use candid::{ Nat, Principal};
 use ic_cdk_macros::*;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
+use num_traits::cast::ToPrimitive;
 
 mod api;
 mod utils;
@@ -249,12 +250,11 @@ pub async fn lp_rollback(user: Principal, pool_data: Pool_Data) -> Result<(), St
 
 
 // TODO : make ledger calls with state checks for balance to prevent TOCTOU vulnerablities
-
 #[update]
 async fn burn_tokens(
     params: Pool_Data,
     user: Principal,
-    tokens_to_transfer: f64,
+    tokens_to_transfer: Nat,
 ) -> Result<(), String> {
     // Validate user principal
     if user == Principal::anonymous() {
@@ -262,57 +262,23 @@ async fn burn_tokens(
         return Err("Invalid user principal: Cannot be anonymous.".to_string());
     }
 
-    // Validate pool data using the `validate` method
+    // Validate pool data
     if let Err(err) = params.validate() {
         ic_cdk::println!("Error: Invalid pool data - {:?}", err);
         return Err(format!("Invalid pool data: {:?}", err));
     }
 
-    let tokens_to_transfer_u64 = tokens_to_transfer as u64;
-    let tokens_to_transfer_nat = Nat::from(tokens_to_transfer_u64);
+    let base_scaling = Nat::from(10u64.pow(18));
 
-    // Debug: Log the burn operation start
     ic_cdk::println!(
-        "Debug: Starting burn_tokens for user principal {} with share ratio {}.",
+        "Debug: Starting burn_tokens for user principal {} with tokens to transfer {:?}.",
         user,
         tokens_to_transfer
     );
 
-
-    // TODO Add check for balance if its greater than canister balance
-
-    // Get total token balance for the user
-    // let total_token_balance = match get_pool_balance(user.clone()) {
-    //     Some(balance) => balance,
-    //     None => {
-    //         ic_cdk::println!(
-    //             "Debug: No pool balance found for user principal {}. Defaulting to zero.",
-    //             user
-    //         );
-    //         Nat::from(0u128)
-    //     }
-    // };
-
-    // Debug: Log total token balance
-    // ic_cdk::println!(
-    //     "Debug: Total token balance for user principal {} is {}.",
-    //     user,
-    //     total_token_balance
-    // );
-
-    // Iterate over pool data to calculate and burn tokens
     for token in params.pool_data.iter() {
-        // Calculate token amount to burn
-        let mut token_amount = token.weight.clone() * tokens_to_transfer_nat.clone();
-        // user_share_ratio = user_share_ratio * 10;
-        // let user_share_ratio_u64 = user_share_ratio as u64;
-        // let ratio = Nat::from(user_share_ratio_u64);
-        // let mut transfer_amount = token_amount.clone() * ratio;
-        // transfer_amount = transfer_amount / Nat::from(10u128);
+        let token_amount = (token.weight.clone() * tokens_to_transfer.clone()) / base_scaling.clone();
 
-        token_amount = token_amount * Nat::from(10u128);
-
-        // Debug: Log transfer details
         ic_cdk::println!(
             "Debug: Burning {} of token {} for user principal {}.",
             token_amount,
@@ -320,7 +286,6 @@ async fn burn_tokens(
             user
         );
 
-        // Perform the token transfer
         let transfer_result = icrc1_transfer(token.ledger_canister_id, user, token_amount).await;
 
         if let Err(e) = transfer_result {
@@ -333,93 +298,41 @@ async fn burn_tokens(
         }
     }
 
-    // Debug: Log successful burn operation
     ic_cdk::println!("Debug: burn_tokens completed successfully for user principal {}.", user);
 
     Ok(())
 }
 
-
-
 #[query]
 async fn get_burned_tokens(
     params: Pool_Data,
     user: Principal,
-    tokens_to_transfer: f64,
+    tokens_to_transfer: Nat,
 ) -> Result<Vec<Nat>, String> {
-    // Validate user principal
     if user == Principal::anonymous() {
         ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
         return Err("Invalid user principal: Cannot be anonymous.".to_string());
     }
 
-    // Validate pool data using the `validate` method
     if let Err(err) = params.validate() {
         ic_cdk::println!("Error: Invalid pool data - {:?}", err);
         return Err(format!("Invalid pool data: {:?}", err));
     }
 
-    // Validate user_share_ratio
-    // if user_share_ratio <= 0.0 {
-    //     ic_cdk::println!("Error: Invalid user share ratio. Must be greater than zero.");
-    //     return Err("User share ratio must be greater than zero.".to_string());
-    // }
-    
-    let tokens_transfer_u64 = tokens_to_transfer as u64;
-    let tokens_to_transfer_nat = Nat::from(tokens_transfer_u64);
-        
-    
-    // Debug: Log the start of the function
-    ic_cdk::println!(
-        "Debug: Calculating burned tokens for user {} with share ratio {}.",
-        user,
-        tokens_to_transfer_nat
-    );
-
-
-
-    // Get the total token balance for the user
-    // let total_token_balance = match get_pool_balance(user.clone()) {
-    //     Some(balance) => {
-    //         ic_cdk::println!(
-    //             "Debug: Total token balance for user {} is {}.",
-    //             user,
-    //             balance
-    //         );
-    //         balance
-    //     }
-    //     None => {
-    //         ic_cdk::println!(
-    //             "Debug: No pool balance found for user {}. Defaulting to zero.",
-    //             user
-    //         );
-    //         Nat::from(0u128)
-    //     }
-    // };
+    ic_cdk::println!("tokens_to_transfer (Nat): {:?}", tokens_to_transfer);
 
     let mut result: Vec<Nat> = vec![];
 
-    // Iterate over each token in pool data
     for token in params.pool_data.iter() {
-        // Calculate token amount and transfer amount
-        let token_amount = token.weight.clone() * tokens_to_transfer_nat.clone();
-        // let transfer_amount = token_amount
-        //     .to_string()
-        //     .parse::<f64>()
-        //     .unwrap_or_default()
-        //     / tokens_to_transfer_nat;
-
-        // Debug: Log the calculated transfer amount
+        let token_amount = token.weight.clone() * tokens_to_transfer.clone();
         ic_cdk::println!(
-            "Debug: Calculated transfer amount for token {}: {}.",
+            "Debug: Calculated transfer amount for token {}: {:?}.",
             token.token_name,
-            tokens_to_transfer_nat
+            token_amount
         );
-
-        result.push(token_amount.clone());
+        result.push(token_amount);
     }
 
-    // Debug: Log the result
     ic_cdk::println!(
         "Debug: Burned token calculation completed for user {}. Result: {:?}",
         user,
@@ -428,6 +341,9 @@ async fn get_burned_tokens(
 
     Ok(result)
 }
+
+
+
 
 
 
