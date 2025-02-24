@@ -9,9 +9,13 @@ const Slider = ({poolData}) => {
     const {backendActor} = useAuthClient()
 
     const getUserShareRatio = useCallback(async()=>{
-        console.log("poolData", poolData)
+        console.log("poolData", {
+            poolData : poolData[0],
+            name : "ckbtccketh",
+            amount : 1.0
+        })
         try{
-            const response = await backendActor.get_user_share_ratio(poolData[0],"ckbtccketh", 1234)
+            const response = await backendActor.get_user_share_ratio(poolData[0],"ckbtccketh", 1.0)
             console.log("response", response)
         }catch(err){    
             console.error("Error getting user share ratio", err)
