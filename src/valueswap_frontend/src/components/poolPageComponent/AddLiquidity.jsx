@@ -1,27 +1,18 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'react-router-dom';
-import { portfolioSampleData } from '../../TextData';
-import PoolInfoBox from '../../displayBoxes/PoolInfoBox';
 import GradientButton from '../../buttons/GradientButton'
-import { PoolCompositions, Swapping, LiquidityOverview } from '../../tables'
-import Echarts from '../portfolioComponents/Echarts';
 import { IOSSwitch } from '../../buttons/SwitchButton';
 import { convertTokenEquivalentUSD } from '../../utils';
 import { useAuth } from '../utils/useAuthClient';
-import { Principal } from '@dfinity/principal';
-
 
 const AddLiquidity = () => {
 
   const { id } = useParams()
-  const [currIndex, setCurrIndex] = useState(0)
-  const [currentRang, setCurrentRange] = useState(0)
   const [tokens, setTokens] = useState([])
   const [restTokens, setRestTokens] = useState([])
   const [token1, setToken1] = useState(null);
   const [poolData, setPoolData] = useState([]);
   const [swapFee, setSwapFee] = useState(0)
-  const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
   const {backendActor,principal, createTokenActor, getBalance} = useAuth()
 
 
@@ -156,16 +147,6 @@ const AddLiquidity = () => {
     getPoolData()
   }, [id,principal])
 
-  // let TokenData = portfolioSampleData.TableData[id]
-
-  const selectRang = [
-    "1D",
-    "1W",
-    "1M",
-    "1Y",
-    "All Time"
-  ]
-
   const [optimizeEnable, setOptimizeEnable] = React.useState(true);
   const [initialTokenAmount, setInitialTokenAmount] = React.useState(0);
   const [equivalentUSD, setEquivalentUSD] = React.useState(0);
@@ -231,7 +212,27 @@ const AddLiquidity = () => {
 
   console.log("Init : \n",token1,"\nRest :",restTokens)
 
+  const runApproval = useCallback(async(approveParams)=>{
+    try{
+      if(typeof approveParams === "undefined" || approveParams.length === 0) throw new Error("Approval Params Type Error")
+      approveParams.forEach(async(param)=>{
+        const actor = createTokenActor(param.spender.toText())
+        const response = await actor.approve({...param})
+        if(response?.Ok){
+          console.log("Approved")
+        }else{
+          throw new Error(JSON.stringify(response.Err))
+        }
+      })
+    }catch(err){
+      console.error(err)
+    }finally{
+      console.log("Approval Done")
+    }
+  },[])
+
   const addLiquidity = useCallback(async()=>{
+    let approveParams=[]
     const pool_data = poolData.map((pool)=>{
       const params = pool.pool_data
       const param = params.map((token,index)=>{
@@ -239,6 +240,13 @@ const AddLiquidity = () => {
         const decimal = index === 0 ? token1?.decimals : restTokens[index - 1]?.decimals // TODO : Use fetched decimals
         const balance = index  === 0 ? token1?.balance : restTokens[index - 1]?.balance
         console.log("TYPE FOF AMOUNT : ", typeof amount, amount)
+        let approveEntry = {
+          fee : 30,
+          memo : [],
+          amount : BigInt(amount) * BigInt(10 ** decimal),
+          spender : token.ledger_canister_id
+        }
+        approveParams.push(approveEntry)
         return {
           value : BigInt(amount) * BigInt(10 ** decimal),
           weight : parseFloat(token.weight),
@@ -253,6 +261,7 @@ const AddLiquidity = () => {
     })
     console.log(pool_data)
     try{
+      runApproval(approveParams)
       const response = await backendActor.create_pools({pool_data : pool_data[0], swap_fee : parseFloat(swapFee) || 0})
       console.log(response)
       if(response?.Ok){
@@ -273,46 +282,9 @@ const AddLiquidity = () => {
   const ButtonActive = true; // Static value
   const isAuthenticated = true; // Static value
   const AmountSelectCheck = true; // Static value
-  const poolName = "ExamplePool"; // Static value
 
   // Function to calculate equivalent rest token amounts
   const calculateEquivalentAmounts = useCallback(() => {
-    // const handleOptimize = useCallback(() => {
-    //   if (!Tokens[0].Amount || !Tokens[0].marketPrice || !Tokens[0].weights) {
-    //     console.error("Missing required data for first token");
-    //     return;
-    //   }
-    //   // Calculate total pool value based on first token
-    //   const firstTokenUSDValue = Tokens[0].Amount * Tokens[0].marketPrice;
-    //   if (firstTokenUSDValue <= 0) {
-    //     console.error("Invalid first token value");
-    //     return;
-    //   }
-    //   // Calculate total pool value based on first token's weight
-    //   const totalPoolValue = firstTokenUSDValue / (Tokens[0].weights / 100);
-    //   console.log("Total pool value:", totalPoolValue);
-    //   // Calculate and update amounts for other tokens
-    //   Tokens.slice(1).forEach((token, index) => {
-    //     if (!token.marketPrice || !token.weights) {
-    //       console.error(`Missing required data for token ${index + 1}`);
-    //       return;
-    //     }
-    //     const tokenTargetUSDValue = totalPoolValue * (token.weights / 100);
-    //     const requiredTokenAmount = tokenTargetUSDValue / token.marketPrice;
-    //     // Round to 8 decimal places to avoid floating point issues
-    //     const roundedAmount = Number(requiredTokenAmount.toFixed(8));
-    //     console.log(`Token ${index + 1} calculation:`, {
-    //       weight: token.weights,
-    //       targetUSD: tokenTargetUSDValue,
-    //       marketPrice: token.marketPrice,
-    //       requiredAmount: roundedAmount
-    //     });
-    //     dispatch(UpdateAmount({ 
-    //       index: index + 1, 
-    //       Amount: roundedAmount 
-    //     }));
-    //   });
-    // }, [Tokens, dispatch]);
     if (!token1?.currencyAmount || !token1?.weights){ 
       console.error("Missing required data for first token", token1);
       return
@@ -330,10 +302,6 @@ const AddLiquidity = () => {
       const roundedAmount = Number(requiredTokenAmount.toFixed(8));
       return roundedAmount;
       })
-
-    // equivalentAmounts.forEach((amount, index) => {
-    //   amount = (parseInt(amount) / Math.pow(10, 8)); // TODO : Use fetched decimals
-    // });
 
     console.log("Equivalent Amounts : ", equivalentAmounts);
     setRestTokenAmount(equivalentAmounts);
@@ -489,152 +457,6 @@ const AddLiquidity = () => {
       </div>
     </div>
   );
-
-  // return (
-  //   <div className=' max-w-[1200px] mx-auto h-screen relative '>
-
-  //     <div className='w-full h-screen  text-white mt-12 z-20 sm:px-8 absolute'>
-
-  //       <div className='flex flex-col justify-between bg-[#010427] p-2  py-6  rounded-t-lg mx-auto'>
-  //         <div className='flex justify-between items-center  mx-2  md:ml-8'>
-  //           <div className='font-gilroy text-base md:text-3xl font-medium flex items-center gap-4'>
-  //             <div className='flex gap-1 sm:gap-2'>
-  //               {
-  //                 TokenData?.PoolData.map((token, index) => (
-  //                   <div key={index}>
-  //                     <div className='bg-[#3D3F47] p-1 rounded-lg'>
-  //                       <img src={token.ImagePath} alt="" className='w-6 h-6 md:w-10 md:h-10' />
-  //                     </div>
-  //                   </div>
-  //                 ))
-  //               }
-  //             </div>
-  //             <div className='flex items-center'>
-  //               <span  >{TokenData?.PoolData[0].ShortForm}</span>
-  //               {
-  //                 TokenData?.PoolData.slice(1).map((token, index) => (
-  //                   <div key={index} className=''>
-  //                     <span className='mx-0.5'>/</span>
-  //                     {token.ShortForm}
-  //                   </div>
-  //                 ))
-  //               }
-  //               <span className='mx-1'>:  :</span>
-
-  //               <span>{TokenData?.PoolData[0].weights}</span>
-  //               {
-  //                 TokenData?.PoolData.slice(1).map((token, index) => (
-  //                   <div key={index} className=''>
-  //                     <span className='mx-0.5'>/</span>
-  //                     {token.weights}
-  //                   </div>
-  //                 ))
-  //               }
-  //             </div>
-  //           </div>
-  //         </div>
-  //         <div className='flex flex-col lg:flex-row w-full gap-11 mx-auto  mt-7'>
-  //           <div className=' lg:w-[59%] p-4 text-[#4b4b4b] bg-[#000711] '>
-  //             {/* pool info chart here in this div */}
-  //             <div>
-  //               <div className='flex justify-between'>
-  //                 <p className=' sm:text-3xl text-white font-semibold'>$125,625,175</p>
-  //                 <div className='flex flex-col gap-y-2'>
-  //                   <div className='flex justify-around gap-x-4 text-sm '>
-  //                     <div>
-  //                       <p>Volumes in Past-</p>
-  //                       <hr className='border-[#4b4b4b]' />
-  //                     </div>
-  //                     <select name="" id="" className='bg-[#000711] text-white p-1 border-[1px] border-[#C0D9FF66] focus:outline-none rounded-md'>
-  //                       <option value="volume">Volume</option>
-  //                       <option value="24hr">24hr Vol</option>
-  //                     </select>
-  //                   </div>
-  //                   <div className='flex gap-x-2 text-sm'>
-  //                     {
-  //                       selectRang.map((rang, index) => 
-  //                         <div className='flex flex-col items-center' key={index} onClick={() => {
-  //                           setCurrentRange(index)
-  //                         }}>
-  //                           <p className='cursor-pointer'>{rang}</p>
-  //                           <span className={`p-[2px] w-1 bg-[#F7931A]  ${currentRang === index ? 'visible' : 'invisible'}`}></span>
-  //                         </div>
-  //                       )
-  //                     }
-
-  //                   </div>
-  //                 </div>
-  //               </div>
-  //               <Echarts />
-  //             </div>
-  //             <div>
-
-  //             </div>
-  //           </div>
-
-  //           <div className=' flex flex-col items-center gap-4 my-4 '>
-  //             <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48 justify-center'>
-  //               <PoolInfoBox Heading={'Pool Value'} Data={`$ ${TokenData?.PoolMetaData.PoolValue.toLocaleString('en-US')}`} />
-  //               <PoolInfoBox Heading={'24H_Fees'} Data={`$ ${TokenData?.PoolMetaData.TwentyFourHourFees.toLocaleString('en-US')}`} />
-  //             </div>
-  //             <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48 justify-center'>
-  //               <PoolInfoBox Heading={'24H_Pool Volume'} Data={`$ ${TokenData?.PoolMetaData.TwentyFourHourVolume.toLocaleString('en-US')}`} />
-  //               <PoolInfoBox Heading={'APR'} Data={`${TokenData?.PoolMetaData.APRstart}% - ${TokenData?.PoolMetaData.APRend}%`} />
-  //             </div>
-  //           </div>
-  //         </div>
-
-  //         <div className='gap-2 pt-9 mx-10 font-gilroy flex items-center'>
-  //           <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:</span>
-  //           <span className='mx-3 text-2xl font-normal leading-6'>${TokenData?.PoolMetaData.PersonalPoolBalance.toLocaleString('en-US')}</span>
-  //         </div>
-
-
-  //         {/* <div className='flex gap-3 md:gap-6 my-4 mx-3 md:mx-10'>
-  //           <div>
-  //             <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
-  //               Swap Tokens
-  //             </GradientButton>
-  //           </div>
-  //           <div>
-  //             <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
-  //               Add Liquidity
-  //             </GradientButton>
-  //           </div>
-  //           <div>
-  //             <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
-  //               Withdraw
-  //             </GradientButton>
-  //           </div>
-  //         </div> */}
-
-  //         {/* <div className='font-gilroy font-medium text-base md:text-xl lg:text-2xl flex gap-3 md:gap-16 lg:gap-32 mx-4 lg:mx-10 mt-6'>
-  //           {Heading.map((heading, index) => (
-  //             <div className='flex flex-col justify-center text-center items-center gap-2 cursor-pointer' key={index}
-  //               onClick={() => {
-  //                 setCurrIndex(index)
-  //               }}>
-  //               <h1>{heading}</h1>
-  //               <span className={`p-[1px]  bg-[#F7931A] w-full ${currIndex === index ? 'visible' : 'invisible'}`}></span>
-  //             </div>
-  //           ))}
-  //         </div> */}
-
-
-  //         {/* <div >
-  //           {currIndex === 0 && <PoolCompositions TableData={TokenData?.PoolData} />}
-  //           {currIndex === 1 && <Swapping id={Number(id)} />}
-  //           {currIndex === 2 && <LiquidityOverview id={id} />}
-  //         </div> */}
-
-
-
-  //       </div>
-
-  //     </div>
-  //   </div>
-  // )
-  
 }
 
 export default AddLiquidity
