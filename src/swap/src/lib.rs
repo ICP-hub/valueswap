@@ -256,49 +256,46 @@ async fn burn_tokens(
     user: Principal,
     tokens_to_transfer: Nat,
 ) -> Result<(), String> {
-    // Validate user principal
     if user == Principal::anonymous() {
-        ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
         return Err("Invalid user principal: Cannot be anonymous.".to_string());
     }
 
-    // Validate pool data
     if let Err(err) = params.validate() {
-        ic_cdk::println!("Error: Invalid pool data - {:?}", err);
         return Err(format!("Invalid pool data: {:?}", err));
     }
 
-    let base_scaling = Nat::from(10u64.pow(18));
+    // Define scaling factors
+    let base_scaling = Nat::from(10u128.pow(18));  // 10^18 for base calculations
+    let weight_scaling = Nat::from(100u128);       // Scale for percentages
 
     ic_cdk::println!(
-        "Debug: Starting burn_tokens for user principal {} with tokens to transfer {:?}.",
-        user,
+        "Debug: Starting burn_tokens with tokens_to_transfer: {:?}",
         tokens_to_transfer
     );
 
     for token in params.pool_data.iter() {
-        let token_amount = (token.weight.clone() * tokens_to_transfer.clone()) / base_scaling.clone();
+        // Calculate token amount with proper scaling
+        // (weight * tokens_to_transfer * weight_scaling) / (base_scaling * 100)
+        let token_amount = (token.weight.clone() * tokens_to_transfer.clone() * weight_scaling.clone()) 
+            / (base_scaling.clone() * Nat::from(100u128));
 
         ic_cdk::println!(
-            "Debug: Burning {} of token {} for user principal {}.",
-            token_amount,
+            "Debug: Calculated token_amount for {}: {:?}",
             token.token_name,
-            user
+            token_amount
         );
 
         let transfer_result = icrc1_transfer(token.ledger_canister_id, user, token_amount).await;
 
         if let Err(e) = transfer_result {
             let error_message = format!(
-                "Error: Token transfer failed for token {} for user {}: {}",
+                "Token transfer failed for {} for user {}: {}",
                 token.token_name, user, e
             );
-            ic_cdk::println!("{}", error_message);
+            ic_cdk::println!("Error: {}", error_message);
             return Err(error_message);
         }
     }
-
-    ic_cdk::println!("Debug: burn_tokens completed successfully for user principal {}.", user);
 
     Ok(())
 }
@@ -319,17 +316,25 @@ async fn get_burned_tokens(
         return Err(format!("Invalid pool data: {:?}", err));
     }
 
+    let base_scaling = Nat::from(10u128.pow(18));  // 10^18 for base calculations
+    let weight_scaling = Nat::from(100u128);       // Scale for percentages
+
     ic_cdk::println!("tokens_to_transfer (Nat): {:?}", tokens_to_transfer);
 
-    let mut result: Vec<Nat> = vec![];
+    let mut result: Vec<Nat> = Vec::new();
 
     for token in params.pool_data.iter() {
-        let token_amount = token.weight.clone() * tokens_to_transfer.clone();
+        // Calculate token amount with proper scaling
+        // (weight * tokens_to_transfer * weight_scaling) / (base_scaling * 100)
+        let token_amount = (token.weight.clone() * tokens_to_transfer.clone() * weight_scaling.clone()) 
+            / (base_scaling.clone() * Nat::from(100u128));
+
         ic_cdk::println!(
-            "Debug: Calculated transfer amount for token {}: {:?}.",
+            "Debug: Calculated amount for token {}: {:?}",
             token.token_name,
             token_amount
         );
+
         result.push(token_amount);
     }
 
@@ -341,10 +346,6 @@ async fn get_burned_tokens(
 
     Ok(result)
 }
-
-
-
-
 
 
 #[update]
