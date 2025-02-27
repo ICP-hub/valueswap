@@ -6,18 +6,17 @@ import { convertTokenEquivalentUSD } from '../../utils';
 import { useAuth } from '../utils/useAuthClient';
 
 const AddLiquidity = () => {
-
-  const { id } = useParams()
-  const [tokens, setTokens] = useState([])
-  const [restTokens, setRestTokens] = useState([])
+  const { id } = useParams();
+  const [tokens, setTokens] = useState([]);
+  const [restTokens, setRestTokens] = useState([]);
   const [token1, setToken1] = useState(null);
   const [poolData, setPoolData] = useState([]);
-  const [swapFee, setSwapFee] = useState(0)
-  const {backendActor,principal, createTokenActor, getBalance} = useAuth()
+  const [swapFee, setSwapFee] = useState(0);
+  const { backendActor, principal, createTokenActor, getBalance } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [retry, setRetry] = useState({getPoolData : false, initToken : false, restToken : false})
 
-
-
-  const initToken = useCallback(async()=>{
+  const initToken = useCallback(async () => {
     const initialToken = tokens[0]
     let data = {}
     console.log("II : ", initialToken)
@@ -31,7 +30,7 @@ const AddLiquidity = () => {
         const {weight, token_name, image,  ledger_canister_id} = initialToken
         console.log("Ledger : ", ledger_canister_id.toText())
         data = await getBalance(ledger_canister_id.toText()).then(balance=>{
-          console.log("Balance : ", balance)
+          console.log("Balance : ", balance, ledger_canister_id.toText())
           return {
             weights: weight.toString(),
             currencyAmount: 0,
@@ -53,7 +52,7 @@ const AddLiquidity = () => {
       setToken1(data)
     }
 
-  },[id,principal,tokens,getBalance])
+  }, [id, principal, tokens, getBalance]);
 
   const initRestToken = useCallback(async () => {
     const splittedTokenArr = tokens.slice(1);
@@ -80,6 +79,8 @@ const AddLiquidity = () => {
             decimals : null,
             canisterId
           };
+        } finally{
+          setLoading(false);
         }
       }));
   
@@ -110,42 +111,37 @@ const AddLiquidity = () => {
       console.error(err);
     }
   }, [id, principal, tokens]);
-  
 
-  useEffect(()=>{
-    initToken()
-    initRestToken()
-  },[tokens])
-
-  /**
-   * Fetches the pool data from the backend
-   * @param {string} pool_id
-   * @returns {void}
-   */
-  const getPoolData = useCallback(async()=>{
-    try{
-      const data = await backendActor.get_specific_pool_data(id)
-      if(data?.Ok){
-        console.log("pool data", data.Ok)
-        const pool_datas = data.Ok 
-        setPoolData(pool_datas)
-        setTokens(pool_datas[0].pool_data)
-        setSwapFee(pool_datas[0].swap_fee)
-      }else{
-        throw new Error(data.Err)
+  const getPoolData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await backendActor.get_specific_pool_data(id);
+      if (data?.Ok) {
+        const pool_datas = data.Ok;
+        setPoolData(pool_datas);
+        setTokens(pool_datas[0].pool_data);
+        setSwapFee(pool_datas[0].swap_fee);
+      } else {
+        throw new Error(data.Err);
       }
-    }catch(err){
-      console.error("Error fetching pool data", err)
-      setTokens([])
-    }finally{
-      console.log("done fetching pool data",tokens)
+    } catch (err) {
+      console.error("Error fetching pool data", err);
+      setTokens([]);
+      if(err?.code === 3000)
+      setRetry((prev)=>({...prev,getPoolData : true}))
     }
-  },[id])
+  }, [id]);
 
   useEffect(() => {
-    console.log("pool id", id)
-    getPoolData()
-  }, [id,principal])
+    getPoolData();
+  }, [id, principal, retry.getPoolData]);
+
+  useEffect(() => {
+    if (tokens.length > 0) {
+      initToken();
+      initRestToken();
+    }
+  }, [tokens, initToken, initRestToken]);
 
   const [optimizeEnable, setOptimizeEnable] = React.useState(true);
   const [initialTokenAmount, setInitialTokenAmount] = React.useState(0);
@@ -189,7 +185,7 @@ const AddLiquidity = () => {
         break;
     }
     return ans
-  })
+  }, [calculateTotal, calculatePoolShare, swapFee])
 
   const Result = useMemo(()=>({
     heading : 'Total',
@@ -216,20 +212,18 @@ const AddLiquidity = () => {
     try{
       if(typeof approveParams === "undefined" || approveParams.length === 0) throw new Error("Approval Params Type Error")
       approveParams.forEach(async(param)=>{
-        const actor = createTokenActor(param.spender.toText())
-        const response = await actor.approve({...param})
-        if(response?.Ok){
-          console.log("Approved")
-        }else{
-          throw new Error(JSON.stringify(response.Err))
-        }
+        createTokenActor(param.spender.toText()).then(actor=>{
+          console.log("Actor : ", actor)
+          actor.approve(param)
+        })
+        .catch(err=>console.error(err))
       })
     }catch(err){
       console.error(err)
     }finally{
       console.log("Approval Done")
     }
-  },[])
+  }, [createTokenActor])
 
   const addLiquidity = useCallback(async()=>{
     let approveParams=[]
@@ -272,7 +266,7 @@ const AddLiquidity = () => {
     }catch(err){
       console.error(err)
     }
-  },[poolData,initialTokenAmount,restTokensAmount,swapFee])
+  },[poolData,initialTokenAmount,restTokensAmount,swapFee, runApproval])
 
   const handleInput = (e) => {
     const value = parseFloat(e.target.value) || 0;
@@ -323,6 +317,10 @@ const AddLiquidity = () => {
     setRestTokenAmount(newAmounts);
   }
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className=''>
       <div className='w-max m-auto flex flex-col gap-4 p-3 sm:p-6 relative space-y-2'>
@@ -367,7 +365,7 @@ const AddLiquidity = () => {
 
         <div className='flex flex-col gap-4'>
           {restTokens.map((token, index) => {
-            const balance = token.balance;
+            const balance = token?.balance;
 
             return (
               <div key={index}>
@@ -387,22 +385,22 @@ const AddLiquidity = () => {
                       />
                     </div>
                     <span className='text-sm sm:text-base font-normal'>
-                      ${parseInt(restTokensAmount[index]) * token.currencyAmount || "0"}
+                      ${parseInt(restTokensAmount[index]) * token?.currencyAmount || "0"}
                     </span>
                   </div>
                   <div className='flex flex-col justify-center'>
                     <div className='flex gap-3 items-center'>
-                      <img src={token.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
+                      <img src={token?.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
                       <span className='text-sm sm:text-2xl font-normal'>
-                        {token.ShortForm.toUpperCase()}
+                        {token?.ShortForm.toUpperCase()}
                       </span>
                       <span className='text-sm sm:text-2xl font-normal'>•</span>
                       <span className='py-1 px-2 sm:px-3'>
-                        {token.weights} %
+                        {token?.weights} %
                       </span>
                     </div>
                     <span className='inline-flex justify-center gap-2 text-center font-normal leading-5 text-sm sm:text-base'>
-                      {balance.toLocaleString()} {token.ShortForm.toUpperCase()}
+                      {balance.toLocaleString()} {token?.ShortForm.toUpperCase()}
                       <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
                     </span>
                   </div>
@@ -421,9 +419,7 @@ const AddLiquidity = () => {
             } else if (!AmountSelectCheck) {
               toast.warn('You do not have enough tokens.');
             } else {
-              // fetchPoolName(poolName);
               addLiquidity();
-              console.log("dispatched finished");
             }
           }}
         >
@@ -431,27 +427,24 @@ const AddLiquidity = () => {
             {initialTokenAmount == 0 ? 'Add Token Amount' : 'Add Liquidity'}
           </GradientButton>
         </div>
-      {/* Info Content */}
         <table className='w-full font-gilroy'>
           <thead className='text-xl font-semibold'>
-            <td>{Result.heading}</td>
-            <td>{Result.headingData}</td>
+            <tr className='flex justify-between w-full'>
+              <th>{Result.heading}</th>
+              <th>{Result.headingData}</th>
+            </tr>
           </thead>
           <tbody className='text-base'>
-            {
-              Result.data.map((data, index) => (
-                <tr key={index}>
-                  <td>{data.title}</td>
-                  {
-                    data.title === 'Gas fee' ? (
-                      <td>{`${data.value} ${token1?.ShortForm} ( $${equivalentUSD} )`}</td>
-                    ) : (
-                      <td>{data.value.toLocaleString()}</td>
-                    )
-                  }
-                </tr>
-              ))
-            }
+            {Result.data.map((data, index) => (
+              <tr key={index}>
+                <td>{data.title}</td>
+                {data.title === 'Gas fee' ? (
+                  <td>{`${data.value} ${token1?.ShortForm} ( $${equivalentUSD} )`}</td>
+                ) : (
+                  <td>{data.value.toLocaleString()}</td>
+                )}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -459,4 +452,4 @@ const AddLiquidity = () => {
   );
 }
 
-export default AddLiquidity
+export default AddLiquidity;
