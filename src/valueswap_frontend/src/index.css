@@ -17,7 +17,7 @@ body {
     ), */
     url('/image/overlay.png');
     /* url('/image/bg_1.webp'); */
-  background-size: contain;
+  background-size: cover;
   /* background-repeat: no-repeat; */
   /* opacity: 120%; */
   /* mix-blend-mode: color-dodge; */
