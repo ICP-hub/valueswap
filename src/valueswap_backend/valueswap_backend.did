@@ -51,7 +51,7 @@ type RejectionCode = variant {
 };
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok; Err : CustomError };
-type Result_10 = variant { Ok : vec float64; Err : text };
+type Result_10 = variant { Ok : vec nat; Err : text };
 type Result_11 = variant { Ok : opt vec text; Err : CustomError };
 type Result_12 = variant { Ok; Err : InstallError };
 type Result_13 = variant { Ok : vec text; Err : text };

@@ -4,7 +4,8 @@ import { useAuth } from '../components/utils/useAuthClient'
 import { Principal } from '@dfinity/principal'
 import {
   Settings as SettingsIcon,
-  Cached as CachedIcon
+  Cached as CachedIcon,
+  Warning
 } from '@mui/icons-material'
 import BorderGradientButton from '../buttons/BorderGradientButton'
 import GradientButton from '../buttons/GradientButton'
@@ -18,8 +19,7 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 const Swap = () => {
-  const { backendActor, getBalance, createTokenActor, isAuthenticated } =
-    useAuth()
+  const { backendActor, getBalance, createTokenActor, isAuthenticated } = useAuth()
 
   // States
   const [payCoin, setPayCoin] = useState(null)
@@ -40,6 +40,7 @@ const Swap = () => {
   const [subModel, setSubModel] = useState(1)
   const [initialSlipageAmount, setInitialSlipageAmount] = useState(0)
   const [afterSlipageAmnt, setAfterSlipageAmnt] = useState(0)
+  const [marketImpact, setMarketImpact] = useState(0)
   // Fetch balances whenever payCoin or receiveCoin changes
   useEffect(() => {
     if (payCoin) {
@@ -281,7 +282,7 @@ const Swap = () => {
       })
       const res = await backendActor.compute_swap({
         token1_name: payCoin.ShortForm,
-        token_amount: amount,
+        token_amount: amount * 100000000,
         token2_name: receiveCoin.ShortForm,
         ledger_canister_id1: Principal.fromText(payCoin.CanisterId),
         ledger_canister_id2: Principal.fromText(receiveCoin.CanisterId),
@@ -311,6 +312,17 @@ const Swap = () => {
       return res
     }
   }
+
+  const updateMarketImpact = async()=>{
+    const payMarketPrice = (coinAmount * payCoin?.marketPrice).toFixed(2);
+    const receiveMarketPrice = ((Number(receiveValue) / (Math.pow(10,Math.max(payCoin.metaData.decimals,receiveCoin.metaData.decimals)))) * receiveCoin?.marketPrice).toFixed(2)
+    const impactPercent = ((payMarketPrice - receiveMarketPrice) / payMarketPrice) * 100
+    setMarketImpact(impactPercent.toFixed(2))
+  }
+
+  useEffect(()=>{
+    updateMarketImpact()
+  },[receiveValue, coinAmount])
 
  const handleSettings = () => {
     setSettings((prev) => !prev)
@@ -423,7 +435,7 @@ const Swap = () => {
             </BorderGradientButton>
           </div>
           <div className='flex justify-between mt-2'>
-            <div>${coinAmount > 0 ? coinAmount * payCoin?.marketPrice : 0}</div>
+            <div>${coinAmount > 0 ? (Number(receiveValue) / (Math.pow(10,Math.max(payCoin.metaData.decimals,receiveCoin.metaData.decimals)))).toFixed(2) * receiveCoin?.marketPrice : 0}</div>
             <div>
               <button
                 className='font-gilroy ml-1 sm:ml-2 text-orange-400 text-base font-normal'
@@ -441,6 +453,11 @@ const Swap = () => {
           onClick={ClickChangeHandler}
         >
           <CachedIcon />
+        </div>
+
+        <div className={marketImpact > 0 ? `flex w-full justify-center items-center gap-x-2 ${marketImpact > 10 ? 'text-red-600' : 'text-yellow-500'}` : `hidden`}>
+          <Warning/>
+          <p>Market Impact Higher : ({marketImpact}%)</p>
         </div>
 
         {/* Action Buttons */}
