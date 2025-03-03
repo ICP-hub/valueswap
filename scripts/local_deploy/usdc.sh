@@ -13,8 +13,8 @@ export MINTER="$minter"
 echo "MINTER principal: $MINTER"
 
 # Set token details
-export TOKEN_NAME="USDC"
-export TOKEN_SYMBOL="USDC"
+export TOKEN_NAME="ckUSDC"
+export TOKEN_SYMBOL="ckUSDC"
 echo "Token Name: $TOKEN_NAME"
 echo "Token Symbol: $TOKEN_SYMBOL"
 
@@ -54,4 +54,4 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy usdc --argument "$DEPLOY_ARGUMENTS" 
+dfx deploy ckusdc --argument "$DEPLOY_ARGUMENTS" 
