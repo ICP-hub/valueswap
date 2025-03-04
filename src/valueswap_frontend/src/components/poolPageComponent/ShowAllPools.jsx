@@ -7,7 +7,7 @@ import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
-import { useAuth } from "../utils/useAuthClient";
+import { useAuths } from "../utils/useAuthClient";
 import { valueswap_backend } from '../../../../declarations/valueswap_backend';
 import BorderGradientButton from '../../buttons/BorderGradientButton';
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
@@ -21,7 +21,7 @@ const ShowAllPools = () => {
   const [activeSort, setActiveSort] = useState(null);
   const [currentPage, setCurrentPage] = useState(1); // Tracks which column is being sorted
   const [itemsPerPage] = useState(10); // Tracks how many rows to display
-  const { backendActor } = useAuth();
+  const { backendActor } = useAuths();
   const navigate = useNavigate();
   const [filterData, setFilterData] = useState(""); // Search input value
   const ref = useRef();

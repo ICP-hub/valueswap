@@ -9,7 +9,7 @@ import { showAlert, hideAlert } from '../reducer/Alert';
 // import { idlFactory } from '../../../declarations/ckbtc';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
-import { useAuth } from '../components/utils/useAuthClient';
+import { useAuths } from '../components/utils/useAuthClient';
 import { toast } from 'react-toastify';
 
 
@@ -20,7 +20,7 @@ const ConnectWallet = ({ setClickConnectWallet, setWalletClicked }) => {
     const dispatch = useDispatch();
 
     const walletImage = [{ id: 1, url: "/image/dfinity.svg" }, { id: 2, url: "/image/Plug.png" }, { id: 3, url: "/image/astroxme.webp" }, { id: 4, url: "/image/bifinity.png" }, { id: 5, url: "/image/stoic.png" }, { id: 6, url: "/image/nfid.png" }, { id: 7, url: "/image/metamask.svg" }]
-    const {login} = useAuth()
+    const {login} = useAuths()
     const notify = () => toast.warn("Please Agree to Terms and Condition!", {
         position: "top-center"
       });

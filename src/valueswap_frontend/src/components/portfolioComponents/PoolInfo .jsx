@@ -6,7 +6,7 @@ import GradientButton from '../../buttons/GradientButton'
 import { PoolCompositions, Swapping, LiquidityOverview } from '../../tables'
 import Echarts from './Echarts';
 import WithdrawModel from '../../Modals/WithdrawModel';
-import { useAuth } from '../utils/useAuthClient';
+import { useAuths } from '../utils/useAuthClient';
 import PoolAttributes from './PoolAttributes';
 
 const PoolInfo = () => {
@@ -18,7 +18,7 @@ const PoolInfo = () => {
  const [openWithdraw, setOpenWithdraw] = useState(false)
  const [specificPool, setSpecificPool] = useState([])
  const [lp, setLp] = useState(0)
- const { backendActor, principal, fetchMetadata } = useAuth()
+ const { backendActor, principal, fetchMetadata } = useAuths()
 
  const navigate = useNavigate()
   useEffect(() => {

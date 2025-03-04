@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import BlueGradientButton from '../../buttons/BlueGradientButton'
 import { toggleConfirm } from '../../reducer/PoolCreation'
 import GradientButton from '../../buttons/GradientButton'
-import { useAuth } from '../../components/utils/useAuthClient'
+import { useAuths } from '../../components/utils/useAuthClient'
 import { Principal } from '@dfinity/principal'
 import CircularProgress from '@mui/material/CircularProgress'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
@@ -35,7 +35,7 @@ const FinalizePool = ({ handleCreatePoolClick }) => {
   const InitialToken = Tokens[0]
   const RestTokens = Tokens.slice(1)
 
-  const { backendActor, isAuthenticated } = useAuth()
+  const { backendActor, isAuthenticated } = useAuths()
 
   const createPoolHandler = () => {
     console.log('You clicked to create pool')

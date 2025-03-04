@@ -6,7 +6,7 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
-import { useAuth, useAuthClient } from '../utils/useAuthClient'
+import { useAuths, useAuthClient } from '../utils/useAuthClient'
 import BorderGradientButton from '../../buttons/BorderGradientButton'
 import {portfolioSampleData} from "../../TextData"
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
@@ -19,11 +19,11 @@ const PortfolioDataComponent = () => {
   const [buttonVisible, setButtonVisibility] = useState(true)
   const [activeSort, setActiveSort] = useState()
   const [isAscending, setIsAscending] = useState(true)
-  const { backendActor, principal } = useAuth()
+  const { backendActor, principal } = useAuths()
   const [poolName, setPoolName] = useState()
   const [itemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuths()
 
   //  const listOfPool = [];
   useEffect(() => {

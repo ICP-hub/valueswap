@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from 'react-toastify'
-import { useAuth } from '../components/utils/useAuthClient'
+import { useAuths } from '../components/utils/useAuthClient'
 import { Principal } from '@dfinity/principal'
 import {
   Settings as SettingsIcon,
@@ -19,7 +19,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 const Swap = () => {
   const { backendActor, getBalance, createTokenActor, isAuthenticated } =
-    useAuth()
+    useAuths()
 
   // States
   const [payCoin, setPayCoin] = useState(null)

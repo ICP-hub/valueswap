@@ -3,7 +3,7 @@
 function generate_did() {
     local canister=$1
     # canister_root="src/$canister"
-    canister_root="/Users/admin/Desktop/qb/valueswap/src/$canister"
+    canister_root="/workspaces/valueswap/src/$canister"
 
 
     echo $canister_root
@@ -14,7 +14,7 @@ function generate_did() {
     --release --package "$canister"
 
 # /Users/admin/Desktop/qb/valueswap/target/wasm32-unknown-unknown/release/valueswap_backend.wasm
-    candid-extractor "/Users/admin/Desktop/qb/valueswap/target/wasm32-unknown-unknown/release/$canister.wasm" > "$canister_root/$canister.did"
+    candid-extractor "/workspaces/valueswap/target/wasm32-unknown-unknown/release/$canister.wasm" > "$canister_root/$canister.did"
 
     # candid-extractor "target/wasm32-unknown-unknown/release/$canister.wasm" > "$canister_root/$canister.did"
 }

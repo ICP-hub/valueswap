@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { SearchTokenData } from "../TextData";
 import { useSelector } from "react-redux";
-import { useAuth } from "../components/utils/useAuthClient";
+import { useAuths } from "../components/utils/useAuthClient";
 import SearchIcon from "@mui/icons-material/Search";
 import { fetchCoinGeckoData, searchCoinGeckoById } from "../components/utils/fetchCoinGeckoData";
 import Skeleton from '@mui/material/Skeleton';
@@ -12,7 +12,7 @@ import Box from '@mui/material/Box';
 
 
 const SearchToken = ({ setSearchToken, setPayToken, setRecToken, id, setTokenData }) => {
-  const { createTokenActor } = useAuth();
+  const { createTokenActor } = useAuths();
   const { Tokens } = useSelector((state) => state.pool);
 
   const [TokenOption, SetTokenOption] = useState(null);

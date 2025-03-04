@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import BorderGradientButton from '../buttons/BorderGradientButton'
 import GradientButton from '../buttons/GradientButton'
 import FaucetModal from '../Modals/FaucetModal'
-import { useAuth } from '../components/utils/useAuthClient'
+import { useAuths } from '../components/utils/useAuthClient'
 
 let tokens = [
     {
@@ -28,7 +28,7 @@ const Faucet = () => {
     const [modelOpen, setModelOpen] = useState(false);
     const [selectFaucet, setSelectFaucet] = useState([]);
     const [balances, setBalances] = useState({});
-    const { isAuthenticated, backendActor, getBalance } = useAuth();
+    const { isAuthenticated, backendActor, getBalance } = useAuths();
     let balance;
     // Fetch the balance for each token when the component is mounted or when `isAuthenticated` changes
     useEffect(() => {

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useAuth } from '../components/utils/useAuthClient';
+import { useAuths } from '../components/utils/useAuthClient';
 import { toast } from 'react-toastify';
 import { Principal } from '@dfinity/principal';
 
@@ -8,7 +8,7 @@ export const useWithdraw = () => {
   const [coinDetail, setCoinDetail] = useState([]);
   const [CoinName, setCoinName] = useState([]);
   const [amountLp, setAmountLp] = useState(0);
-  const { createTokenActor, backendActor, principal, getBalance } = useAuth();
+  const { createTokenActor, backendActor, principal, getBalance } = useAuths();
 
   const fetchCoinFromLp = useCallback((poolName) => {
     setChange(true);
