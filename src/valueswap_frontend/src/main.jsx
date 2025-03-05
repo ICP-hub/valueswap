@@ -43,7 +43,7 @@ const whitelist = [
 const uniqueWhitelist = [...new Set(whitelist)];
 
 const signerClientOptions = {
-  targets: uniqueWhitelist,
+  targets: [  process.env.CANISTER_ID_VALUESWAP_BACKEND],
   maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000), // 1 week in nanoseconds
   idleOptions: {
     idleTimeout: 4 * 60 * 60 * 1000, // 4 hours in milliseconds
