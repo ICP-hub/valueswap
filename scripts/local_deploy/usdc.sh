@@ -13,8 +13,8 @@ export MINTER="$minter"
 echo "MINTER principal: $MINTER"
 
 # Set token details
-export TOKEN_NAME="ckETH"
-export TOKEN_SYMBOL="ckETH"
+export TOKEN_NAME="ckUSDC"
+export TOKEN_SYMBOL="ckUSDC"
 echo "Token Name: $TOKEN_NAME"
 echo "Token Symbol: $TOKEN_SYMBOL"
 
@@ -54,18 +54,4 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 }})"
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
-dfx deploy cketh --argument "$DEPLOY_ARGUMENTS" 
-
-
-# cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
-
-# candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
-
-# dfx deploy
-# dfx deploy valueswap_backend
-# echo "cketh got deployed"
-
-# Check the balance of the default identity
-# balance=$(dfx canister call ckbtc icrc1_balance_of "(record {owner=principal\"${DEFAULT}\"; subaccount=null})")
-# echo "Balance of the DEFAULT account: $balance"
-
+dfx deploy ckusdc --argument "$DEPLOY_ARGUMENTS" 

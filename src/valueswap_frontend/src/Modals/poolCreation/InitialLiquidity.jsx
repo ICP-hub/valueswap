@@ -6,7 +6,7 @@ import GradientButton from '../../buttons/GradientButton';
 import { showAlert, hideAlert } from '../../reducer/Alert';
 import { useDispatch, useSelector } from 'react-redux';
 import { UpdateAmount, toggleConfirm } from '../../reducer/PoolCreation';
-import { useAuth } from '../../components/utils/useAuthClient';
+import { useAuths } from '../../components/utils/useAuthClient';
 import { Principal } from '@dfinity/principal';
 import { searchCoinGeckoById } from '../../components/utils/fetchCoinGeckoData';
 import { toast } from 'react-toastify';
@@ -15,7 +15,7 @@ import { IOSSwitch } from '../../buttons/SwitchButton';
 
 const InitialLiquidity = () => {
   const dispatch = useDispatch();
-  const { createTokenActor, principal, getBalance } = useAuth();
+  const { createTokenActor, principal, getBalance } = useAuths();
   const [tokenActor, setTokenActor] = useState(null);
   const [initialTokenBalance, setInitialTokenBalance] = useState(0);
   const [restTokensBalances, setRestTokensBalances] = useState([]);
@@ -26,7 +26,7 @@ const InitialLiquidity = () => {
   const [tokenApiDetails, setTokenApiDetails] = useState()
 
   const { Tokens, Confirmation } = useSelector((state) => state.pool);
-  const { backendActor, isAuthenticated } = useAuth();
+  const { backendActor, isAuthenticated } = useAuths();
   const initialTokenRef = useRef(null);
   const restTokensRefs = useRef([]);
   const [optimizeEnable, setOptimizeEnable] = useState(true)

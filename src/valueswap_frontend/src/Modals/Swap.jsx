@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from 'react-toastify'
-import { useAuth } from '../components/utils/useAuthClient'
+import { useAuths } from '../components/utils/useAuthClient'
 import { Principal } from '@dfinity/principal'
 import {
   Settings as SettingsIcon,
@@ -19,7 +19,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 const Swap = () => {
   const { backendActor, getBalance, createTokenActor, isAuthenticated } =
-    useAuth()
+    useAuths()
 
   // States
   const [payCoin, setPayCoin] = useState(null)
@@ -281,7 +281,7 @@ const Swap = () => {
       })
       const res = await backendActor.compute_swap({
         token1_name: payCoin.ShortForm,
-        token_amount: amount,
+        token_amount: amount * 100000000,
         token2_name: receiveCoin.ShortForm,
         ledger_canister_id1: Principal.fromText(payCoin.CanisterId),
         ledger_canister_id2: Principal.fromText(receiveCoin.CanisterId),

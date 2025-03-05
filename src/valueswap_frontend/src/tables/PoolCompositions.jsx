@@ -4,7 +4,7 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { Balance } from '@mui/icons-material';
 import { convertIntToCurrencyString, formatToLocalConvention } from '../utils';
-import { useAuth } from '../components/utils/useAuthClient';
+import { useAuths } from '../components/utils/useAuthClient';
 
 const PoolCompositionData = [
     {
@@ -29,7 +29,7 @@ const PoolCompositions = ({ TableData, lp, specificPool }) => {
     const [displayCount, setDisplayCount] = useState(Math.min(5, TableData?.length || 0));
     const [buttonVisible, setButtonVisibility] = useState(true);
     const [listOfMeta, setListOfMeta] = useState([])
-     const { fetchMetadata } = useAuth()
+     const { fetchMetadata } = useAuths()
 
      const metaHandler = async(CanisterId) => {
         const meta = await  fetchMetadata(CanisterId);

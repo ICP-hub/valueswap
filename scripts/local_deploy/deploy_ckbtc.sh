@@ -1,5 +1,6 @@
 #!/bin/bash
 dfx deploy swap
+dfx deploy valueswap_backend
 ./LP.sh
 set -e
 
@@ -11,7 +12,8 @@ set -e
 # dfx  build --all
 
 # Get the principal ID for the minter account
-export MINTER="b77ix-eeaaa-aaaaa-qaada-cai"
+minter=$(dfx canister id valueswap_backend)
+export MINTER="$minter"
 echo "MINTER principal: $MINTER"
 
 # Set token details
@@ -66,6 +68,7 @@ dfx deploy ckbtc --argument "$DEPLOY_ARGUMENTS"
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did
 
 ./deploy_cketh.sh
+./usdc.sh
 dfx deploy
 # 
 

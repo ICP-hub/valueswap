@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import GradientButton from '../buttons/GradientButton';
 import { Link as RouterLink } from 'react-router-dom';
-import { useAuth } from '../components/utils/useAuthClient';
+import { useAuths } from '../components/utils/useAuthClient';
 const Navbar = ({ NavbarData, setClickConnectWallet }) => {
     const [activeLink, setActiveLink] = useState(null);
-    const {createLedgerActor} = useAuth();
+    const {createLedgerActor} = useAuths();
 
     const ledgerActor = createLedgerActor("a4tbr-q4aaa-aaaaa-qaafq-cai");
     

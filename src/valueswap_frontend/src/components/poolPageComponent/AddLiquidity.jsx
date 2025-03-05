@@ -1,54 +1,21 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useParams } from 'react-router-dom';
-import { portfolioSampleData } from '../../TextData';
-import PoolInfoBox from '../../displayBoxes/PoolInfoBox';
 import GradientButton from '../../buttons/GradientButton'
-import { PoolCompositions, Swapping, LiquidityOverview } from '../../tables'
-import Echarts from '../portfolioComponents/Echarts';
 import { IOSSwitch } from '../../buttons/SwitchButton';
 import { convertTokenEquivalentUSD } from '../../utils';
-import { useAuth } from '../utils/useAuthClient';
-import { Principal } from '@dfinity/principal';
+import { useAuths } from '../utils/useAuthClient';
 
 
 const AddLiquidity = () => {
 
   const { id } = useParams()
-  const [currIndex, setCurrIndex] = useState(0)
-  const [currentRang, setCurrentRange] = useState(0)
   const [tokens, setTokens] = useState([])
   const [restTokens, setRestTokens] = useState([])
   const [token1, setToken1] = useState(null);
   const [poolData, setPoolData] = useState([]);
   const [swapFee, setSwapFee] = useState(0)
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
-  const {backendActor,principal, createTokenActor, getBalance} = useAuth()
-
-
-
-
-  const fetchMetadata = async (CanisterId) => {
-    try {
-      const ledgerActor = await createTokenActor(CanisterId);
-      const result = await ledgerActor?.icrc1_metadata();
-      console.log("Fetched metadata:", result);
-  
-      // Extract decimals and symbol from the metadata
-      const decimalsEntry = result.find(([key]) => key === "icrc1:decimals");
-      const symbolEntry = result.find(([key]) => key === "icrc1:symbol");
-  
-      const decimals = decimalsEntry ? Number(decimalsEntry[1]?.Nat) : null; // Convert BigInt to Number
-      const symbol = symbolEntry ? symbolEntry[1]?.Text : null;
-      console.log("meta", decimals, symbol)
-      return {
-        decimals,
-        symbol,
-      };
-    } catch (error) {
-      console.error("Error fetching metadata:", error);
-      return null; // Return null in case of an error
-    }
-  };
+  const {backendActor,principal, createTokenActor, getBalance} = useAuths()
 
   const initToken = useCallback(async()=>{
     const initialToken = tokens[0]
@@ -197,24 +164,61 @@ const AddLiquidity = () => {
   const [restTokensAmount,setRestTokenAmount] = useState([]);
   const restTokensRefs = React.useRef([]);
 
+  const calculateTotal = useCallback(()=>{
+    const total = restTokensAmount.reduce((acc,amount)=>{
+      return acc + parseFloat(amount)
+    },initialTokenAmount)
+    console.log("Total : ", total)
+  },[initialTokenAmount,restTokensAmount])
+
+
+  const calculatePoolShare = useCallback(()=>{
+    return 0.001
+  },[])
+
+  const calculatePoolLocked = useCallback(()=>{
+    return 0
+  },[])
+
+  const calculateResult = useCallback((type)=>{
+    let ans;
+    switch(type){
+      case "total":
+        ans = calculateTotal()
+        break;
+      case "pool_share":
+        ans = calculatePoolShare()
+        break;
+      case "gas_fee":
+        ans = swapFee.toLocaleString()
+        break;
+      case "total_pool_value_locked":
+        ans = calculatePoolLocked()
+        break;
+      default:
+        break;
+    }
+    return ans
+  })
+
   const Result = useMemo(()=>({
     heading : 'Total',
-    headingData : '$0.00',
+    headingData : calculateResult("total"),
     data : [
       {
         title : 'Total Pool value locked',
-        value : '$125,165'
+        value : calculateResult("total_pool_value_locked")
       },
       {
         title : 'Your pool share',
-        value : '0.0001%',
+        value : calculateResult("pool_share"),
       },
       {
         title : 'Gas fee',
-        value : swapFee.toLocaleString()
+        value : calculateResult("gas_fee")
       }
     ]
-  }), [])
+  }), [tokens,initialTokenAmount,restTokensAmount,swapFee])
 
   console.log("Init : \n",token1,"\nRest :",restTokens)
 
@@ -263,27 +267,29 @@ const AddLiquidity = () => {
   const poolName = "ExamplePool"; // Static value
 
   // Function to calculate equivalent rest token amounts
-  const calculateEquivalentAmounts = useCallback(async (canisterID1) => {
-    if (!token1 || !restTokens.length > 0) return;
-    
-    const equivalentAmounts = await Promise.all(
-      restTokens.map(async (token) => {
-        const precomputedSwap = await backendActor.pre_compute_swap({
-          token1_name: token1?.ShortForm?.toLowerCase(),
-          token_amount: initialTokenAmount * Math.pow(10, token1?.decimals),
-          token2_name: token.ShortForm?.toLowerCase(),
-          ledger_canister_id1: Principal.fromText(canisterID1),
-          ledger_canister_id2: token.CanisterId,
-          fee : 30
-        });
-        console.log(precomputedSwap)
-        return parseFloat(precomputedSwap[1]).toLocaleString() // TODO : Use fetched decimals
-      })
-    );
+  const calculateEquivalentAmounts = useCallback(() => {
 
-    equivalentAmounts.forEach((amount, index) => {
-      amount = (parseInt(amount) / Math.pow(10, 8)); // TODO : Use fetched decimals
-    });
+    if (!token1?.currencyAmount || !token1?.weights){ 
+      console.error("Missing required data for first token", token1);
+      return
+    };
+    const token1USD = token1.currencyAmount * initialTokenAmount;
+    console.log(token1USD,"Token1USD")
+    if(token1USD <= 0) return;
+    const totalPoolValue = token1USD / (parseInt(token1.weights) / 100);
+    console.log("Total pool value:", totalPoolValue);
+    const equivalentAmounts = restTokens.map((token, index) => {
+      const tokenTargetUSDValue = totalPoolValue * (parseInt(token.weights) / 100);
+      console.log("Token Target", tokenTargetUSDValue)
+      const requiredTokenAmount = tokenTargetUSDValue / token.currencyAmount;
+      console.log("Required Token Amount", requiredTokenAmount)
+      const roundedAmount = Number(requiredTokenAmount.toFixed(8));
+      return roundedAmount;
+      })
+
+    // equivalentAmounts.forEach((amount, index) => {
+    //   amount = (parseInt(amount) / Math.pow(10, 8)); // TODO : Use fetched decimals
+    // });
 
     console.log("Equivalent Amounts : ", equivalentAmounts);
     setRestTokenAmount(equivalentAmounts);
@@ -292,12 +298,18 @@ const AddLiquidity = () => {
   // Call the function after fetching the pool data
   useEffect(() => {
     if (tokens.length > 0) {
-      const canisterID1 = tokens[0].token_name === "cketh" ? process.env.CANISTER_ID_CKETH : process.env.CANISTER_ID_CKBTC;
-      calculateEquivalentAmounts(canisterID1);
+      calculateEquivalentAmounts();
     }
-  }, [restTokens, calculateEquivalentAmounts,token1?.currencyAmount,initialTokenAmount]);
+  }, [restTokens, calculateEquivalentAmounts,token1?.currencyAmount,initialTokenAmount,optimizeEnable]);
 
-  
+  const handleRestTokenInput = (e, index) => {
+    const value = parseFloat(e.target.value) || 0;
+    const newAmounts = restTokensAmount.map((amount, i) => {
+      if (i === index) return value;
+      return amount;
+    });
+    setRestTokenAmount(newAmounts);
+  }
 
   return (
     <div className=''>
@@ -355,11 +367,11 @@ const AddLiquidity = () => {
                         className="font-normal leading-5 text-xl sm:text-3xl py-1 inline-block outline-none bg-transparent"
                         type="number"
                         min="0"
-                        value={isNaN(parseInt(restTokensAmount[index])) ? "" : parseInt(restTokensAmount[index])}
+                        value={restTokensAmount[index]}
                         placeholder="0"
                         ref={(el) => (restTokensRefs.current[index] = el)}
-                        // onChange={(e) => handleInput(e, index + 1)}
-                        disabled={true}
+                        onChange={(e) => handleRestTokenInput(e, index)}
+                        disabled={optimizeEnable}
                       />
                     </div>
                     <span className='text-sm sm:text-base font-normal'>
@@ -434,151 +446,7 @@ const AddLiquidity = () => {
     </div>
   );
 
-  // return (
-  //   <div className=' max-w-[1200px] mx-auto h-screen relative '>
-
-  //     <div className='w-full h-screen  text-white mt-12 z-20 sm:px-8 absolute'>
-
-  //       <div className='flex flex-col justify-between bg-[#010427] p-2  py-6  rounded-t-lg mx-auto'>
-  //         <div className='flex justify-between items-center  mx-2  md:ml-8'>
-  //           <div className='font-gilroy text-base md:text-3xl font-medium flex items-center gap-4'>
-  //             <div className='flex gap-1 sm:gap-2'>
-  //               {
-  //                 TokenData?.PoolData.map((token, index) => (
-  //                   <div key={index}>
-  //                     <div className='bg-[#3D3F47] p-1 rounded-lg'>
-  //                       <img src={token.ImagePath} alt="" className='w-6 h-6 md:w-10 md:h-10' />
-  //                     </div>
-  //                   </div>
-  //                 ))
-  //               }
-  //             </div>
-  //             <div className='flex items-center'>
-  //               <span  >{TokenData?.PoolData[0].ShortForm}</span>
-  //               {
-  //                 TokenData?.PoolData.slice(1).map((token, index) => (
-  //                   <div key={index} className=''>
-  //                     <span className='mx-0.5'>/</span>
-  //                     {token.ShortForm}
-  //                   </div>
-  //                 ))
-  //               }
-  //               <span className='mx-1'>:  :</span>
-
-  //               <span>{TokenData?.PoolData[0].weights}</span>
-  //               {
-  //                 TokenData?.PoolData.slice(1).map((token, index) => (
-  //                   <div key={index} className=''>
-  //                     <span className='mx-0.5'>/</span>
-  //                     {token.weights}
-  //                   </div>
-  //                 ))
-  //               }
-  //             </div>
-  //           </div>
-  //         </div>
-  //         <div className='flex flex-col lg:flex-row w-full gap-11 mx-auto  mt-7'>
-  //           <div className=' lg:w-[59%] p-4 text-[#4b4b4b] bg-[#000711] '>
-  //             {/* pool info chart here in this div */}
-  //             <div>
-  //               <div className='flex justify-between'>
-  //                 <p className=' sm:text-3xl text-white font-semibold'>$125,625,175</p>
-  //                 <div className='flex flex-col gap-y-2'>
-  //                   <div className='flex justify-around gap-x-4 text-sm '>
-  //                     <div>
-  //                       <p>Volumes in Past-</p>
-  //                       <hr className='border-[#4b4b4b]' />
-  //                     </div>
-  //                     <select name="" id="" className='bg-[#000711] text-white p-1 border-[1px] border-[#C0D9FF66] focus:outline-none rounded-md'>
-  //                       <option value="volume">Volume</option>
-  //                       <option value="24hr">24hr Vol</option>
-  //                     </select>
-  //                   </div>
-  //                   <div className='flex gap-x-2 text-sm'>
-  //                     {
-  //                       selectRang.map((rang, index) => 
-  //                         <div className='flex flex-col items-center' key={index} onClick={() => {
-  //                           setCurrentRange(index)
-  //                         }}>
-  //                           <p className='cursor-pointer'>{rang}</p>
-  //                           <span className={`p-[2px] w-1 bg-[#F7931A]  ${currentRang === index ? 'visible' : 'invisible'}`}></span>
-  //                         </div>
-  //                       )
-  //                     }
-
-  //                   </div>
-  //                 </div>
-  //               </div>
-  //               <Echarts />
-  //             </div>
-  //             <div>
-
-  //             </div>
-  //           </div>
-
-  //           <div className=' flex flex-col items-center gap-4 my-4 '>
-  //             <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48 justify-center'>
-  //               <PoolInfoBox Heading={'Pool Value'} Data={`$ ${TokenData?.PoolMetaData.PoolValue.toLocaleString('en-US')}`} />
-  //               <PoolInfoBox Heading={'24H_Fees'} Data={`$ ${TokenData?.PoolMetaData.TwentyFourHourFees.toLocaleString('en-US')}`} />
-  //             </div>
-  //             <div className='w-full sm:w-auto flex gap-4 h-20 lg:h-48 justify-center'>
-  //               <PoolInfoBox Heading={'24H_Pool Volume'} Data={`$ ${TokenData?.PoolMetaData.TwentyFourHourVolume.toLocaleString('en-US')}`} />
-  //               <PoolInfoBox Heading={'APR'} Data={`${TokenData?.PoolMetaData.APRstart}% - ${TokenData?.PoolMetaData.APRend}%`} />
-  //             </div>
-  //           </div>
-  //         </div>
-
-  //         <div className='gap-2 pt-9 mx-10 font-gilroy flex items-center'>
-  //           <span className='text-base leading-5 font-bold opacity-75 tracking-wide'>My Pool Balance:</span>
-  //           <span className='mx-3 text-2xl font-normal leading-6'>${TokenData?.PoolMetaData.PersonalPoolBalance.toLocaleString('en-US')}</span>
-  //         </div>
-
-
-  //         {/* <div className='flex gap-3 md:gap-6 my-4 mx-3 md:mx-10'>
-  //           <div>
-  //             <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
-  //               Swap Tokens
-  //             </GradientButton>
-  //           </div>
-  //           <div>
-  //             <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
-  //               Add Liquidity
-  //             </GradientButton>
-  //           </div>
-  //           <div>
-  //             <GradientButton CustomCss={`text-xs md:text-base lg:text-base  lg:w-[150px] py-2`}>
-  //               Withdraw
-  //             </GradientButton>
-  //           </div>
-  //         </div> */}
-
-  //         {/* <div className='font-gilroy font-medium text-base md:text-xl lg:text-2xl flex gap-3 md:gap-16 lg:gap-32 mx-4 lg:mx-10 mt-6'>
-  //           {Heading.map((heading, index) => (
-  //             <div className='flex flex-col justify-center text-center items-center gap-2 cursor-pointer' key={index}
-  //               onClick={() => {
-  //                 setCurrIndex(index)
-  //               }}>
-  //               <h1>{heading}</h1>
-  //               <span className={`p-[1px]  bg-[#F7931A] w-full ${currIndex === index ? 'visible' : 'invisible'}`}></span>
-  //             </div>
-  //           ))}
-  //         </div> */}
-
-
-  //         {/* <div >
-  //           {currIndex === 0 && <PoolCompositions TableData={TokenData?.PoolData} />}
-  //           {currIndex === 1 && <Swapping id={Number(id)} />}
-  //           {currIndex === 2 && <LiquidityOverview id={id} />}
-  //         </div> */}
-
-
-
-  //       </div>
-
-  //     </div>
-  //   </div>
-  // )
-  
+   
 }
 
 export default AddLiquidity
