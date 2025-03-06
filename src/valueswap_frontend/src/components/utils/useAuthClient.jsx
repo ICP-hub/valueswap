@@ -410,7 +410,7 @@ import { Actor, HttpAgent } from "@dfinity/agent";
 import { idlFactory as ledgerIDL } from "./ledger.did.js";
 import { createActor as ledgerActor, idlFactory as TokenIdl } from "../../../../declarations/ckbtc/index";
 // import {  idlFactory as ckETHIdlFactory } from "../../../../declarations/cketh/index";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 const canisterID = process.env.CANISTER_ID_VALUESWAP_BACKEND;
@@ -425,8 +425,6 @@ export const useAuthClient = () => {
   const LOCAL_HOST = "http://127.0.0.1:4943";
   const MAINNET_HOST = "https://icp0.io";
   const HOST = process.env.DFX_NETWORK === "ic" ? MAINNET_HOST : LOCAL_HOST;
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (user && identity && HOST) {
@@ -459,7 +457,7 @@ export const useAuthClient = () => {
       // showNotification("success", "Logout Successful");
       setBackendActor(null);
       console.log("Navigating to '/'...");
-      navigate("/", { replace: true });
+      // navigate("/", { replace: true });
       console.log("Navigation triggered");
     } catch (error) {
       console.error("Logout Error:", error.message, error.stack);
