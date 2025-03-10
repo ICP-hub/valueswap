@@ -130,7 +130,7 @@ const InitialLiquidity = () => {
   useEffect(() => {
     const fetchInitialTokenBalance = async () => {
       if (tokenActor && principal) {
-        const balance = await tokenActor.icrc1_balance_of({ owner: principal, subaccount: [] });
+        const balance = await tokenActor.icrc1_balance_of({ owner: Principal.fromText(principal), subaccount: [] });
         setInitialTokenBalance(parseFloat(Number(balance) / 100000000));
       }
     };

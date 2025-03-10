@@ -13,6 +13,7 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import { Principal } from '@dfinity/principal';
 const PortfolioDataComponent = () => {
   const [allDataInPool, setAllDataInPool] = useState([])
   const [displayCount, setDisplayCount] = useState(0)
@@ -28,7 +29,7 @@ const PortfolioDataComponent = () => {
   //  const listOfPool = [];
   useEffect(() => {
     const userPools = async () => {
-      const AllPool = await backendActor?.get_user_pools_with_lp(principal)
+      const AllPool = await backendActor?.get_user_pools_with_lp(Principal.fromText(principal))
       if(!AllPool || AllPool.length ===0) return;
 
       console.log(" get_user_pools_with_lp", AllPool)
