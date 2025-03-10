@@ -62,7 +62,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     }}
     signers={signers}
     theme={IdentityKitTheme.SYSTEM}
-    authType={IdentityKitAuthType.DELEGATION}
+    authType={IdentityKitAuthType.ACCOUNTS}
     signerClientOptions={signerClientOptions}
   >
     <Provider store={store}>

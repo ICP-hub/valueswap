@@ -37,7 +37,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
         //   console.log('Is principal an instance of Principal:', principal instanceof Principal);
       
           // Convert the Principal object to a string
-          const principalString = principal.toText();
+          const principalString = principal;
       
           // Format the principal string for display
           const SlicedPrincipal = principalString.slice(0, 5);

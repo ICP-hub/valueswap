@@ -396,7 +396,7 @@
 // export const useAuths = () => useContext(AuthContext);
 
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 // import { createActor } from "../../../declarations/master";
 import { useBalance } from "@nfid/identitykit/react";
 import { useIdentity } from "@nfid/identitykit/react";
@@ -409,8 +409,10 @@ import { useAuth } from "@nfid/identitykit/react"
 import { Actor, HttpAgent } from "@dfinity/agent";
 import { idlFactory as ledgerIDL } from "./ledger.did.js";
 import { createActor as ledgerActor, idlFactory as TokenIdl } from "../../../../declarations/ckbtc/index";
+import { createActor as createActorBackend, idlFactory } from '../../../../declarations/valueswap_backend/index';
+
 // import {  idlFactory as ckETHIdlFactory } from "../../../../declarations/cketh/index";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 const canisterID = process.env.CANISTER_ID_VALUESWAP_BACKEND;
@@ -425,8 +427,6 @@ export const useAuthClient = () => {
   const LOCAL_HOST = "http://127.0.0.1:4943";
   const MAINNET_HOST = "https://icp0.io";
   const HOST = process.env.DFX_NETWORK === "ic" ? MAINNET_HOST : LOCAL_HOST;
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (user && identity && HOST) {
@@ -459,7 +459,7 @@ export const useAuthClient = () => {
       // showNotification("success", "Logout Successful");
       setBackendActor(null);
       console.log("Navigating to '/'...");
-      navigate("/", { replace: true });
+      // navigate("/", { replace: true });
       console.log("Navigation triggered");
     } catch (error) {
       console.error("Logout Error:", error.message, error.stack);
@@ -467,7 +467,23 @@ export const useAuthClient = () => {
     }
   };
 
-  const createCustomActor = async (canisterId) => {
+  const getBalance = useCallback(async (canisterId) => {
+    try {
+      // Assuming you have a function to create an actor for other providers
+      const actor = await createTokenActor(canisterId);
+
+      const ownerPrincipal = typeof user?.principal === 'string' ? Principal.fromText(user?.principal) : user?.principal;
+   
+      const balance = await actor?.icrc1_balance_of({ owner: ownerPrincipal,  subaccount: []});
+      console.log("Balance:", balance.toString());
+      return balance;
+    } catch (error) {
+      console.error("Error fetching balance from other provider:", error);
+      return null;
+    }
+  }, [user?.principal]);
+
+  const createTokenActor = async (canisterId) => {
     try {
       if (!canisterId) {
         throw new Error("Canister ID is required.");
@@ -498,15 +514,15 @@ export const useAuthClient = () => {
     isAuthenticated: !!user,
     isConnecting,
     identity,
-    backendActor,
-    createCustomActor,
+    createTokenActor,
     delegationType,
     login: handleLogin,
     principal: user?.principal?.toText() || null,
     logout: handleLogout,
     agent,
     fetchBalance,
-    actor: ledgerActor(canisterID, {
+    getBalance,
+    backendActor: createActorBackend(process.env.CANISTER_ID_VALUESWAP_BACKEND, {
       agentOptions: { identity, verifyQuerySignatures: false },
     }),
     signerId
