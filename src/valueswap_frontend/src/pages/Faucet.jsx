@@ -29,6 +29,7 @@ const Faucet = () => {
     const [selectFaucet, setSelectFaucet] = useState([]);
     const [balances, setBalances] = useState({});
     const { isAuthenticated, backendActor, getBalance } = useAuths();
+    console.log("Actor : ", backendActor);
     let balance;
     // Fetch the balance for each token when the component is mounted or when `isAuthenticated` changes
     useEffect(() => {
