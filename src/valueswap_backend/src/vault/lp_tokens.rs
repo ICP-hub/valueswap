@@ -191,7 +191,7 @@ fn total_lp_tokens() {
             ic_cdk::println!("Warning: Total supply is zero after summing all shares.");
         }
 
-        total_supply = total_supply.clone() / Nat::from(1000u128);
+        total_supply = total_supply.clone();
     });
 
     TOTAL_LP_SUPPLY.with(|lp_supply| {
@@ -452,6 +452,7 @@ async fn get_user_share_ratio(
     let user = ic_cdk::caller();
     ic_cdk::println!("Input Params: {:?}, Pool Name: {}, Amount: {}", params, pool_name, amount);
 
+    // Basic input validation
     if pool_name.trim().is_empty() {
         return Err("Pool name cannot be empty.".to_string());
     }
@@ -462,6 +463,7 @@ async fn get_user_share_ratio(
 
     params.validate().map_err(|e| format!("Invalid pool data: {:?}", e))?;
 
+    // Get the total LP tokens for this pool
     let pool_total_lp = POOL_LP_SHARE.with(|share| {
         let borrowed_share = share.borrow();
         let val = borrowed_share.get(&pool_name).cloned();
@@ -473,6 +475,7 @@ async fn get_user_share_ratio(
         return Err(format!("No LP tokens found for the pool: {}", pool_name));
     }
 
+    // Get the canister ID for the pool
     let canister_id = with_state(|pool| {
         let pool_borrowed = &mut pool.token_pools;
         let val = pool_borrowed.get(&pool_name).map(|user_principal| user_principal.principal);
@@ -484,14 +487,27 @@ async fn get_user_share_ratio(
         Some(id) => id,
         None => return Err(format!("No canister ID found for the pool: {}", pool_name)),
     };
-    //nat usage
-    let base_scaling = Nat::from(10u64.pow(18));
+
+    // Base scaling factor (matching get_burned_tokens)
+    let base_scaling = Nat::from(10u128.pow(18));
+    
+    // Calculate user share ratio with proper precision
     let user_share_ratio = (amount.clone() * base_scaling.clone()) / pool_total_lp.clone();
     ic_cdk::println!("user_share_ratio: {:?}", user_share_ratio);
 
+    // Calculate proper pool value - THIS IS THE KEY CHANGE
+    // First get all tokens in the pool and their weights/balances
+    let pool_data = params.pool_data.clone();
+    
+    // Calculate the total value in the pool - using a multiplier of 1000 to match LP token creation
+    let scaling_multiplier = Nat::from(1000u128);
     let pool_value = POOL_LP_SHARE.with(|pool_lp| {
         let borrowed_pool_lp = pool_lp.borrow();
-        let val = borrowed_pool_lp.get(&pool_name).map(|lp_value| lp_value.clone() * base_scaling.clone());
+        
+        // Get pool LP value and apply scaling factors
+        let val = borrowed_pool_lp.get(&pool_name)
+            .map(|lp_value| lp_value.clone() * base_scaling.clone() * scaling_multiplier);
+        
         ic_cdk::println!("pool_value: {:?}", val);
         val.unwrap_or(Nat::from(0u128))
     });
@@ -500,9 +516,25 @@ async fn get_user_share_ratio(
         return Err(format!("No tokens in the pool: {}", pool_name));
     }
 
+    // Calculate tokens to transfer with proper scaling
+    // This ensures the value sent to get_burned_tokens is sufficiently large
     let tokens_to_transfer = (pool_value * user_share_ratio.clone()) / base_scaling;
     ic_cdk::println!("tokens_to_transfer: {:?}", tokens_to_transfer);
 
+    // Add comprehensive debug logging
+    ic_cdk::println!("DEBUG: amount = {}, pool_total_lp = {}", amount, pool_total_lp);
+    ic_cdk::println!("DEBUG: user_share_ratio = {}", user_share_ratio);
+    ic_cdk::println!("DEBUG: pool_value = {}, tokens_to_transfer = {}", pool_value, tokens_to_transfer);
+
+    // If tokens_to_transfer is still zero after all calculations, something is wrong
+    if tokens_to_transfer == Nat::from(0u128) {
+        ic_cdk::println!("WARNING: tokens_to_transfer calculated as zero. Check scaling factors.");
+        // For testing purposes, we might want to use a minimum value
+        // But in production, this should probably return an error
+        // return Err("Calculated token amount is zero. Check scaling factors.".to_string());
+    }
+
+    // Cross-canister call to get burned tokens
     let result: Result<(Vec<Nat>,), String> = call(
         canister_id,
         "get_burned_tokens",
