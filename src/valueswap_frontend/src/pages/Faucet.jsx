@@ -19,8 +19,8 @@ let tokens = [
     },
     {
         imgUrl: "/image/ckETH.svg",
-        TokenName: "LP token",
-        CanisterId: process.env.CANISTER_ID_LP_LEDGER_CANISTER
+        TokenName: "ckUSDC",
+        CanisterId: process.env.CANISTER_ID_CKUSDC
     },
 ]
 

@@ -427,7 +427,7 @@ async fn burn_lp_tokens(params: Pool_Data, pool_name: String, amount: Nat) -> Re
             (params, user, tokens_to_transfer),
         )
         .await
-        .map_err(|e| format!("Failed to perform swap: {:?}", e));
+        .map_err(|e| format!("failed to burn tokens: {:?}", e));
     
         if let Err(e) = result {
             return Err(e);
