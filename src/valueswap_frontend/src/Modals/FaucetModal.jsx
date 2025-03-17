@@ -2,13 +2,13 @@ import React, { useState } from 'react'
 import { X } from 'lucide-react'
 import GradientButton from '../buttons/GradientButton'
 import { toast } from 'react-toastify'
-import { useAuth } from '../components/utils/useAuthClient'
+import { useAuths } from '../components/utils/useAuthClient'
 import { Principal } from '@dfinity/principal'
 import CircularProgress from '@mui/material/CircularProgress'
 const FaucetModal = ({ setModelOpen, imgUrl, TokenName }) => {
   const [faucetAmount, setFaucetAmount] = useState(0)
   const [loading, setLoading] = useState(false)
-  const { createTokenActor, backendActor, principal, identity } = useAuth()
+  const { createTokenActor, backendActor, principal, identity, fetchBalance } = useAuths()
   let faucetList = [
     { name: 'ckBTC', CanisterId: process.env.CANISTER_ID_CKBTC },
     { name: 'ckETH', CanisterId: process.env.CANISTER_ID_CKETH },
@@ -19,11 +19,12 @@ const FaucetModal = ({ setModelOpen, imgUrl, TokenName }) => {
   )
   console.log('faucetledger', ledger_canister_id)
   const depositeHandler = async scaledAmount => {
+    console.log(fetchBalance())
     setLoading(true)
     let ledgerPrincipal = Principal.fromText(ledger_canister_id.CanisterId)
     const res = await backendActor?.faucet(
       ledgerPrincipal,
-      principal,
+      Principal.fromText(principal),
       BigInt(scaledAmount * 100000000)
     )
     console.log('res', res)
