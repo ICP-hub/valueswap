@@ -231,7 +231,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                         >
                                             {!isAuthenticated && (<div
                                                 onClick={() => {
-                                                    setClickConnectWallet(true);
+                                                    login()
                                                 }}>
                                                 {NavbarData.ButtonText}
                                             </div>)}
