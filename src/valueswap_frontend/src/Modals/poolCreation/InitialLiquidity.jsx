@@ -203,33 +203,49 @@ const InitialLiquidity = () => {
                     fee = Number(item[1].Nat); // Assuming fee is stored as a Nat (BigInt)
                 }
             }
-            amount = await parseInt(Number(sendAmount) * Math.pow(10, decimals));
+            
+            // Get the raw balance first
             balance = await getBalance(canisterId);
-            const extra = 10000;
+            
+            // Calculate the amount with proper decimal handling
+            const rawAmount = BigInt(Math.floor(Number(sendAmount) * Math.pow(10, decimals)));
+            const rawFee = BigInt(fee);
+            const extra = BigInt(10000); // Buffer for potential rounding issues
 
+            console.log("Token Details:", {
+                decimals,
+                fee,
+                rawBalance: balance.toString(),
+                rawAmount: rawAmount.toString(),
+                rawFee: rawFee.toString(),
+                extra: extra.toString(),
+                network: process.env.DFX_NETWORK || 'local'
+            });
 
-            console.log("init metaData", metaData);
-            console.log("init decimals", decimals);
-            console.log("init fee", fee);
-            console.log("init amount", amount);
-            console.log("init balance", balance);
-
-            if (balance >= amount + fee) {
+            // Check if we have enough balance for the amount + fee + extra
+            if (balance >= (rawAmount + rawFee + extra)) {
                 const transaction = {
-                    amount: BigInt(amount + fee + extra),  // Approving amount (including fee)
-                    from_subaccount: [],  // Optional subaccount
+                    amount: rawAmount + rawFee + extra,
+                    from_subaccount: [],
                     spender: {
                         owner: Principal.fromText(backendCanisterID),
-                        subaccount: [],  // Optional subaccount for the spender
+                        subaccount: [],
                     },
-                    fee: [],  // Fee is optional, applied during the transfer
-                    memo: [],  // Optional memo
-                    created_at_time: [],  // Optional timestamp
-                    expected_allowance: [],  // Optional expected allowance
-                    expires_at: [],  // Optional expiration time
+                    fee: [],
+                    memo: [],
+                    created_at_time: [],
+                    expected_allowance: [],
+                    expires_at: [],
                 };
 
-                // console.log("transaction", transaction);
+                console.log("Approval Transaction:", {
+                    amount: transaction.amount.toString(),
+                    spender: transaction.spender.owner.toText(),
+                    network: process.env.DFX_NETWORK || 'local'
+                });
+
+                // Add a small delay for NFID to process the transaction
+                await new Promise(resolve => setTimeout(resolve, 1000));
 
                 const response = await tokenActor.icrc2_approve(transaction);
 
@@ -243,7 +259,12 @@ const InitialLiquidity = () => {
                     return { success: true, data: response.Ok };
                 }
             } else {
-                console.error("Insufficient balance:", balance, "required:", amount + fee);
+                const required = rawAmount + rawFee + extra;
+                console.error("Insufficient balance:", {
+                    balance: balance.toString(),
+                    required: required.toString(),
+                    difference: (required - balance).toString()
+                });
                 return { success: false, error: "Insufficient balance" };
             }
         } catch (error) {

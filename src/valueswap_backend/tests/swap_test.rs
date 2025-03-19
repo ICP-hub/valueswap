@@ -311,14 +311,14 @@ fn test_swap() {
         hardcoded_principal,
         "icrc2_approve",
         encoded_args.clone(),
-    ).unwrap();
+    ).expect("Failed to approve CKBTC");
 
     let response2 = pic.update_call(
         cketh_canister,
         hardcoded_principal,
         "icrc2_approve",
         encoded_args,
-    ).unwrap();
+    ).expect("Failed to approve CKETH");
 
 
     match response {
@@ -369,7 +369,7 @@ fn test_swap() {
                 balance: Nat::from(2800000000u128),
                 weight: Nat::from(50u128),
                 value: Nat::from(100u128),
-                ledger_canister_id: ckbtc_canister,
+                ledger_canister_id: cketh_canister,
                 image: "image.png".to_string(),
             },
         ],

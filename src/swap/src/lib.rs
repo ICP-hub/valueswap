@@ -352,7 +352,7 @@ async fn get_burned_tokens(
         
         // Calculate token amount - scaled based on weight percentage
         let token_amount = if tokens_to_transfer > Nat::from(0u128) {
-            (tokens_to_transfer.clone() * token_percent) / Nat::from(100u128)
+            (tokens_to_transfer.clone() * token_percent.clone()) / Nat::from(100u128)
         } else {
             Nat::from(0u128)
         };
@@ -496,9 +496,9 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Res
     Ok(())
 }
 
-<<<<<<< Updated upstream
 
-=======
+
+
 // #[update]
 // async fn get_user_share_ratio(
 //     params: Pool_Data,
@@ -542,6 +542,5 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Res
 //         Err(e) => Err(e)
 //     }
 // }
->>>>>>> Stashed changes
 
 export_candid!();

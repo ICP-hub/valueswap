@@ -518,7 +518,7 @@ async fn get_user_share_ratio(
 
     // Calculate tokens to transfer with proper scaling
     // This ensures the value sent to get_burned_tokens is sufficiently large
-    let tokens_to_transfer = (pool_value * user_share_ratio.clone()) / base_scaling;
+    let tokens_to_transfer = (pool_value.clone() * user_share_ratio.clone()) / base_scaling;
     ic_cdk::println!("tokens_to_transfer: {:?}", tokens_to_transfer);
 
     // Add comprehensive debug logging
