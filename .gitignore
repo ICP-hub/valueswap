@@ -24,3 +24,6 @@ dist/
 # environment variables
 .env
 
+# pocket-ic test files
+src/valueswap_backend/tests/pocket-ic/
+
