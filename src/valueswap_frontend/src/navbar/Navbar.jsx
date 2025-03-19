@@ -4,7 +4,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useAuths } from '../components/utils/useAuthClient';
 const Navbar = ({ NavbarData, setClickConnectWallet }) => {
     const [activeLink, setActiveLink] = useState(null);
-    const {createLedgerActor} = useAuths();
+    const {createLedgerActor,login} = useAuths();
 
     const ledgerActor = createLedgerActor("a4tbr-q4aaa-aaaaa-qaafq-cai");
     
