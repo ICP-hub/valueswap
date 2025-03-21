@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
-import { useAuth } from '../../components/utils/useAuthClient';
+import { useAuths } from '../../components/utils/useAuthClient';
 import GradientButton from '../../buttons/GradientButton';
 import { useSelector } from 'react-redux';
 import { Principal } from '@dfinity/principal';
 
 function Approval({buttonText, handleCreatePoolClick, setPoolCreated, setConfirmPool}) {
     const [poolData, setPoolData] = useState(null)
-    const { backendActor, isAuthenticated } = useAuth();
+    const { backendActor, isAuthenticated } = useAuths();
     const { Tokens, Confirmation, TotalAmount, FeeShare } = useSelector((state) => state.pool);
     const [selectedTokenDetails, setSelectedTokenDetails] = useState();
     const createPoolHandler = () => {

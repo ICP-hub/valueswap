@@ -2,6 +2,7 @@ use candid::{encode_args, types, CandidType, Nat, Principal};
 use pocket_ic::{PocketIc, WasmResult};
 use serde::{Deserialize, Serialize};
 use std::fs;
+// use crate::tests::types::*;
 
 #[derive(Debug, PartialEq , CandidType, Deserialize)]
 pub enum CustomError {
@@ -170,7 +171,7 @@ const BACKEND_WASM: &str = "../../target/wasm32-unknown-unknown/release/valueswa
 const CKBTC_WASM: &str = "../../.dfx/local/canisters/ckbtc/ckbtc.wasm.gz";
 
 fn setup() -> (PocketIc, Principal,Principal) {
-    std::env::set_var("POCKET_IC_BIN", "/home/ray/valueswap/src/valueswap_backend/tests/pocket-ic"); // Path of the pocket-ic binary
+    std::env::set_var("POCKET_IC_BIN", "/Users/admin/Documents/Projects/ICP/valueswap/src/valueswap_backend/tests/pocket-ic"); // Path of the pocket-ic binary
 
     let pic = PocketIc::new();
 
@@ -189,14 +190,14 @@ fn setup() -> (PocketIc, Principal,Principal) {
         transfer_fee: Nat::from(100u64),
         metadata: vec![], 
         minting_account: Account {
-            owner: Principal::from_text("6mrpp-3ynrv-4q5tl-xsuey-jwi6d-xfukg-w4l3l-h2ejb-h3fea-ghycd-mqe").unwrap(),
+            owner: Principal::from_text("xrinq-kad56-qulgo-h6pa5-gdqps-jif5v-ghngz-gcxac-5rbp3-acjjs-kae").unwrap(),
             subaccount: None,
         },
         initial_balances: vec![
             (Account {
-                owner: Principal::from_text("xkd3g-llatk-lmuv7-eoudm-qtjnr-iapqh-taggr-pwpmo-3rojt-pxkwo-4qe").unwrap(),
+                owner: Principal::from_text("hyhkx-53cuq-lmkqq-yhjmt-eve7b-j5pyf-3evrj-tncch-ilmtl-nrcee-sqe").unwrap(),
                 subaccount: None,
-            }, Nat::from(1_000_000u64)) 
+            }, Nat::from(1_000_000_000u64)) 
         ],
         archive_options: ArchiveOptions {
             num_blocks_to_archive: 1000,
@@ -232,7 +233,7 @@ fn test_create_pools() {
     let (pic, backend_canister, ckbtc_canister) = setup();
 
 
-    let hardcoded_principal = Principal::from_text("xkd3g-llatk-lmuv7-eoudm-qtjnr-iapqh-taggr-pwpmo-3rojt-pxkwo-4qe").unwrap();
+    let hardcoded_principal = Principal::from_text("hyhkx-53cuq-lmkqq-yhjmt-eve7b-j5pyf-3evrj-tncch-ilmtl-nrcee-sqe").unwrap();
     let spender_canister = backend_canister; 
 
 
@@ -241,7 +242,7 @@ fn test_create_pools() {
         memo: None,
         from_subaccount: None,
         created_at_time: None,
-        amount: Nat::from(1000u64),
+        amount: Nat::from(1000000u64),
         expected_allowance: None,
         expires_at: None,
         spender: Account {
@@ -257,7 +258,8 @@ fn test_create_pools() {
         hardcoded_principal,
         "icrc2_approve",
         encoded_args,
-    ).unwrap();
+    ).unwrap(); 
+
 
     match response {
         WasmResult::Reply(data) => {
@@ -279,7 +281,7 @@ fn test_create_pools() {
         pool_data: vec![
             CreatePoolParams {
                 token_name: "ckbtc".to_string(),
-                balance: Nat::from(100u64),
+                balance: Nat::from(100000u64),
                 weight: Nat::from(10u64),
                 value: Nat::from(100u64),
                 ledger_canister_id: ckbtc_canister,
@@ -305,6 +307,10 @@ fn test_create_pools() {
         },
         WasmResult::Reject(message) => panic!("Failed to create pools: {}", message),
     }
+
+
+
+
 }
 
 

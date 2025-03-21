@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import BorderGradientButton from '../buttons/BorderGradientButton'
 import GradientButton from '../buttons/GradientButton'
 import FaucetModal from '../Modals/FaucetModal'
-import { useAuth } from '../components/utils/useAuthClient'
+import { useAuths } from '../components/utils/useAuthClient'
 
 let tokens = [
     {
@@ -19,8 +19,8 @@ let tokens = [
     },
     {
         imgUrl: "/image/ckETH.svg",
-        TokenName: "LP token",
-        CanisterId: process.env.CANISTER_ID_LP_LEDGER_CANISTER
+        TokenName: "ckUSDC",
+        CanisterId: process.env.CANISTER_ID_CKUSDC
     },
 ]
 
@@ -28,7 +28,8 @@ const Faucet = () => {
     const [modelOpen, setModelOpen] = useState(false);
     const [selectFaucet, setSelectFaucet] = useState([]);
     const [balances, setBalances] = useState({});
-    const { isAuthenticated, backendActor, getBalance } = useAuth();
+    const { isAuthenticated, backendActor, getBalance } = useAuths();
+    console.log("Actor : ", backendActor);
     let balance;
     // Fetch the balance for each token when the component is mounted or when `isAuthenticated` changes
     useEffect(() => {

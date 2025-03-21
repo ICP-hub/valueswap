@@ -6,9 +6,9 @@
 #     100000000 : nat
 # )'
 
-INPUT_TOKEN=100000000;
-IDENTITY=$(dfx identity get-principal)
-VALUESWAP_BACKEND=$(dfx canister id valueswap_backend)
+# INPUT_TOKEN=100000000;
+# IDENTITY=$(dfx identity get-principal)
+# VALUESWAP_BACKEND=$(dfx canister id valueswap_backend)
 
 # dfx canister call valueswap_backend pre_compute_swap '(
 #     record {

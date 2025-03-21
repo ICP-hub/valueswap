@@ -6,7 +6,7 @@ import ArrowCircleRightOutlinedIcon from '@mui/icons-material/ArrowCircleRightOu
 import GradientButton from '../buttons/GradientButton';
 import DarkModeToggle from "./DarkModeToggle"
 import onClickOutside from 'react-onclickoutside';
-import { useAuth } from '../components/utils/useAuthClient';
+import { useAuths } from '../components/utils/useAuthClient';
 import { toast } from 'react-toastify';
 import { IOSSwitch } from '../buttons/SwitchButton';
 
@@ -15,7 +15,7 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
     const [copied, setCopied] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
     const dispatch = useDispatch()
-    const { balance } = useAuth()
+    const { balance } = useAuths()
 
 
 

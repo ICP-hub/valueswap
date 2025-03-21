@@ -344,6 +344,7 @@ async fn get_burned_tokens(
         ic_cdk::println!("WARNING: Total weight is {} (expected 100)", total_weight);
     }
 
+
     // Process each token
     for token in params.pool_data.iter() {
         // Optimized calculation to minimize precision loss
@@ -357,12 +358,14 @@ async fn get_burned_tokens(
             Nat::from(0u128)
         };
 
+
         // Detailed logging for debugging
         ic_cdk::println!(
             "DEBUG: Token calculation details for {}:", token.token_name
         );
         ic_cdk::println!("  - Weight: {}", token.weight);
         ic_cdk::println!("  - tokens_to_transfer: {}", tokens_to_transfer);
+
         ic_cdk::println!("  - Token percentage: {}", token.weight);
 
         ic_cdk::println!("  - Result: {}", token_amount);
@@ -498,5 +501,50 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Res
 }
 
 
+
+
+// #[update]
+// async fn get_user_share_ratio(
+//     params: Pool_Data,
+//     pool_name: String,
+//     amount: Nat,
+// ) -> Result<Vec<Nat>, String> {
+//     let user = ic_cdk::caller();
+//     ic_cdk::println!("Input Params: {:?}, Pool Name: {}, Amount: {}", params, pool_name, amount);
+
+//     // ... existing validation code ...
+
+//     let base_scaling = Nat::from(10u64.pow(18));
+//     let user_share_ratio = (amount.clone() * base_scaling.clone()) / pool_total_lp.clone();
+//     ic_cdk::println!("user_share_ratio: {:?}", user_share_ratio);
+
+//     let pool_value = POOL_LP_SHARE.with(|pool_lp| {
+//         let borrowed_pool_lp = pool_lp.borrow();
+//         let val = borrowed_pool_lp.get(&pool_name).map(|lp_value| lp_value.clone() * base_scaling.clone());
+//         ic_cdk::println!("pool_value: {:?}", val);
+//         val.unwrap_or(Nat::from(0u128))
+//     });
+
+//     let tokens_to_transfer = (pool_value * user_share_ratio.clone()) / base_scaling;
+//     ic_cdk::println!("tokens_to_transfer: {:?}", tokens_to_transfer);
+
+//     // Fix: Properly handle the Result type from the cross-canister call
+//     let result: Result<Result<Vec<Nat>, String>, String> = call(
+//         canister_id,
+//         "get_burned_tokens",
+//         (params, user, tokens_to_transfer),
+//     )
+//     .await
+//     .map_err(|e| format!("Failed to make canister call: {:?}", e));
+
+//     // Properly handle nested Results
+//     match result {
+//         Ok(inner_result) => {
+//             ic_cdk::println!("get_burned_tokens result: {:?}", inner_result);
+//             inner_result  // This is already a Result<Vec<Nat>, String>
+//         }
+//         Err(e) => Err(e)
+//     }
+// }
 
 export_candid!();
