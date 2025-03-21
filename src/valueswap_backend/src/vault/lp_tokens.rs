@@ -484,14 +484,22 @@ async fn get_user_share_ratio(
         Some(id) => id,
         None => return Err(format!("No canister ID found for the pool: {}", pool_name)),
     };
-    //nat usage
-    let base_scaling = Nat::from(10u64.pow(18));
+
+    let base_scaling = Nat::from(10u128.pow(18));
+
     let user_share_ratio = (amount.clone() * base_scaling.clone()) / pool_total_lp.clone();
     ic_cdk::println!("user_share_ratio: {:?}", user_share_ratio);
 
+
+    let pool_data = params.pool_data.clone();
+    
+    let scaling_multiplier = Nat::from(1000u128);
     let pool_value = POOL_LP_SHARE.with(|pool_lp| {
         let borrowed_pool_lp = pool_lp.borrow();
-        let val = borrowed_pool_lp.get(&pool_name).map(|lp_value| lp_value.clone() * base_scaling.clone());
+        
+        let val = borrowed_pool_lp.get(&pool_name)
+            .map(|lp_value| lp_value.clone() * base_scaling.clone() * scaling_multiplier);
+        
         ic_cdk::println!("pool_value: {:?}", val);
         val.unwrap_or(Nat::from(0u128))
     });
@@ -502,6 +510,14 @@ async fn get_user_share_ratio(
 
     let tokens_to_transfer = (pool_value * user_share_ratio.clone()) / base_scaling;
     ic_cdk::println!("tokens_to_transfer: {:?}", tokens_to_transfer);
+
+    ic_cdk::println!("DEBUG: amount = {}, pool_total_lp = {}", amount, pool_total_lp);
+    ic_cdk::println!("DEBUG: user_share_ratio = {}", user_share_ratio);
+
+    if tokens_to_transfer == Nat::from(0u128) {
+        ic_cdk::println!("WARNING: tokens_to_transfer calculated as zero. Check scaling factors.");
+
+    }
 
     let result: Result<(Vec<Nat>,), String> = call(
         canister_id,
