@@ -58,7 +58,8 @@ pub struct Icrc28TrustedOriginsResponse {
 #[update]
 fn icrc28_trusted_origins() -> Icrc28TrustedOriginsResponse {
     let trusted_origins = vec![
-        String::from("https://ajzka-lyaaa-aaaak-ak5rq-cai.icp0.io"),
+        String::from("https://ibd5w-gqaaa-aaaac-aadda-cai.icp0.io"),
+        String::from("https://iuem3-hyaaa-aaaac-aadaq-cai.icp0.io"),
         String::from("http://localhost:3000"),
         String::from("http://by6od-j4aaa-aaaaa-qaadq-cai.localhost:4943"),
         String::from("http://127.0.0.1:4943/?canisterId=bd3sg-teaaa-aaaaa-qaaba-cai"),
