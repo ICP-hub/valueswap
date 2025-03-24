@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import { toast } from 'react-toastify'
-import { useAuth } from '../components/utils/useAuthClient'
+import { useAuths } from '../components/utils/useAuthClient'
 import { Principal } from '@dfinity/principal'
 import {
   Settings as SettingsIcon,
@@ -19,7 +19,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 const Swap = () => {
   const { backendActor, getBalance, createTokenActor, isAuthenticated } =
-    useAuth()
+    useAuths()
 
   // States
   const [payCoin, setPayCoin] = useState(null)
@@ -281,7 +281,7 @@ const Swap = () => {
       })
       const res = await backendActor.compute_swap({
         token1_name: payCoin.ShortForm,
-        token_amount: amount,
+        token_amount: amount * 100000000,
         token2_name: receiveCoin.ShortForm,
         ledger_canister_id1: Principal.fromText(payCoin.CanisterId),
         ledger_canister_id2: Principal.fromText(receiveCoin.CanisterId),
@@ -423,7 +423,7 @@ const Swap = () => {
             </BorderGradientButton>
           </div>
           <div className='flex justify-between mt-2'>
-            <div>${coinAmount > 0 ? coinAmount * payCoin?.marketPrice : 0}</div>
+            <div>${Number(receiveValue) > 0 ? Number(receiveValue)/100000000 * receiveCoin?.marketPrice : 0}</div>
             <div>
               <button
                 className='font-gilroy ml-1 sm:ml-2 text-orange-400 text-base font-normal'

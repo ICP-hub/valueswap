@@ -55,3 +55,4 @@ DEPLOY_ARGUMENTS="(variant {Init = record {
 echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
 dfx deploy ckusdc --argument "$DEPLOY_ARGUMENTS" 
+
