@@ -423,7 +423,7 @@ const Swap = () => {
             </BorderGradientButton>
           </div>
           <div className='flex justify-between mt-2'>
-            <div>${coinAmount > 0 ? coinAmount * payCoin?.marketPrice : 0}</div>
+            <div>${Number(receiveValue) > 0 ? Number(receiveValue)/100000000 * receiveCoin?.marketPrice : 0}</div>
             <div>
               <button
                 className='font-gilroy ml-1 sm:ml-2 text-orange-400 text-base font-normal'

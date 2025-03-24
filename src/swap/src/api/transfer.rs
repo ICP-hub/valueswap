@@ -148,7 +148,7 @@ pub async fn icrc1_transfer(
 
     // Debug: Log input arguments
     ic_cdk::println!(
-        "Debug: Initiating faucet transfer to {} with amount {} via ledger {}",
+        "Debug: Initiating transfer to {} with amount {} via ledger {}",
         user_principal, amount, ledger_canister
     );
 
@@ -178,15 +178,15 @@ pub async fn icrc1_transfer(
         TransferResult::Ok(balance) => {
             // Debug: Log successful transfer
             ic_cdk::println!(
-                "Debug: Faucet transfer successful. New balance: {}",
+                "Debug: transfer successful. New balance: {}",
                 balance
             );
             Ok(balance)
         }
         TransferResult::Err(err) => {
             // Debug: Log transfer error
-            ic_cdk::println!("Error: Faucet transfer failed: {:?}", err);
-            Err(format!("Faucet transfer failed: {:?}", err))
+            ic_cdk::println!("Error: transfer failed: {:?}", err);
+            Err(format!(" transfer failed: {:?}", err))
         }
     }
 }

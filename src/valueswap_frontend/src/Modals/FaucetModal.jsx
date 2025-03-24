@@ -12,10 +12,11 @@ const FaucetModal = ({ setModelOpen, imgUrl, TokenName }) => {
   let faucetList = [
     { name: 'ckBTC', CanisterId: process.env.CANISTER_ID_CKBTC },
     { name: 'ckETH', CanisterId: process.env.CANISTER_ID_CKETH },
-    { name: 'LP token', CanisterId: process.env.CANISTER_ID_LP_LEDGER_CANISTER }
+    { name: 'ckUSDC', CanisterId: process.env.CANISTER_ID_CKUSDC }
   ]
   let ledger_canister_id = faucetList?.find(
-    token => token.name.toLowerCase() == TokenName.TokenName?.toLowerCase()
+    token => token.name.toLowerCase() == TokenName.TokenName?.toLowerCase(),
+    // console.log("the ledger canister found", token.name.toLowerCase(), " " )
   )
   console.log('faucetledger', ledger_canister_id)
   const depositeHandler = async scaledAmount => {
