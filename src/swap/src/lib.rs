@@ -344,6 +344,7 @@ async fn get_burned_tokens(
         ic_cdk::println!("WARNING: Total weight is {} (expected 100)", total_weight);
     }
 
+
     // Process each token
     for token in params.pool_data.iter() {
         // Optimized calculation to minimize precision loss
@@ -352,10 +353,11 @@ async fn get_burned_tokens(
         
         // Calculate token amount - scaled based on weight percentage
         let token_amount = if tokens_to_transfer > Nat::from(0u128) {
-            (tokens_to_transfer.clone() * token_percent.clone()) / Nat::from(100u128)
+            (tokens_to_transfer.clone() * token_percent) / Nat::from(100u128)
         } else {
             Nat::from(0u128)
         };
+
 
         // Detailed logging for debugging
         ic_cdk::println!(
@@ -363,7 +365,9 @@ async fn get_burned_tokens(
         );
         ic_cdk::println!("  - Weight: {}", token.weight);
         ic_cdk::println!("  - tokens_to_transfer: {}", tokens_to_transfer);
-        ic_cdk::println!("  - token_percent: {}", token_percent);
+
+        ic_cdk::println!("  - Token percentage: {}", token.weight);
+
         ic_cdk::println!("  - Result: {}", token_amount);
 
         result.push(token_amount);

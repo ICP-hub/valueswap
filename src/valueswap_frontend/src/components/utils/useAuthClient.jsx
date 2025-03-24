@@ -423,28 +423,42 @@ export const useAuthClient = () => {
   const delegationType = useDelegationType();
   const isInitializing = useIsInitializing();
   const [backendActor, setBackendActor] = useState(null);
-  const [agent, setnewagent] = useState(null);
+  const [Agent, setAgent] = useState(null);
   const LOCAL_HOST = "http://127.0.0.1:4943";
   const MAINNET_HOST = "https://icp0.io";
   const HOST = process.env.DFX_NETWORK === "ic" ? MAINNET_HOST : LOCAL_HOST;
-
+  const agent = useAgent();
+  console.log("Agent : ", agent, Agent)
   useEffect(() => {
-    if (user && identity && HOST) {
-      const initializeAgent = async () => {
-        const newAgent = new HttpAgent({ identity, host: HOST });
-        if (process.env.DFX_NETWORK !== "ic") {
-          await newAgent.fetchRootKey();
+    const initActor = async () => {
+      try {
+        if (user && identity && agent) {
+          // Fetch root key for local development
+          if (process.env.DFX_NETWORK !== "ic") {
+            await agent.fetchRootKey();
+          }
+
+          // Create actor
+          const actor = createActorBackend(canisterID, { agent });
+          setBackendActor(actor);
         }
-        setnewagent(newAgent);
-      };
-      initializeAgent();
+      } catch (error) {
+        console.error("Error initializing actor:", error.message);
+      }
+    };
+    debugReadState(agent, canisterID);
+    testSigning();
+    initActor();
+    if(agent){
+      console.log("Agent exists and we are updating state")
+      setAgent(agent);
     }
-  }, [user, identity, HOST]);
+  }, [user, identity, agent]);
 
   const handleLogin = async () => {
     try {
       await connect();
-      const principal = identity.getPrincipal().toText();
+      console.log("Principal:", principal);
       // showNotification("success", "Wallet Connected", principal);
     } catch (error) {
       console.error("Login Error:", error);
@@ -467,46 +481,84 @@ export const useAuthClient = () => {
     }
   };
 
-  const getBalance = useCallback(async (canisterId) => {
+  const getBalance = async (canisterId) => {
     try {
       // Assuming you have a function to create an actor for other providers
       const actor = await createTokenActor(canisterId);
-
-      const ownerPrincipal = typeof user?.principal === 'string' ? Principal.fromText(user?.principal) : user?.principal;
-   
-      const balance = await actor?.icrc1_balance_of({ owner: ownerPrincipal,  subaccount: []});
-      console.log("Balance:", balance.toString());
-      return balance;
+      console.log("Custom Actor : ", actor)
+      if(actor){
+        console.log("Canister ID in getBalance : ", canisterId)
+        const ownerPrincipal = typeof user?.principal === 'string' ? Principal.fromText(user?.principal) : user?.principal;
+    
+        const balance = await actor?.icrc1_balance_of({ owner: ownerPrincipal,  subaccount: []});
+        console.log("Balance:", balance.toString());
+        return balance;
+      }else{
+        console.log("Actor not created")
+        return null
+      }
     } catch (error) {
       console.error("Error fetching balance from other provider:", error);
       return null;
     }
-  }, [user?.principal]);
+  }
 
   const createTokenActor = async (canisterId) => {
     try {
       if (!canisterId) {
-        throw new Error("Canister ID is required.");
+        console.error("Canister ID is required.");
       }
-      const agent = new HttpAgent({ identity, host: HOST });
 
+      
+      console.log("Creating actor for canister:", canisterId);
+      console.log("Identity Principal:", identity.getPrincipal().toText());
+      console.log("Agent from createTokenActor:", Agent);
       // Only fetch root key in local development
       if (process.env.DFX_NETWORK !== "ic") {
-        await agent.fetchRootKey();
+        await Agent.fetchRootKey();
+      }
+      if (!identity || !Agent) {
+        console.log("E : ",identity,Agent)
+        // throw new Error("Agent or Identity is not initialized.");
       }
 
-      const actor = Actor.createActor(ledgerIDL, { agent, canisterId });
+      const actor = Actor.createActor(ledgerIDL, { agent : Agent, canisterId });
       if (!actor) {
-        throw new Error(
-          "Actor creation failed. Check the IDL and canister ID."
-        );
+        // throw new Error(
+        //   "Actor creation failed. Check the IDL and canister ID."
+        // );
+        console.log("actor failed")
       }
       return actor;
     } catch (err) {
       console.error("Error creating custom actor:", err.message);
       throw err;
     }
+  }
+
+   // Test the signing process
+   const testSigning = async () => {
+    try {
+      const encoder = new TextEncoder();
+      const payload = encoder.encode("Test payload");
+      const signature = await identity.sign(payload);
+      console.log("Test Signature:", signature);
+    } catch (error) {
+      console.error("Error in signing:", error.message);
+    }
   };
+  
+  // Debug readState
+  const debugReadState = async (agent, canisterId) => {
+    try {
+      const paths = [[new TextEncoder().encode("time")]];
+      const state = await agent.readState(canisterId, { paths });
+      console.log("Read State Response:", state);
+    } catch (error) {
+      console.error("Error in readState:", error.message);
+    }
+  };
+
   const signerId = localStorage.getItem("signerId");
 
   return {
@@ -522,9 +574,7 @@ export const useAuthClient = () => {
     agent,
     fetchBalance,
     getBalance,
-    backendActor: createActorBackend(process.env.CANISTER_ID_VALUESWAP_BACKEND, {
-      agentOptions: { identity, verifyQuerySignatures: false },
-    }),
+    backendActor,
     signerId
   };
 };

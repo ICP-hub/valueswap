@@ -6,11 +6,12 @@ import { useNavigate } from 'react-router-dom'
 import ParticlesBackground from '../particles/Particles'
 import { useSelector } from 'react-redux'
 import { useAuths } from '../utils/useAuthClient'
+import { Login } from '@mui/icons-material'
 const Hero = ({ setClickConnectWallet }) => {
 
     const navigate = useNavigate();
     // const {isConnected} = useSelector(state => state.wallet)
-    const {isAuthenticated, logout}   = useAuths()
+    const {isAuthenticated, logout,login}   = useAuths()
 
     return (
 
@@ -44,7 +45,7 @@ const Hero = ({ setClickConnectWallet }) => {
                         </GradientButton>
                     </div>
                     <div onClick={() => {
-                     isAuthenticated ? logout() : setClickConnectWallet(true)
+                     isAuthenticated ? logout() : login()
                     }}>
                         <BorderGradientButton customCss={`bg-[#000711] z-10`}>
                             {isAuthenticated ? (

@@ -19,7 +19,6 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
     const [Principal, setPrincipal] = useState()
     const [selectedOption, setSelectedOption] = useState(options[0]);
     const [isSticky, setIsSticky] = useState(true);
-
     let location = useLocation()
 
     // const walletId = localStorage.getItem('dfinityWallet') || '';
@@ -114,8 +113,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                         <div
                             onClick={() => {
                                 if (!isAuthenticated) {
-                                    setClickConnectWallet(true);
-                                    setOpen(!open)
+                                    login()
                                 }
 
                                
@@ -233,7 +231,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                         >
                                             {!isAuthenticated && (<div
                                                 onClick={() => {
-                                                    setClickConnectWallet(true);
+                                                    login()
                                                 }}>
                                                 {NavbarData.ButtonText}
                                             </div>)}
