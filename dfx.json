@@ -21,7 +21,6 @@
       "candid": "src/ckusdc/icrc1.did",
       "wasm": "src/ckusdc/icrc1_wasm.gz"
     },
-
     "xrc": {
       "type": "custom",
       "candid": "https://raw.githubusercontent.com/THLO/xrc_demo/refs/heads/main/xrc/xrc.did",
