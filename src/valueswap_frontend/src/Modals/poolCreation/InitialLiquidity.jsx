@@ -213,6 +213,7 @@ const InitialLiquidity = () => {
             console.log("init fee", fee);
             console.log("init amount", amount);
             console.log("init balance", balance);
+            console.log("backendCanisterID", backendCanisterID);
 
             if (balance >= amount + fee) {
                 const transaction = {
@@ -229,7 +230,7 @@ const InitialLiquidity = () => {
                     expires_at: [],  // Optional expiration time
                 };
 
-                // console.log("transaction", transaction);
+                console.log("transaction", transaction);
 
                 const response = await tokenActor.icrc2_approve(transaction);
 

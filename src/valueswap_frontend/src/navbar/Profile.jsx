@@ -44,7 +44,7 @@ function Profile({ Principal, isAuthenticated, logout, principal }) {
         setShowProfile(false);
     };
 
-    console.log("principal, ", principal.toString())
+    console.log("principal, ", principal)
 
     return (
         <div className='relative '>
