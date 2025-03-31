@@ -1,3 +1,3 @@
-dfx canister call cketh icrc1_transfer ' (record {to=record {owner = principal "rgtib-ktq4g-rjiya-aishg-mv2om-ey54m-jhyut-2tuaf-tvjyz-ml54r-lae"; subaccount=null}; fee=null; memo=null; from_subaccount=null; created_at_time=null; amount=5000000000})'
+dfx canister call cketh icrc1_transfer ' (record {to=record {owner = principal "llqvj-6xorm-233j5-nqsf7-3p33h-wghz2-ibujq-ri22n-5z5jg-tbg2i-bae"; subaccount=null}; fee=null; memo=null; from_subaccount=null; created_at_time=null; amount=5000000000})'
 
-dfx canister call ckbtc icrc1_transfer ' (record {to=record {owner = principal "rgtib-ktq4g-rjiya-aishg-mv2om-ey54m-jhyut-2tuaf-tvjyz-ml54r-lae"; subaccount=null}; fee=null; memo=null; from_subaccount=null; created_at_time=null; amount=5000000000})'
+dfx canister call ckbtc icrc1_transfer ' (record {to=record {owner = principal "llqvj-6xorm-233j5-nqsf7-3p33h-wghz2-ibujq-ri22n-5z5jg-tbg2i-bae"; subaccount=null}; fee=null; memo=null; from_subaccount=null; created_at_time=null; amount=5000000000})'

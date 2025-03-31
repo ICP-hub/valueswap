@@ -6,29 +6,30 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
 import ImportExportIcon from '@mui/icons-material/ImportExport';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton'
 import 'react-loading-skeleton/dist/skeleton.css'
-import { useAuth, useAuthClient } from '../utils/useAuthClient'
+import { useAuths, useAuthClient } from '../utils/useAuthClient'
 import BorderGradientButton from '../../buttons/BorderGradientButton'
 import {portfolioSampleData} from "../../TextData"
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
+import { Principal } from '@dfinity/principal';
 const PortfolioDataComponent = () => {
   const [allDataInPool, setAllDataInPool] = useState([])
   const [displayCount, setDisplayCount] = useState(0)
   const [buttonVisible, setButtonVisibility] = useState(true)
   const [activeSort, setActiveSort] = useState()
   const [isAscending, setIsAscending] = useState(true)
-  const { backendActor, principal } = useAuth()
+  const { backendActor, principal } = useAuths()
   const [poolName, setPoolName] = useState()
   const [itemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated } = useAuths()
 
   //  const listOfPool = [];
   useEffect(() => {
     const userPools = async () => {
-      const AllPool = await backendActor?.get_user_pools_with_lp(principal)
+      const AllPool = await backendActor?.get_user_pools_with_lp(Principal.fromText(principal))
       if(!AllPool || AllPool.length ===0) return;
 
       console.log(" get_user_pools_with_lp", AllPool)

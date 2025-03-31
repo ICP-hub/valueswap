@@ -2,6 +2,12 @@
   "LP_ledger_canister": {
     "ic": "yyins-zqaaa-aaaac-ak2ia-cai"
   },
+  "ckbtc": {
+    "ic": "wpwuj-jyaaa-aaaac-albla-cai"
+  },
+  "cketh": {
+    "ic": "wixs5-eaaaa-aaaac-alblq-cai"
+  },
   "swap": {
     "ic": "i5hhh-rqaaa-aaaac-aadba-cai"
   },
@@ -10,5 +16,8 @@
   },
   "valueswap_frontend": {
     "ic": "ibd5w-gqaaa-aaaac-aadda-cai"
+  },
+  "xrc": {
+    "ic": "xfzwt-liaaa-aaaac-albma-cai"
   }
 }

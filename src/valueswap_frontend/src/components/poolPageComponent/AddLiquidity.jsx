@@ -3,18 +3,19 @@ import { useParams } from 'react-router-dom';
 import GradientButton from '../../buttons/GradientButton'
 import { IOSSwitch } from '../../buttons/SwitchButton';
 import { convertTokenEquivalentUSD } from '../../utils';
-import { useAuth } from '../utils/useAuthClient';
+import { useAuths } from '../utils/useAuthClient';
+
 
 const AddLiquidity = () => {
-  const { id } = useParams();
-  const [tokens, setTokens] = useState([]);
-  const [restTokens, setRestTokens] = useState([]);
+
+  const { id } = useParams()
+  const [tokens, setTokens] = useState([])
+  const [restTokens, setRestTokens] = useState([])
   const [token1, setToken1] = useState(null);
   const [poolData, setPoolData] = useState([]);
-  const [swapFee, setSwapFee] = useState(0);
-  const { backendActor, principal, createTokenActor, getBalance } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [retry, setRetry] = useState({getPoolData : false, initToken : false, restToken : false})
+  const [swapFee, setSwapFee] = useState(0)
+  const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
+  const {backendActor,principal, createTokenActor, getBalance} = useAuths()
 
   const initToken = useCallback(async () => {
     const initialToken = tokens[0]
