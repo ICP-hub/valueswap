@@ -4,7 +4,7 @@ import GradientButton from '../../buttons/GradientButton'
 import { IOSSwitch } from '../../buttons/SwitchButton';
 import { convertTokenEquivalentUSD } from '../../utils';
 import { useAuths } from '../utils/useAuthClient';
-
+import { Principal } from '@dfinity/principal';
 
 const AddLiquidity = () => {
 
@@ -16,6 +16,8 @@ const AddLiquidity = () => {
   const [swapFee, setSwapFee] = useState(0)
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
   const {backendActor,principal, createTokenActor, getBalance} = useAuths()
+  const [retry,setRetry] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const initToken = useCallback(async () => {
     const initialToken = tokens[0]
@@ -207,67 +209,119 @@ const AddLiquidity = () => {
     ]
   }), [tokens,initialTokenAmount,restTokensAmount,swapFee])
 
-  console.log("Init : \n",token1,"\nRest :",restTokens)
-
-  const runApproval = useCallback(async(approveParams)=>{
-    try{
-      if(typeof approveParams === "undefined" || approveParams.length === 0) throw new Error("Approval Params Type Error")
-      approveParams.forEach(async(param)=>{
-        createTokenActor(param.spender.toText()).then(actor=>{
-          console.log("Actor : ", actor)
-          actor.approve(param)
-        })
-        .catch(err=>console.error(err))
-      })
-    }catch(err){
-      console.error(err)
-    }finally{
-      console.log("Approval Done")
-    }
-  }, [createTokenActor])
-
-  const addLiquidity = useCallback(async()=>{
-    let approveParams=[]
-    const pool_data = poolData.map((pool)=>{
-      const params = pool.pool_data
-      const param = params.map((token,index)=>{
-        const amount = index === 0 ? initialTokenAmount : parseInt(restTokensAmount[index - 1])
-        const decimal = index === 0 ? token1?.decimals : restTokens[index - 1]?.decimals // TODO : Use fetched decimals
-        const balance = index  === 0 ? token1?.balance : restTokens[index - 1]?.balance
-        console.log("TYPE FOF AMOUNT : ", typeof amount, amount)
-        let approveEntry = {
-          fee : 30,
-          memo : [],
-          amount : BigInt(amount) * BigInt(10 ** decimal),
-          spender : token.ledger_canister_id
-        }
-        approveParams.push(approveEntry)
-        return {
-          value : BigInt(amount) * BigInt(10 ** decimal),
-          weight : parseFloat(token.weight),
-          token_name : token.token_name,
-          ledger_canister_id : token.ledger_canister_id,
-          image : token.image,
-          balance : parseFloat(balance) * Math.pow(10, decimal)
-        }
-      })
-      console.log("Param : ", param)
-      return param
-    })
-    console.log(pool_data)
-    try{
-      runApproval(approveParams)
-      const response = await backendActor.create_pools({pool_data : pool_data[0], swap_fee : parseFloat(swapFee) || 0})
-      console.log(response)
-      if(response?.Ok){
-        console.log("Success")
-      }else{
-        throw new Error(JSON.stringify(response.Err))
+  function getPrincipalFromAccount(account) {
+    if (account && account.owner) {
+      if (account.owner instanceof Principal) {
+        return account.owner;
       }
-    }catch(err){
-      console.error(err)
+      if (account.owner.__principal__) {
+        return Principal.fromText(account.owner.__principal__);
+      }
+      if (typeof account.owner === "string") {
+        return Principal.fromText(account.owner);
+      }
     }
-  },[poolData,initialTokenAmount,restTokensAmount,swapFee, runApproval])
+    return null;
+  }
+  
+  const runApproval = useCallback(async (approveParams) => {
+    try {
+      if (!approveParams || approveParams.length === 0) {
+        throw new Error("Approval Params Type Error");
+      }
+  
+      console.log("Running approval process... ", approveParams);
+  
+      for (const param of approveParams) {
+        const ledgerCanisterPrincipal = param.ledgerCanisterPrincipal
+        if (!ledgerCanisterPrincipal) {
+          throw new Error("Invalid ledger canister principal");
+        }
+  
+        const actor = await createTokenActor(ledgerCanisterPrincipal);
+        console.log("Actor:", actor);
+  
+        if (actor) {
+          const response = await actor.icrc2_approve(param.approveEntry);
+          console.log("Approval Response:", response);
+          if (!response?.Ok) {
+            throw new Error(`Approval failed: ${JSON.stringify(response.Err)}`);
+          }
+        } else {
+          throw new Error("Failed to create token actor");
+        }
+      }
+  
+      console.log("All approvals successful!");
+      return true;
+    } catch (err) {
+      console.error("Error during approval:", err);
+      return false;
+    }
+  }, [createTokenActor]);
+  
+  const addLiquidity = useCallback(async () => {
+    let approveParams = [];
+    const pool_data = poolData.map((pool) =>
+      pool.pool_data.map((token, index) => {
+        const ledgerCanisterPrincipal = Principal.from(token.ledger_canister_id);
+        const amount = index === 0 ? initialTokenAmount : parseInt(restTokensAmount[index - 1]);
+        const decimal = index === 0 ? token1?.decimals : restTokens[index - 1]?.decimals;
+        const balance = index === 0 ? token1?.balance : restTokens[index - 1]?.balance;
+  
+        let approveEntry = {
+          amount: (BigInt(parseInt(balance)) * BigInt(10 ** ( decimal + 2 ))),
+          from_subaccount: [],
+          spender: {
+            owner: Principal.fromText(process.env.CANISTER_ID_VALUESWAP_BACKEND),
+            subaccount: [],
+          },
+          fee: [],
+          memo: [],
+          created_at_time: [],
+          expected_allowance: [],
+          expires_at: [],
+        };
+        approveParams.push({approveEntry, ledgerCanisterPrincipal});
+  
+        return {
+          value: BigInt(parseInt(balance)) * BigInt(Math.pow(10, decimal)),
+          weight: parseFloat(token.weight),
+          token_name: token.token_name,
+          ledger_canister_id: token.ledger_canister_id,
+          image: token.image,
+          balance: BigInt(amount) * BigInt(10 ** decimal),
+        };
+      })
+    );
+  
+    console.log("Pool Data Array:", pool_data);
+  
+    try {
+      const approvalSuccess = await runApproval(approveParams);
+      if (!approvalSuccess) {
+        throw new Error("Approval failed or was rejected.");
+      }
+  
+      console.log("Approval successful! Now creating liquidity pools...");
+  
+      const createPoolResponse = await backendActor.create_pools({
+        pool_data: pool_data[0],
+        swap_fee: parseFloat(swapFee) || 0,
+      });
+  
+      console.log("Create Pool Response:", createPoolResponse);
+  
+      if (createPoolResponse?.Err) {
+        throw new Error(JSON.stringify(createPoolResponse.Err));
+      }
+  
+      console.log("Liquidity successfully added!");
+    } catch (err) {
+      console.error("Error Adding Liquidity:", err);
+    }
+  }, [poolData, initialTokenAmount, restTokensAmount, swapFee, runApproval]);
+  
 
   const handleInput = (e) => {
     const value = parseFloat(e.target.value) || 0;
