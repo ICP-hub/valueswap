@@ -316,34 +316,71 @@ async fn get_burned_tokens(
         return Err(format!("Invalid pool data: {:?}", err));
     }
 
+    // Validate tokens_to_transfer is positive
+    if tokens_to_transfer <= Nat::from(0u128) {
+        ic_cdk::println!("Error: tokens_to_transfer must be positive, got: {}", tokens_to_transfer);
+        return Err("tokens_to_transfer must be positive".to_string());
+    }
+
+    ic_cdk::println!("DEBUG: Incoming tokens_to_transfer: {}", tokens_to_transfer);
+
+    // Keep the same scaling factors as in get_user_share_ratio for consistency
     let base_scaling = Nat::from(10u128.pow(18));  // 10^18 for base calculations
     let weight_scaling = Nat::from(100u128);       // Scale for percentages
-
-    ic_cdk::println!("tokens_to_transfer (Nat): {:?}", tokens_to_transfer);
-
+    
     let mut result: Vec<Nat> = Vec::new();
+    let mut total_weight = Nat::from(0u128);
 
+    // Verify weights are properly set
     for token in params.pool_data.iter() {
-        // Calculate token amount with proper scaling
-        // (weight * tokens_to_transfer * weight_scaling) / (base_scaling * 100)
-        let token_amount = (token.weight.clone() * tokens_to_transfer.clone() * weight_scaling.clone()) 
-            / (base_scaling.clone() * Nat::from(100u128));
+        total_weight += token.weight.clone();
+        ic_cdk::println!("Token: {}, Weight: {}", token.token_name, token.weight);
+    }
+    
+    ic_cdk::println!("Total weight: {}", total_weight);
+    
+    // Warn if weights don't add up to 100
+    if total_weight <= Nat::from(0u128) || total_weight != Nat::from(100u128) {
+        ic_cdk::println!("WARNING: Total weight is {} (expected 100)", total_weight);
+    }
 
+
+    // Process each token
+    for token in params.pool_data.iter() {
+        // Optimized calculation to minimize precision loss
+        // First multiply, then divide to maintain as much precision as possible
+        let token_percent = token.weight.clone();
+        
+        // Calculate token amount - scaled based on weight percentage
+        let token_amount = if tokens_to_transfer > Nat::from(0u128) {
+            (tokens_to_transfer.clone() * token_percent) / Nat::from(100u128)
+        } else {
+            Nat::from(0u128)
+        };
+
+
+        // Detailed logging for debugging
         ic_cdk::println!(
-            "Debug: Calculated amount for token {}: {:?}",
-            token.token_name,
-            token_amount
+            "DEBUG: Token calculation details for {}:", token.token_name
         );
+        ic_cdk::println!("  - Weight: {}", token.weight);
+        ic_cdk::println!("  - tokens_to_transfer: {}", tokens_to_transfer);
+
+        ic_cdk::println!("  - Token percentage: {}", token.weight);
+
+        ic_cdk::println!("  - Result: {}", token_amount);
 
         result.push(token_amount);
     }
 
-    ic_cdk::println!(
-        "Debug: Burned token calculation completed for user {}. Result: {:?}",
-        user,
-        result
-    );
+    // Check if all results are zero and warn
+    if result.iter().all(|n| *n == Nat::from(0u128)) {
+        ic_cdk::println!(
+            "WARNING: All calculated token amounts are zero! This indicates a problem with scaling or input values."
+        );
+    }
 
+    ic_cdk::println!("DEBUG: Final result vector: {:?}", result);
     Ok(result)
 }
 
@@ -462,6 +499,9 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Res
 
     Ok(())
 }
+
+
+
 
 // #[update]
 // async fn get_user_share_ratio(

@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import GradientButton from '../buttons/GradientButton';
-import { useAuth } from '../components/utils/useAuthClient';
+import { useAuths } from '../components/utils/useAuthClient';
 import { toast } from 'react-toastify';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import CircularProgress from '@mui/material/CircularProgress';
-import { idlFactory as tokenIdl } from '../../../declarations/ckbtc_ledger';
+import { idlFactory as tokenIdl } from '../../../declarations/ckbtc';
 import { Principal } from '@dfinity/principal';
 function WithdrawModel({ setOpenWithdraw, poolName }) {
     const [change, setChange] = useState(false);
     const [coinDetail, setCoinDetail] = useState([]);
     const [CoinName, setCoinName] = useState([])
-    // const { backendActor } = useAuth();
+    // const { backendActor } = useAuths();
     const [amountLp, setAmountLp] = useState(0);
-    const { createTokenActor, backendActor, principal, getBalance } = useAuth();
+    const { createTokenActor, backendActor, principal, getBalance } = useAuths();
 
 
     const fetchCoinFromLp = () => { 

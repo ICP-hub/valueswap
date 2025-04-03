@@ -5,7 +5,7 @@ import { Bars3BottomRightIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import Profile from './Profile';
 import { useSelector } from 'react-redux';
 import { Principal } from '@dfinity/principal';
-import { useAuth } from '../components/utils/useAuthClient';
+import { useAuths } from '../components/utils/useAuthClient';
 import BorderGradientButton from '../buttons/BorderGradientButton';
 const options = [
     // { value: 'ethereum', label: 'Ethereum', img: '/src/assets/images/Network/Ethereum.png' },
@@ -19,7 +19,6 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
     const [Principal, setPrincipal] = useState()
     const [selectedOption, setSelectedOption] = useState(options[0]);
     const [isSticky, setIsSticky] = useState(true);
-
     let location = useLocation()
 
     // const walletId = localStorage.getItem('dfinityWallet') || '';
@@ -28,7 +27,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
     //     console.log("we are connected!")
     //     artemisWallet()
     // }
-    const { isAuthenticated, login, logout, principal, reloadLogin } = useAuth();
+    const { isAuthenticated, login, logout, principal, reloadLogin } = useAuths();
 
     useMemo(() => { 
         const getDisplayFunction = () => {
@@ -37,7 +36,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
         //   console.log('Is principal an instance of Principal:', principal instanceof Principal);
       
           // Convert the Principal object to a string
-          const principalString = principal.toText();
+          const principalString = principal;
       
           // Format the principal string for display
           const SlicedPrincipal = principalString.slice(0, 5);
@@ -114,8 +113,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                         <div
                             onClick={() => {
                                 if (!isAuthenticated) {
-                                    setClickConnectWallet(true);
-                                    setOpen(!open)
+                                    login()
                                 }
 
                                
@@ -233,7 +231,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                         >
                                             {!isAuthenticated && (<div
                                                 onClick={() => {
-                                                    setClickConnectWallet(true);
+                                                    login()
                                                 }}>
                                                 {NavbarData.ButtonText}
                                             </div>)}
