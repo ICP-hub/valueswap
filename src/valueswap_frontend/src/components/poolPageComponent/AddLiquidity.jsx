@@ -209,20 +209,6 @@ const AddLiquidity = () => {
     ]
   }), [tokens,initialTokenAmount,restTokensAmount,swapFee])
 
-  function getPrincipalFromAccount(account) {
-    if (account && account.owner) {
-      if (account.owner instanceof Principal) {
-        return account.owner;
-      }
-      if (account.owner.__principal__) {
-        return Principal.fromText(account.owner.__principal__);
-      }
-      if (typeof account.owner === "string") {
-        return Principal.fromText(account.owner);
-      }
-    }
-    return null;
-  }
   
   const runApproval = useCallback(async (approveParams) => {
     try {
@@ -483,13 +469,11 @@ const AddLiquidity = () => {
           </GradientButton>
         </div>
         <table className='w-full font-gilroy'>
-          <thead className='text-xl font-semibold'>
-            <tr className='flex justify-between w-full'>
-              <th>{Result.heading}</th>
-              <th>{Result.headingData}</th>
-            </tr>
-          </thead>
           <tbody className='text-base'>
+            <tr className='text-xl font-semibold'>
+                <td>{Result.heading}</td>
+                <td>{Result.headingData}</td>
+            </tr>
             {Result.data.map((data, index) => (
               <tr key={index}>
                 <td>{data.title}</td>
