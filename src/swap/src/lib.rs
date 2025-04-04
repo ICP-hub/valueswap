@@ -300,12 +300,14 @@ async fn burn_tokens(
     Ok(())
 }
 
-#[query]
+
+#[update]
+#[candid::candid_method(update)]
 async fn get_burned_tokens(
     params: Pool_Data,
     user: Principal,
     tokens_to_transfer: Nat,
-) -> Result<Vec<Nat>, String> {
+) -> Result<BurnedTokensResponse, String> {
     if user == Principal::anonymous() {
         ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
         return Err("Invalid user principal: Cannot be anonymous.".to_string());
@@ -381,7 +383,7 @@ async fn get_burned_tokens(
     }
 
     ic_cdk::println!("DEBUG: Final result vector: {:?}", result);
-    Ok(result)
+    Ok(BurnedTokensResponse { tokens: result })
 }
 
 

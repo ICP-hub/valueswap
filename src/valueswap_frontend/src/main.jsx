@@ -30,7 +30,8 @@ import 'react-toastify/dist/ReactToastify.css';
 const signers = [NFIDW, Plug];
 const additionalCanisterIds = [
     process.env.CANISTER_ID_CKBTC,
-    process.env.CANISTER_ID_CKETH
+    process.env.CANISTER_ID_CKETH,
+    process.env.CANISTER_ID_CKUSDC
 ];
 
 // Combine all canister IDs
