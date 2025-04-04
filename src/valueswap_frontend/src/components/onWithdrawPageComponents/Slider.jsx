@@ -1,10 +1,32 @@
-import { useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import BorderGradientButton from "../../buttons/BorderGradientButton"
+import { useAuthClient } from "../utils/useAuthClient"
 
 const SLIDE_OPTIONS = [25, 50, 75, 100]
 
-const Slider = () => {
+const Slider = ({poolData}) => {
     const [value, setValue] = useState(SLIDE_OPTIONS[0])
+    const {backendActor} = useAuthClient()
+
+    const getUserShareRatio = useCallback(async()=>{
+        console.log("poolData", {
+            poolData : poolData[0],
+            name : "ckbtccketh",
+            amount : 1.0
+        })
+        try{
+            const response = await backendActor.get_user_share_ratio(poolData[0],"ckbtccketh", 1.0)
+            console.log("response", response)
+        }catch(err){    
+            console.error("Error getting user share ratio", err)
+        }finally{
+            console.log("done getting user share ratio")
+        }
+    },[poolData, backendActor])
+
+    useEffect(()=>{
+        getUserShareRatio()
+    },[value])
 
     return (
         <div className="font-cabin flex flex-col space-y-4 backdrop-blur-[32px]">
