@@ -111,6 +111,24 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                     )));
                 }
 
+               let  pool_supply = params
+                .pool_data
+                .iter()
+                .try_fold(Nat::from(0u128), |acc, pool| {
+                    let value = pool.value.clone();
+                    let balance = pool.balance.clone();
+                    if value == Nat::from(0u128) || balance == Nat::from(0u128) {
+                        return Err(CustomError::InvalidInput(
+                            "Pool value and balance must be greater than zero.".to_string(),
+                        ));
+                    }
+                    Ok(acc + (value * balance))
+                })
+                .unwrap_or_else(|err| {
+                    ic_cdk::println!("Error calculating pool supply: {:?}", err);
+                    Nat::from(0u128)
+                });
+
                 // Return the original error after rollback attempt
                 return Err(CustomError::UnableToTransferLP(e));
             }
