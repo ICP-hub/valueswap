@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import {useAuth} from "../components/utils/useAuthClient"
+import {useAuths} from "../components/utils/useAuthClient"
 
 export const usePoolData = (id) => {
     const [tokens, setTokens] = useState([]);
@@ -7,7 +7,7 @@ export const usePoolData = (id) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const {backendActor, principal} = useAuth()
+    const {backendActor, principal} = useAuths()
 
     const getPoolData = useCallback(async()=>{
       setLoading(true)
