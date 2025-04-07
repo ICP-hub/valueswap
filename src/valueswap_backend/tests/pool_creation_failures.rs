@@ -9,10 +9,10 @@ const CKBTC_WASM: &str = "../../.dfx/local/canisters/ckbtc/ckbtc.wasm.gz";
 const CKETH_WASM: &str = "../../.dfx/local/canisters/cketh/cketh.wasm.gz";
 
 fn setup() -> (PocketIc, Principal, Principal, Principal) {
-    std::env::set_var(
-        "POCKET_IC_BIN",
-        "/home/ray/valueswap/src/valueswap_backend/tests/pocket-ic",
-    ); // Path of the pocket-ic binary
+    // std::env::set_var(
+    //     "POCKET_IC_BIN",
+    //     "/home/ray/valueswap/src/valueswap_backend/tests/pocket-ic",
+    // ); // Path of the pocket-ic binary
 
     let pic = PocketIc::new();
 
