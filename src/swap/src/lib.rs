@@ -196,9 +196,10 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
 }
 
 
-
+// giving back the tokens to the user.
 #[update]
 pub async fn lp_rollback(user: Principal, pool_data: Pool_Data) -> Result<(), String> {
+    ic_cdk::println!("lp_rollback called");
     // Validate user principal
     if user == Principal::anonymous() {
         ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
@@ -210,6 +211,12 @@ pub async fn lp_rollback(user: Principal, pool_data: Pool_Data) -> Result<(), St
         ic_cdk::println!("Error: Invalid pool data - {:?}", err);
         return Err(format!("Invalid pool data: {:?}", err));
     }
+
+    let platform_principal = ic_cdk::id();
+    ic_cdk::println!("lp rollback platform principal = {}",platform_principal.to_text());
+    let caller = ic_cdk::caller();
+    ic_cdk::println!("lp rollback caller = {}",caller.to_text());
+    
 
     // Debug: Log rollback operation
     ic_cdk::println!(

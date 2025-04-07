@@ -28,6 +28,7 @@ type CustomError = variant {
   TokenDepositFailed;
   SwappingFailed : text;
 };
+type Icrc28TrustedOriginsResponse = record { trusted_origins : vec text };
 type InstallError = variant {
   Rejection : record { RejectionCode; text };
   InvalidArgument : text;
@@ -51,7 +52,7 @@ type RejectionCode = variant {
 };
 type Result = variant { Ok; Err : text };
 type Result_1 = variant { Ok; Err : CustomError };
-type Result_10 = variant { Ok : vec float64; Err : text };
+type Result_10 = variant { Ok : vec nat; Err : text };
 type Result_11 = variant { Ok : opt vec text; Err : CustomError };
 type Result_12 = variant { Ok; Err : InstallError };
 type Result_13 = variant { Ok : vec text; Err : text };
@@ -66,6 +67,7 @@ type Result_9 = variant {
   Ok : vec record { text; PoolShare };
   Err : CustomError;
 };
+type SupportedStandard = record { url : text; name : text };
 type SwapParams = record {
   fee : nat;
   token_amount : nat;
@@ -77,7 +79,7 @@ type SwapParams = record {
 service : () -> {
   add_liquidity : (Pool_Data, principal) -> (Result);
   add_liquidity_curr : (Pool_Data) -> (Result);
-  burn_lp_tokens : (Pool_Data, text, nat) -> (Result);
+  burn_lp_tokens : (Pool_Data, text, nat, principal) -> (Result);
   compute_swap : (SwapParams) -> (Result_1);
   create : () -> (Result_2);
   create_pools : (Pool_Data) -> (Result_1);
@@ -102,7 +104,9 @@ service : () -> {
   get_users_lp : (principal) -> (opt nat) query;
   get_users_pool : (principal) -> (Result_11) query;
   get_users_pool_apy : (text, principal) -> (nat) query;
+  icrc10_supported_standards : () -> (vec SupportedStandard) query;
   icrc1_transfer : (principal, nat) -> (Result_4);
+  icrc28_trusted_origins : () -> (Icrc28TrustedOriginsResponse);
   icrc_get_balance : (principal, principal) -> (Result_4);
   increase_pool_lp_tokens : (Pool_Data) -> (Result_1);
   install_wasm_on_new_canister : (principal) -> (Result_12);
@@ -116,6 +120,8 @@ service : () -> {
       float64,
     ) -> (float64) query;
   pre_compute_swap : (SwapParams) -> (text, nat);
+  remove_canister : (text) -> (Result);
+  remove_user_pool : (Pool_Data) -> (Result_1);
   search_swap_pool : (SwapParams) -> (Result_13) query;
   store_pool_data : (Pool_Data, principal) -> (Result);
   store_pool_data_curr : (Pool_Data) -> (Result);

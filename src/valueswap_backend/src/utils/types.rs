@@ -72,6 +72,15 @@ impl Pool_Data {
             return Err(CustomError::PoolDataEmpty);
         }
 
+        // Check if swap_fee must be greater than zero and less than 200.
+        if self.swap_fee == Nat::from(0u64) || self.swap_fee > Nat::from(200u64) {
+            return Err(CustomError::InvalidInput(
+                "Swap fee must be greater than zero and less than 200".to_string(),
+            ));
+        }
+
+
+
         // Validate each pool data entry
         for pool in &self.pool_data {
             // Validate token name for emptiness, length, and character content

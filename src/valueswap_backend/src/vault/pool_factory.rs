@@ -1,5 +1,5 @@
 use crate::{api::metadata::get_decimals, with_state};
-use candid::{Nat, Principal};
+use candid::{CandidType, Nat, Principal};
 use core::cmp::max;
 use core::panic;
 use ic_cdk::{
@@ -13,6 +13,7 @@ use ic_cdk::{
 };
 use ic_cdk_macros::*;
 use once_cell::sync::Lazy;
+use serde::Deserialize;
 use std::borrow::Borrow;
 use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap};
@@ -22,14 +23,99 @@ use crate::api::balance::*;
 use crate::api::deposit::deposit_tokens;
 use crate::utils::maths::*;
 use crate::utils::types::*;
-use crate::vault::lp_tokens::*;
 use crate::vault::apy::*;
+use crate::vault::lp_tokens::*;
 
-static LOCKS: Lazy<Mutex<HashMap<String, bool>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+// static LOCKS: Lazy<Mutex<HashMap<String, bool>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+pub static LOCKS: Lazy<Mutex<HashMap<Principal, bool>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 static LOCKS1: Lazy<Mutex<HashMap<Principal, bool>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 
 thread_local! {
     pub static POOL_DATA: RefCell<BTreeMap<String, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
+    pub static CANISTER_ID: RefCell<BTreeMap<String,Principal >> = RefCell::new(BTreeMap::new());
+}
+
+/*
+ * @title Lock Management - Acquire Lock
+ * @notice Attempts to acquire a lock for the given key (Principal).
+ * @dev Uses a global lock (`LOCKS`) to track locked keys and prevent concurrent operations.
+ *
+ * # Parameters
+ * @param key The Principal ID for which the lock is being acquired.
+ *
+ * # Returns
+ * @return `Ok(())` if the lock is acquired successfully.
+ */
+pub fn acquire_lock(key: &Principal) -> Result<(), CustomError> {
+    ic_cdk::println!("Attempting to acquire lock for key: {}", key);
+
+    let mut locks = match LOCKS.lock() {
+        Ok(lock) => {
+            ic_cdk::println!("Successfully acquired global lock for managing user locks.");
+            lock
+        }
+        Err(_) => {
+            ic_cdk::println!("Failed to acquire the global lock for managing user locks.");
+            return Err(CustomError::LockAcquisitionFailed);
+        }
+    };
+
+    ic_cdk::println!("Locks state before acquiring: {:?}", locks);
+
+    if locks.get(key).copied().unwrap_or(false) {
+        ic_cdk::println!("Lock acquisition failed: Key '{}' is already locked.", key);
+        return Err(CustomError::AnotherOperationInProgress(
+            "Another operation is already in progress.".to_string(),
+        ));
+    }
+
+    locks.insert(*key, true);
+    ic_cdk::println!("Lock acquired successfully for key: {}", key);
+
+    ic_cdk::println!("Locks state after acquiring: {:?}", locks);
+
+    Ok(())
+}
+
+/*
+ * @title Lock Management - Release Lock
+ * @notice Releases the lock for the given key (Principal).
+ * @dev Uses a global lock (`LOCKS`) to track and remove locked keys.
+ *
+ * # Parameters
+ * @param key The Principal ID for which the lock is being released.
+ *
+ * # Returns
+ * @return `Ok(())` if the lock is released successfully.
+ */
+pub fn release_lock(key: &Principal) -> Result<(), CustomError> {
+    ic_cdk::println!("Attempting to release lock for key: {}", key);
+
+    let mut locks = match LOCKS.lock() {
+        Ok(lock) => {
+            ic_cdk::println!("Successfully acquired global lock for managing user locks.");
+            lock
+        }
+        Err(_) => {
+            ic_cdk::println!("Failed to acquire the global lock for managing user locks.");
+            return Err(CustomError::LockAcquisitionFailed);
+        }
+    };
+
+    ic_cdk::println!("Locks state before releasing: {:?}", locks);
+
+    if locks.remove(key).is_some() {
+        ic_cdk::println!("Lock released successfully for key: {}", key);
+    } else {
+        ic_cdk::println!(
+            "Release lock failed: No lock existed for key '{}'. It may have already been released.",
+            key
+        );
+    }
+
+    ic_cdk::println!("Locks state after releasing: {:?}", locks);
+
+    Ok(())
 }
 
 fn prevent_anonymous() -> Result<(), String> {
@@ -47,10 +133,21 @@ fn prevent_anonymous() -> Result<(), String> {
 #[update(guard = prevent_anonymous)]
 async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
     // Validate input data at the very beginning
+    ic_cdk::println!("inside the create pools function");
     params.validate()?;
 
     // Existing logic continues from here
     let principal_id = ic_cdk::caller();
+
+    let operation_key = principal_id.clone();
+    // Acquire the lock
+    {
+        if let Err(e) = acquire_lock(&operation_key) {
+            ic_cdk::println!("Lock acquisition failed: {:?}", e);
+            return Err(CustomError::LockAcquisitionFailed);
+        }
+    }
+
     let pool_name = params
         .pool_data
         .iter()
@@ -58,49 +155,56 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
         .collect::<Vec<String>>()
         .join("");
 
-    // Acquire lock for the pool
-
     let result = async {
+        ic_cdk::println!("inside locks");
         let pool_canister_id = with_state(|pool| {
             let pool_borrowed = &pool.token_pools;
             pool_borrowed.get(&pool_name).clone()
         });
 
+        ic_cdk::println!("pool canister id = {:?}", pool_canister_id);
+
         if let Some(canister_id) = pool_canister_id {
+            ic_cdk::println!("inside if statement");
             // Add liquidity and update pool details
             // This line should replace your current call to add_liquidity_curr
 
             for amount in params.pool_data.iter() {
-                ic_cdk::println!("The first debug statement for first token ");
+                ic_cdk::println!("going inside the deposit tokens function");
+                // this is the main function to depoist the tokens to the pool canister.
                 deposit_tokens(
                     amount.balance.clone(),
-                    amount.ledger_canister_id.clone(),
-                    canister_id.principal,
+                    amount.ledger_canister_id.clone(), // token canister id.
+                    canister_id.principal,             // id of the token pool.
                 )
                 .await
                 .map_err(|_| CustomError::TokenDepositFailed)?;
 
-                ic_cdk::println!("The second debug statement for first token ");
+                ic_cdk::println!("going outside the deposit tokens function");
             }
-            
-            ic_cdk::println!("1The first break point for debugging ");
 
+            ic_cdk::println!("The first break point for debugging");
+
+            ic_cdk::println!("increase_pool_lp_tokens statement");
+            // this function is responsible  to increase share of the user and also increase the lp tokens of the pool.
             increase_pool_lp_tokens(params.clone())?;
 
-            users_pool(params.clone())?;
-
+            ic_cdk::println!("going inside the users_lp_share function");
             if let Err(e) = users_lp_share(params.clone()).await {
+                ic_cdk::println!("inside the error handling,{:?}", e);
+                // in this function implement roll backs if things got failed.
                 // Log the error and attempt rollback
-                log::error!("users_lp_share failed: {:?}", e);
+                ic_cdk::println!("argument = {:?}", params.pool_data.clone());
 
+                //TODO: rollback of the increase pool lp tokens also required.
                 if let Err(rollback_err) = ic_cdk::call::<_, ()>(
                     canister_id.principal,
                     "lp_rollback",
-                    (principal_id, params.pool_data.clone()),
+                    (principal_id, params.clone()),
                 )
                 .await
                 {
-                    log::error!(
+                    ic_cdk::println!(
                         "LP rollback failed for user {}: {:?}",
                         principal_id,
                         rollback_err
@@ -111,13 +215,40 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                     )));
                 }
 
+                let pool_supply = params
+                    .pool_data
+                    .iter()
+                    .try_fold(Nat::from(0u128), |acc, pool| {
+                        let value = pool.value.clone();
+                        let balance = pool.balance.clone();
+                        if value == Nat::from(0u128) || balance == Nat::from(0u128) {
+                            return Err(CustomError::InvalidInput(
+                                "Pool value and balance must be greater than zero.".to_string(),
+                            ));
+                        }
+                        Ok(acc + (value * balance))
+                    })
+                    .unwrap_or_else(|err| {
+                        ic_cdk::println!("Error calculating pool supply: {:?}", err);
+                        Nat::from(0u128)
+                    });
+
+                let amount = pool_supply / Nat::from(1000u128);
+                // Update pool state.
+                // TODO: find the amount by harshit.
+                ic_cdk::println!("on reverting the lp tokens");
+                decrease_pool_lp(pool_name.clone(), amount.clone());
+                decrease_user_pool_lp(principal_id, pool_name.clone(), amount.clone());
+                decrease_total_lp(amount);
+
                 // Return the original error after rollback attempt
                 return Err(CustomError::UnableToTransferLP(e));
             }
+            ic_cdk::println!("outside the potential rollbacks");
             // users_lp_share(params.clone()).await.unwrap();
 
-            ic_cdk::println!("1The second break point for debugging ");
-
+            ic_cdk::println!("The second break point for debugging");
+            ic_cdk::println!("going inside the add liquidity curr");
             add_liquidity_curr(params.clone()).map_err(|e| CustomError::OperationFailed(e))?;
 
             add_liquidity(params.clone(), canister_id.principal.clone())
@@ -132,34 +263,35 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
 
             Ok(())
         } else {
-            {
-                let mut locks = LOCKS
-                    .lock()
-                    .map_err(|_| CustomError::LockAcquisitionFailed)?;
-                if locks.get(&pool_name).copied().unwrap_or(false) {
-                    return Err(CustomError::AnotherOperationInProgress(pool_name));
-                }
-                locks.insert(pool_name.clone(), true);
-            }
-        
+            ic_cdk::println!("inside the else statement");
+            // {
+            //     let mut locks = LOCKS
+            //         .lock()
+            //         .map_err(|_| CustomError::LockAcquisitionFailed)?;
+            //     if locks.get(&pool_name).copied().unwrap_or(false) {
+            //         return Err(CustomError::AnotherOperationInProgress(pool_name));
+            //     }
+            //     locks.insert(pool_name.clone(), true);
+            // }
+
             // Ensure lock is released after operation
-            let release_lock = || {
-                let result = LOCKS.lock();
-                match result {
-                    Ok(mut locks) => {
-                        locks.remove(&pool_name);
-                        if locks.contains_key(&pool_name) {
-                            log::warn!("Failed to remove the lock for pool: {}", pool_name);
-                        }
-                    }
-                    //Poisoned lock: Thread panicked while holding the lock
-                    Err(e) => {
-                        log::error!("Failed to unlock LOCKS due to a poisoned lock: {}", e);
-                        //can choose to log this and continue, or trigger a recovery process.
-                        //for now, just logging. No recovery process of lock is done.
-                    }
-                }
-            };
+            // let release_lock = || {
+            //     let result = LOCKS.lock();
+            //     match result {
+            //         Ok(mut locks) => {
+            //             locks.remove(&pool_name);
+            //             if locks.contains_key(&pool_name) {
+            //                 log::warn!("Failed to remove the lock for pool: {}", pool_name);
+            //             }
+            //         }
+            //         //Poisoned lock: Thread panicked while holding the lock
+            //         Err(e) => {
+            //             log::error!("Failed to unlock LOCKS due to a poisoned lock: {}", e);
+            //             //can choose to log this and continue, or trigger a recovery process.
+            //             //for now, just logging. No recovery process of lock is done.
+            //         }
+            //     }
+            // };
             // Create a new canister for the pool
             match create().await {
                 Ok(canister_id_record) => {
@@ -173,72 +305,150 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                         );
                     });
 
+                    ic_cdk::println!("Canister ID: {:?}", canister_id.to_string());
+
                     for amount in params.pool_data.iter() {
-                        ic_cdk::println!("The first debug statement for first token {}", canister_id.clone());
+                        ic_cdk::println!(
+                            "The first debug statement for first token {}",
+                            canister_id.clone()
+                        );
 
                         deposit_tokens(
-                            amount.balance.clone(),
-                            amount.ledger_canister_id.clone(),
-                            canister_id,
+                            amount.balance.clone(),            // amount.
+                            amount.ledger_canister_id.clone(), // ckbtc canister.
+                            canister_id,                       // pool id.
                         )
                         .await
                         .map_err(|_| CustomError::TokenDepositFailed)?;
-                        
-                        ic_cdk::println!("The second debug statement for first token  {}", canister_id.clone());
+
+                        ic_cdk::println!(
+                            "The second debug statement for first token  {}",
+                            canister_id.clone()
+                        );
                     }
 
-                    // users_lp_share(principal_id.clone(), params.clone())
-                    //     .await
-                    //     .map_err(|e| CustomError::UnableToTransferLP(e))?;
-
-                    ic_cdk::println!("The first break point for debugging {} ",canister_id.clone());
+                    ic_cdk::println!(
+                        "The first break point for debugging {} ",
+                        canister_id.clone()
+                    );
                     // ic_cdk::println!("Successfully installed WASM on canister: {}", canister_id);
 
                     increase_pool_lp_tokens(params.clone())?;
 
-                    users_pool(params.clone())?;
-
                     if let Err(e) = users_lp_share(params.clone()).await {
-                        ic_cdk::call::<_, ()>(
+                        match get_users_pool(principal_id.clone()) {
+                            Ok(pool) => {
+                                ic_cdk::println!("user Pool data: {:?}", pool);
+                            }
+                            Err(e) => {
+                                ic_cdk::println!("Error retrieving pool data: {:?}", e);
+                            }
+                        }
+
+                        ic_cdk::println!(
+                            "get pool lp tokens = {}",
+                            get_pool_lp_tokens(pool_name.clone())
+                        );
+
+                        if let Err(rollback_err) = ic_cdk::call::<_, ()>(
                             canister_id,
                             "lp_rollback",
-                            (principal_id, params.pool_data.clone()),
+                            (principal_id, params.clone()),
                         )
                         .await
-                        .map_err(|rollback_err| {
-                            log::error!(
+                        {
+                            ic_cdk::println!(
                                 "LP rollback failed for user {}: {:?}",
                                 principal_id,
                                 rollback_err
                             );
-                            CustomError::UnableToRollbackLP(format!(
+                            return Err(CustomError::UnableToRollbackLP(format!(
                                 "LP rollback failed: {:?}, original error: {}",
                                 rollback_err, e
-                            ))
-                        })?;
+                            )));
+                        }
+
+                        let pool_supply = params
+                            .pool_data
+                            .iter()
+                            .try_fold(Nat::from(0u128), |acc, pool| {
+                                let value = pool.value.clone();
+                                let balance = pool.balance.clone();
+                                if value == Nat::from(0u128) || balance == Nat::from(0u128) {
+                                    return Err(CustomError::InvalidInput(
+                                        "Pool value and balance must be greater than zero."
+                                            .to_string(),
+                                    ));
+                                }
+                                Ok(acc + (value * balance))
+                            })
+                            .unwrap_or_else(|err| {
+                                ic_cdk::println!("Error calculating pool supply: {:?}", err);
+                                Nat::from(0u128)
+                            });
+
+                        let amount = pool_supply / Nat::from(1000u128);
+                        // Update pool state.
+                        // TODO: find the amount by harshit.
+                        decrease_pool_lp(pool_name.clone(), amount.clone());
+                        decrease_user_pool_lp(principal_id, pool_name.clone(), amount.clone());
+                        decrease_total_lp(amount);
+                        if let Err(e) = remove_canister(canister_id.to_text()).await {
+                            ic_cdk::println!("Failed to remove canister: {:?}", e);
+                        }
+                        if let Err(e) = remove_user_pool(params.clone()) {
+                            ic_cdk::println!("Failed to remove user pool: {:?}", e);
+                        }
+
+                        match get_users_pool(principal_id.clone()) {
+                            Ok(pool) => {
+                                ic_cdk::println!("user Pool data: {:?}", pool);
+                            }
+                            Err(e) => {
+                                ic_cdk::println!("Error retrieving pool data: {:?}", e);
+                            }
+                        }
+
+                        match get_specific_pool_data(pool_name.clone()) {
+                            Ok(pool) => {
+                                ic_cdk::println!("platform Pool one data: {:?}", pool);
+                            }
+                            Err(e) => {
+                                ic_cdk::println!("Error retrieving pool data: {:?}", e);
+                            }
+                        };
                         return Err(CustomError::UnableToTransferLP(e));
                     }
 
-                    ic_cdk::println!("The second break point for debugging{ }",canister_id.clone());
+                    ic_cdk::println!(
+                        "The second break point for debugging{ }",
+                        canister_id.clone()
+                    );
 
                     store_pool_data(params.clone(), canister_id_record)
                         .await
                         .map_err(|e| CustomError::UnableToStorePoolData(e))?;
 
-
                     store_pool_data_curr(params.clone())
                         .map_err(|e| CustomError::UnableToStorePoolData(e))?;
 
-                    
-                    release_lock();
+                    // release_lock();
                     Ok(())
                 }
-                Err(err_string) => Err(CustomError::CanisterCreationFailed(err_string.to_string())),
+                Err(err_string) => {
+                    ic_cdk::println!("Failed to create canister: {}", err_string);
+                    Err(CustomError::CanisterCreationFailed(err_string.to_string()))
+                }
             }
         }
     }
     .await;
 
+    // Release the lock
+    if let Err(e) = release_lock(&operation_key) {
+        ic_cdk::println!("Failed to release lock: {:?}", e);
+        return Err(e);
+    }
 
     result
 }
@@ -294,10 +504,12 @@ async fn install_code(arg: InstallCodeArgument) -> CallResult<()> {
 pub async fn create() -> Result<Principal, CreateCanisterError> {
     let arg = CreateCanisterArgument { settings: None };
 
-    let (canister_id_record,) = create_canister(arg).await
+    let (canister_id_record,) = create_canister(arg)
+        .await
         .map_err(|(_, err)| CreateCanisterError::CreateError(err))?;
 
-    deposit_cycles(canister_id_record, 500_000_000_000).await
+    deposit_cycles(canister_id_record, 500_000_000_000)
+        .await
         .map_err(|(_, err)| CreateCanisterError::DepositError(err))?;
 
     let arg1 = InstallCodeArgument {
@@ -307,13 +519,16 @@ pub async fn create() -> Result<Principal, CreateCanisterError> {
         arg: Vec::new(),
     };
 
-    install_code(arg1).await
+    install_code(arg1)
+        .await
         .map_err(|err| CreateCanisterError::InstallError(format!("{:?}", err)))?;
 
-    ic_cdk::println!("Canister ID: {:?}", canister_id_record.canister_id.to_string());
+    ic_cdk::println!(
+        "Canister ID: {:?}",
+        canister_id_record.canister_id.to_string()
+    );
     Ok(canister_id_record.canister_id)
 }
-
 
 #[update(guard = prevent_anonymous)]
 async fn install_wasm_on_new_canister(canister_id: Principal) -> Result<(), InstallError> {
@@ -354,7 +569,9 @@ async fn install_wasm_on_new_canister(canister_id: Principal) -> Result<(), Inst
 #[update]
 async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), String> {
     // Validate input parameters
-    params.validate().map_err(|e| format!("Validation Error: {:?}", e))?;
+    params
+        .validate()
+        .map_err(|e| format!("Validation Error: {:?}", e))?;
 
     // Validate the canister ID
     if canister_id.as_slice().is_empty() || canister_id == Principal::anonymous() {
@@ -371,27 +588,26 @@ async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), 
     ic_cdk::println!("Constructed pool name: {}", _pool_name);
 
     // Call the target canister
-    let result: Result<(), String> =
-        call(canister_id, "store_pool_data", (api::caller(), params))
-            .await
-            .map_err(|(rejection_code, err_message)| match rejection_code {
-                ic_cdk::api::call::RejectionCode::DestinationInvalid => {
-                    format!(
-                        "Invalid destination canister: {}, Method: store_pool_data",
-                        canister_id
-                    )
-                }
-                ic_cdk::api::call::RejectionCode::CanisterError => {
-                    format!(
-                        "Canister method failed: {}, Method: store_pool_data, Error: {}",
-                        canister_id, err_message
-                    )
-                }
-                _ => format!(
-                    "Unexpected error: {}, RejectionCode: {:?}, Method: store_pool_data",
-                    err_message, rejection_code
-                ),
-            });
+    let result: Result<(), String> = call(canister_id, "store_pool_data", (api::caller(), params))
+        .await
+        .map_err(|(rejection_code, err_message)| match rejection_code {
+            ic_cdk::api::call::RejectionCode::DestinationInvalid => {
+                format!(
+                    "Invalid destination canister: {}, Method: store_pool_data",
+                    canister_id
+                )
+            }
+            ic_cdk::api::call::RejectionCode::CanisterError => {
+                format!(
+                    "Canister method failed: {}, Method: store_pool_data, Error: {}",
+                    canister_id, err_message
+                )
+            }
+            _ => format!(
+                "Unexpected error: {}, RejectionCode: {:?}, Method: store_pool_data",
+                err_message, rejection_code
+            ),
+        });
 
     // Log errors for debugging
     if let Err(e) = result {
@@ -402,13 +618,14 @@ async fn add_liquidity(params: Pool_Data, canister_id: Principal) -> Result<(), 
     Ok(())
 }
 
-
 // Adding liquidity to the specific pool
 
 #[update]
 fn store_pool_data_curr(params: Pool_Data) -> Result<(), String> {
     // Validate input data
-    params.validate().map_err(|e| format!("Validation Error: {:?}", e))?;
+    params
+        .validate()
+        .map_err(|e| format!("Validation Error: {:?}", e))?;
 
     // Construct the key from token names
     let key = params
@@ -436,30 +653,26 @@ fn store_pool_data_curr(params: Pool_Data) -> Result<(), String> {
     Ok(())
 }
 
-
 #[query]
 fn get_pool_data() -> Result<BTreeMap<String, Vec<Pool_Data>>, String> {
     ic_cdk::println!("Accessing POOL_DATA...");
 
-    POOL_DATA.with(|pool| {
-        match pool.try_borrow() {
-            Ok(borrowed_pool) => {
-                if borrowed_pool.is_empty() {
-                    ic_cdk::println!("POOL_DATA is empty.");
-                    Err("No pool data available.".to_string())
-                } else {
-                    ic_cdk::println!("Successfully retrieved POOL_DATA.");
-                    Ok(borrowed_pool.clone())
-                }
+    POOL_DATA.with(|pool| match pool.try_borrow() {
+        Ok(borrowed_pool) => {
+            if borrowed_pool.is_empty() {
+                ic_cdk::println!("POOL_DATA is empty.");
+                Err("No pool data available.".to_string())
+            } else {
+                ic_cdk::println!("Successfully retrieved POOL_DATA.");
+                Ok(borrowed_pool.clone())
             }
-            Err(err) => {
-                ic_cdk::println!("Failed to access POOL_DATA: {:?}", err);
-                Err("Failed to access pool data.".to_string())
-            }
+        }
+        Err(err) => {
+            ic_cdk::println!("Failed to access POOL_DATA: {:?}", err);
+            Err("Failed to access pool data.".to_string())
         }
     })
 }
-
 
 #[query]
 fn get_specific_pool_data(key: String) -> Result<Vec<Pool_Data>, String> {
@@ -468,31 +681,31 @@ fn get_specific_pool_data(key: String) -> Result<Vec<Pool_Data>, String> {
         return Err("Validation Error: Key cannot be empty or whitespace.".to_string());
     }
 
-    POOL_DATA.with(|pool| {
-        match pool.try_borrow() {
-            Ok(borrowed_pool) => {
-                if let Some(pool_data) = borrowed_pool.get(&key) {
-                    ic_cdk::println!("Successfully retrieved pool data for key: {}", key);
-                    Ok(pool_data.clone())
-                } else {
-                    ic_cdk::println!("Pool data not found for key: {}", key);
-                    Err(format!("Pool not found for key: {}", key))
-                }
+    POOL_DATA.with(|pool| match pool.try_borrow() {
+        Ok(borrowed_pool) => {
+            if let Some(pool_data) = borrowed_pool.get(&key) {
+                ic_cdk::println!("Successfully retrieved pool data for key: {}", key);
+                Ok(pool_data.clone())
+            } else {
+                ic_cdk::println!("Pool data not found for key: {}", key);
+                Err(format!("Pool not found for key: {}", key))
             }
-            
-            Err(e) => {
-                ic_cdk::println!("Failed to access POOL_DATA: {:?}", e);
-                Err("Internal Error: Failed to access pool data.".to_string())
-            }
+        }
+
+        Err(e) => {
+            ic_cdk::println!("Failed to access POOL_DATA: {:?}", e);
+            Err("Internal Error: Failed to access pool data.".to_string())
         }
     })
 }
 
 #[update]
 fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
-    params.validate().map_err(|e| format!("Validation Error: {:?}", e))?;
+    params
+        .validate()
+        .map_err(|e| format!("Validation Error: {:?}", e))?;
 
-   
+    ic_cdk::println!("Adding liquidity...");
     let key = params
         .pool_data
         .iter()
@@ -517,8 +730,9 @@ fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
             let mut fee_matched = false;
 
             for existing_pool_data in existing_pool_data_vec.iter_mut() {
-            
-                if (existing_pool_data.swap_fee.clone() - params.swap_fee.clone()) >= Nat::from(0u128) {
+                if (existing_pool_data.swap_fee.clone() - params.swap_fee.clone())
+                    >= Nat::from(0u128)
+                {
                     fee_matched = true;
 
                     for new_token in &params.pool_data {
@@ -552,7 +766,6 @@ fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
     Ok(())
 }
 
-
 #[query]
 fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
     if params.token1_name.trim().is_empty() || params.token2_name.trim().is_empty() {
@@ -585,10 +798,7 @@ fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
             ic_cdk::println!("Found matching pools: {:?}", matching_keys);
             Ok(matching_keys)
         } else {
-            ic_cdk::println!(
-                "No matching pools found for tokens: {:?}",
-                search_tokens
-            );
+            ic_cdk::println!("No matching pools found for tokens: {:?}", search_tokens);
             Err(format!(
                 "No matching pools found for tokens: {:?}",
                 search_tokens
@@ -599,7 +809,6 @@ fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
 
 #[update]
 async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
-
     let required_pools = match search_swap_pool(params.clone()) {
         Ok(pools) => pools,
         Err(_) => {
@@ -609,7 +818,7 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
     };
 
     let mut best_pool = None;
-    let mut max_output_amount:Nat = Nat::from(0u128);
+    let mut max_output_amount: Nat = Nat::from(0u128);
 
     // Move the POOL_DATA closure logic outside of the async block
     let pool_data = POOL_DATA.with(|pool| pool.borrow().clone());
@@ -634,7 +843,10 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
                 .iter()
                 .find(|p| p.token_name == params.token2_name);
 
-            let pool_name = data.pool_data.iter().map(|pool| pool.token_name.clone())
+            let pool_name = data
+                .pool_data
+                .iter()
+                .map(|pool| pool.token_name.clone())
                 .collect::<Vec<String>>()
                 .join("");
 
@@ -647,7 +859,9 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
                 // Fetch the pool canister ID asynchronously
                 let pool_canister_id = with_state(|pool| {
                     let borrowed_pool = pool.token_pools.borrow();
-                    borrowed_pool.get(&pool_name).map(|user_principal| user_principal.principal)
+                    borrowed_pool
+                        .get(&pool_name)
+                        .map(|user_principal| user_principal.principal)
                 });
 
                 let pool_canister_id = match pool_canister_id {
@@ -655,18 +869,21 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
                     None => {
                         ic_cdk::println!("Pool key {} not found in POOL_DATA.", pool_key);
                         continue;
-                    },
+                    }
                 };
                 // Fetch balances asynchronously
-                let mut b_i = icrc_get_balance(tokenA.ledger_canister_id, pool_canister_id).await.unwrap();
-                let mut b_o = icrc_get_balance(tokenB.ledger_canister_id, pool_canister_id).await.unwrap();
+                let mut b_i = icrc_get_balance(tokenA.ledger_canister_id, pool_canister_id)
+                    .await
+                    .unwrap();
+                let mut b_o = icrc_get_balance(tokenB.ledger_canister_id, pool_canister_id)
+                    .await
+                    .unwrap();
 
                 let decimals_a = get_decimals(tokenA.ledger_canister_id.clone());
                 let decimals_b = get_decimals(tokenB.ledger_canister_id.clone());
 
                 // b_i = b_i / decimals_a;
-                // b_o 
-
+                // b_o
 
                 // let b_i_f128 = convert_nat_to_u64(b_i).unwrap();
                 // let b_o_f128 = convert_nat_to_u64(b_o).unwrap();
@@ -674,10 +891,14 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
                 // b_i = b_i / Nat::from(100000000u128);
                 // b_o = b_o / Nat::from(100000000u128);
 
-                ic_cdk::println!("The balance of First token is {}{}", b_i.clone(),b_o.clone());
+                ic_cdk::println!(
+                    "The balance of First token is {}{}",
+                    b_i.clone(),
+                    b_o.clone()
+                );
 
                 // Calculate the required input using the out_given_in formula
-                let required_input = out_given_in(b_i, w_i , b_o, w_o, amount_out );
+                let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out);
 
                 // Ensure the user has enough balance to provide the input
                 if required_input >= max_output_amount {
@@ -812,9 +1033,6 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
 //     }
 // }
 
-
-
-
 // Adding liquidity to the specific pool
 #[update]
 async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<(), String> {
@@ -826,7 +1044,10 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<()
         }
     }
 
-    println!("store_pool_data: Calling add_liquidity_to_pool on canister ID: {}", canister_id);
+    ic_cdk::println!(
+        "store_pool_data: Calling add_liquidity_to_pool on canister ID: {}",
+        canister_id
+    );
     let result: Result<(), String> = call(
         canister_id,
         "add_liquidity_to_pool",
@@ -834,14 +1055,12 @@ async fn store_pool_data(params: Pool_Data, canister_id: Principal) -> Result<()
     )
     .await
     .map_err(|e| {
-        println!("store_pool_data: Failed to store token data: {:?}", e);
+        ic_cdk::println!("store_pool_data: Failed to store token data: {:?}", e);
         format!("store_pool_data: Failed to store token data: {:?}", e)
     });
 
     result
 }
-
-
 
 #[query]
 fn get_pool_canister_id(token1: String, token2: String) -> Result<Principal, String> {
@@ -864,23 +1083,30 @@ fn get_pool_canister_id(token1: String, token2: String) -> Result<Principal, Str
 
     match canister_id {
         Some(id) => Ok(id),
-        None => Err(format!("No canister ID found for the pool named '{}'.", pool_name))
+        None => Err(format!(
+            "No canister ID found for the pool named '{}'.",
+            pool_name
+        )),
     }
 }
-
 
 // TODO 18 assign unique id for each swap PHASE 2
 #[update]
 async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
-    
     if params.token1_name.trim().is_empty() {
-        return Err(CustomError::InvalidSwapParams("token1_name cannot be empty".to_string()));
+        return Err(CustomError::InvalidSwapParams(
+            "token1_name cannot be empty".to_string(),
+        ));
     }
     if params.token2_name.trim().is_empty() {
-        return Err(CustomError::InvalidSwapParams("token2_name cannot be empty".to_string()));
+        return Err(CustomError::InvalidSwapParams(
+            "token2_name cannot be empty".to_string(),
+        ));
     }
     if params.token_amount == Nat::from(0u32) {
-        return Err(CustomError::InvalidSwapParams("token_amount must be greater than zero".to_string()));
+        return Err(CustomError::InvalidSwapParams(
+            "token_amount must be greater than zero".to_string(),
+        ));
     }
     if params.ledger_canister_id1 == Principal::anonymous() {
         return Err(CustomError::InvalidSwapParams(
@@ -914,7 +1140,9 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
     };
 
     let (pool_name, _) = pre_compute_swap(params.clone()).await;
-    if pool_name == "No suitable pool found.".to_string() || pool_name == "No matching pools found.".to_string() {
+    if pool_name == "No suitable pool found.".to_string()
+        || pool_name == "No matching pools found.".to_string()
+    {
         release_lock();
         return Err(CustomError::NoCanisterIDFound);
     }
@@ -1003,7 +1231,12 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
     }
 
     release_lock();
-    users_apy(canister_id.clone(), pool_name.clone(), params.fee , params.token_amount);
+    users_apy(
+        canister_id.clone(),
+        pool_name.clone(),
+        params.fee,
+        params.token_amount,
+    );
 
     // ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
     // Proceed with the call using the extracted principal
@@ -1021,5 +1254,3 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
 
     Ok(())
 }
-
-
