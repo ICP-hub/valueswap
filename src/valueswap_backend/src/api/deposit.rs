@@ -30,7 +30,7 @@ use ic_xrc_types::{Asset, AssetClass, GetExchangeRateRequest, GetExchangeRateRes
 pub async fn deposit_tokens(
     amount: Nat,
     ledger_canister_id: Principal,
-    target_canister_id: Principal,
+    target_canister_id: Principal,// pool id.
 ) -> Result<Nat, String> {
     if amount == Nat::from(0u32) {
         return Err("Deposit amount must be greater than zero.".to_string());
@@ -53,11 +53,11 @@ pub async fn deposit_tokens(
         ledger_canister_id,
         target_canister_id
     );
-
+    // in this tokens are transferred from the asset canister associated with the user to the ratio pool.
     match transfer_from(
         ledger_canister_id,
         user_principal,
-        target_canister_id,
+        target_canister_id,// id of the canister of the ratio where tokens are going.
         amount,
     )
     .await
@@ -97,11 +97,11 @@ pub async fn transfer_from(
 
     // Debug: Log input arguments
     ic_cdk::println!(
-        "Debug: Transfer from {} to {} of amount {} via ledger {}",
-        from,
-        to,
+        "Debug: Initiating transfer from {} to {} of amount {} via ledger {}",
+        from.to_text(),
+        to.to_text(),
         amount,
-        ledger_canister_id
+        ledger_canister_id.to_text()
     );
 
     let args = TransferFromArgs {
@@ -117,7 +117,7 @@ pub async fn transfer_from(
         },
         memo: None,
         created_at_time: None,
-        amount,
+        amount: amount.clone(),
     };
 
     // Debug: Log constructed arguments
@@ -133,9 +133,20 @@ pub async fn transfer_from(
     ic_cdk::println!("Debug: TransferFromResult: {:?}", result);
 
     match result {
-        TransferFromResult::Ok(balance) => {
-            ic_cdk::println!("Debug: Transfer successful. New balance: {}", balance);
-            Ok(balance)
+        TransferFromResult::Ok(_) => {
+            ic_cdk::println!("Debug: Transfer successful! Checking recipient's balance...");
+
+            // Fetch the new balance of the recipient
+            match get_balance(ledger_canister_id, to).await {
+                Ok(balance) => {
+                    ic_cdk::println!("Debug: New balance of recipient {}: {}", to.to_text(), balance);
+                    Ok(balance)
+                }
+                Err(err) => {
+                    ic_cdk::println!("Error: Failed to fetch recipient's balance: {}", err);
+                    Err(err)
+                }
+            }
         }
         TransferFromResult::Err(err) => {
             ic_cdk::println!("Error: Transfer failed with error: {:?}", err);
@@ -143,6 +154,95 @@ pub async fn transfer_from(
         }
     }
 }
+
+/// Fetches the balance of a given principal from the ledger.
+async fn get_balance(ledger_canister_id: Principal, account: Principal) -> Result<Nat, String> {
+    let args = (TransferAccount {
+        owner: account,
+        subaccount: None,
+    },);
+
+    let response = call(ledger_canister_id, "icrc1_balance_of", args)
+        .await
+        .map_err(|e| format!("Call to icrc1_balance_of failed: {:?}", e))?;
+
+    let (balance,): (Nat,) = response;
+    Ok(balance)
+}
+
+
+// pub async fn transfer_from(
+//     ledger_canister_id: Principal,
+//     from: Principal,
+//     to: Principal,
+//     amount: Nat,
+// ) -> Result<Nat, String> {
+//     // Validate input amount
+//     if amount == Nat::from(0u32) {
+//         return Err("Transfer amount must be greater than zero.".to_string());
+//     }
+
+//     // Validate principals
+//     if ledger_canister_id == Principal::anonymous() {
+//         return Err("Invalid ledger canister ID: Cannot be anonymous.".to_string());
+//     }
+//     if from == Principal::anonymous() {
+//         return Err("Invalid sender principal: Cannot be anonymous.".to_string());
+//     }
+//     if to == Principal::anonymous() {
+//         return Err("Invalid recipient principal: Cannot be anonymous.".to_string());
+//     }
+
+//     // Debug: Log input arguments
+//     ic_cdk::println!(
+//         "Debug: Transfer from {} to {} of amount {} via ledger {}",
+//         from.to_text(),
+//         to.to_text(),
+//         amount,
+//         ledger_canister_id.to_text()
+//     );
+
+//     ic_cdk::println!("transfer from amount ={}",amount);
+
+//     let args = TransferFromArgs {
+//         to: TransferAccount {
+//             owner: to,
+//             subaccount: None,
+//         },
+//         fee: None,
+//         spender_subaccount: None,
+//         from: TransferAccount {
+//             owner: from,
+//             subaccount: None,
+//         },
+//         memo: None,
+//         created_at_time: None,
+//         amount,
+//     };
+
+//     // Debug: Log constructed arguments
+//     ic_cdk::println!("Debug: TransferFromArgs constructed: {:?}", args);
+
+//     let response = call(ledger_canister_id, "icrc2_transfer_from", (args,))
+//         .await
+//         .map_err(|e| format!("Call to icrc2_transfer_from failed: {:?}", e))?;
+
+//     let (result,): (TransferFromResult,) = response;
+
+//     // Debug: Log the result
+//     ic_cdk::println!("Debug: TransferFromResult: {:?}", result);
+
+//     match result {
+//         TransferFromResult::Ok(balance) => {
+//             ic_cdk::println!("Debug: Transfer successful. New balance: {}", balance);
+//             Ok(balance)
+//         }
+//         TransferFromResult::Err(err) => {
+//             ic_cdk::println!("Error: Transfer failed with error: {:?}", err);
+//             Err(format!("Transfer failed: {:?}", err))
+//         }
+//     }
+// }
 
 // // to get exchange rates
 #[ic_cdk::update]

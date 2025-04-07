@@ -120,6 +120,8 @@ service : () -> {
       float64,
     ) -> (float64) query;
   pre_compute_swap : (SwapParams) -> (text, nat);
+  remove_canister : (text) -> (Result);
+  remove_user_pool : (Pool_Data) -> (Result_1);
   search_swap_pool : (SwapParams) -> (Result_13) query;
   store_pool_data : (Pool_Data, principal) -> (Result);
   store_pool_data_curr : (Pool_Data) -> (Result);

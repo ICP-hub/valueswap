@@ -11,10 +11,10 @@ const LP_LEDGER_WASM: &str =
     "../../.dfx/local/canisters/LP_ledger_canister/LP_ledger_canister.wasm.gz";
 
 fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
-    std::env::set_var(
-        "POCKET_IC_BIN",
-        "/home/ray/valueswap/src/valueswap_backend/tests/pocket-ic",
-    ); // Path of the pocket-ic binary
+    // std::env::set_var(
+    //     "POCKET_IC_BIN",
+    //     "/home/ray/valueswap/src/valueswap_backend/tests/pocket-ic",
+    // ); // Path of the pocket-ic binary
 
     let pic = PocketIc::new();
 
@@ -33,10 +33,11 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
         transfer_fee: Nat::from(100u64),
         metadata: vec![],
         minting_account: Account {
-            owner: Principal::from_text(
-                "6mrpp-3ynrv-4q5tl-xsuey-jwi6d-xfukg-w4l3l-h2ejb-h3fea-ghycd-mqe",
-            )
-            .unwrap(),
+            // owner: Principal::from_text(
+            //     "6mrpp-3ynrv-4q5tl-xsuey-jwi6d-xfukg-w4l3l-h2ejb-h3fea-ghycd-mqe",
+            // )
+            // .unwrap(),
+            owner: backend_canister,
             subaccount: None,
         },
         initial_balances: vec![(
@@ -72,6 +73,8 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
     pic.add_cycles(lp_ledger_canister, 2_000_000_000_000);
     let lp_ledger_wasm = fs::read(LP_LEDGER_WASM).expect("Wasm file not found, run 'dfx build'.");
 
+    ic_cdk::println!("LP Ledger canister: {}", lp_ledger_canister);
+
     // Define the initialization arguments for the LP Ledger canister
     let lp_ledger_args = InitArgs {
         token_symbol: String::from("LP_Token"),
@@ -79,10 +82,11 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
         transfer_fee: Nat::from(100u64),
         metadata: vec![],
         minting_account: Account {
-            owner: Principal::from_text(
-                "6mrpp-3ynrv-4q5tl-xsuey-jwi6d-xfukg-w4l3l-h2ejb-h3fea-ghycd-mqe",
-            )
-            .unwrap(),
+            // owner: Principal::from_text(
+            //     "6mrpp-3ynrv-4q5tl-xsuey-jwi6d-xfukg-w4l3l-h2ejb-h3fea-ghycd-mqe",
+            // )
+            // .unwrap(),
+            owner: backend_canister,
             subaccount: None,
         },
         initial_balances: vec![(
@@ -126,10 +130,11 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
         transfer_fee: Nat::from(10000u64),
         metadata: vec![],
         minting_account: Account {
-            owner: Principal::from_text(
-                "6mrpp-3ynrv-4q5tl-xsuey-jwi6d-xfukg-w4l3l-h2ejb-h3fea-ghycd-mqe",
-            )
-            .unwrap(), // Replace with actual minter principal
+            // owner: Principal::from_text(
+            //     "6mrpp-3ynrv-4q5tl-xsuey-jwi6d-xfukg-w4l3l-h2ejb-h3fea-ghycd-mqe",
+            // )
+            // .unwrap(), // Replace with actual minter principal
+            owner: backend_canister,
             subaccount: None,
         },
         initial_balances: vec![(
