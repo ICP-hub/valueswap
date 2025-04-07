@@ -19,9 +19,10 @@ const LP_LEDGER_WASM: &str =
 #[test]
 fn call_test_function() {
     let (pic, backend_canister, ckbtc_canister, lp_ledger_canister,cketh_canister) = setup();
-    test_create_pools(&pic, backend_canister, ckbtc_canister);
-    // test_burn_lp_tokens(&pic, backend_canister, ckbtc_canister, lp_ledger_canister);
+    test_create_pools(&pic, backend_canister, ckbtc_canister, cketh_canister);
+    test_burn_lp_tokens(&pic, backend_canister, ckbtc_canister, lp_ledger_canister, cketh_canister);
     // test_swap(&pic, backend_canister, ckbtc_canister, cketh_canister);
+    test_get_user_share_ratio(&pic, backend_canister, ckbtc_canister, cketh_canister);
 }
 
 fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
@@ -160,7 +161,7 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
     (pic, backend_canister, ckbtc_canister, lp_ledger_canister, cketh_canister)
 }
 
-fn test_create_pools(pic: &PocketIc, backend_canister: Principal, ckbtc_canister: Principal) {
+fn test_create_pools(pic: &PocketIc, backend_canister: Principal, ckbtc_canister: Principal, cketh_canister: Principal   ) {
     #[derive(Debug, Clone, CandidType, Deserialize)]
     struct CreatePoolParams {
         token_name: String,
@@ -185,81 +186,131 @@ fn test_create_pools(pic: &PocketIc, backend_canister: Principal, ckbtc_canister
     }
 
     let test_cases: Vec<TestCase> = vec![
-        // ✅ Valid Pool 1
+        // ✅ Valid: Equal weights, proper values
         TestCase {
             pool_data: PoolData {
-                pool_data: vec![CreatePoolParams {
-                    token_name: "GoldToken".to_string(),
-                    balance: Nat::from(1_000u128),
-                    weight: Nat::from(10u128),
-                    value: Nat::from(1_000u128),
-                    ledger_canister_id: ckbtc_canister,
-                    image: "gold_token.png".to_string(),
-                }],
-                swap_fee: Nat::from(5u128),
-            },
-            expect_success: true,
-            expected_error_message: None,
-        },
-        // ✅ Valid Pool 2
-        TestCase {
-            pool_data: PoolData {
-                pool_data: vec![CreatePoolParams {
-                    token_name: "SilverToken".to_string(),
-                    balance: Nat::from(50000u128),
-                    weight: Nat::from(100u128),
-                    value: Nat::from(50000u128),
-                    ledger_canister_id: ckbtc_canister,
-                    image: "silver_token.png".to_string(),
-                }],
+                pool_data: vec![
+                    CreatePoolParams {
+                        token_name: "ckbtc".to_string(),
+                        balance: Nat::from(100_000u128),
+                        weight: Nat::from(50u128),
+                        value: Nat::from(100u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "btc.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "cketh".to_string(),
+                        balance: Nat::from(200_000u128),
+                        weight: Nat::from(50u128),
+                        value: Nat::from(100u128),
+                        ledger_canister_id: cketh_canister,
+                        image: "eth.png".to_string(),
+                    },
+                ],
                 swap_fee: Nat::from(3u128),
             },
             expect_success: true,
             expected_error_message: None,
         },
-        // ❌ Invalid: value is zero
+        // ✅ Valid: Uneven weights
+        // TestCase {
+        //     pool_data: PoolData {
+        //         pool_data: vec![
+        //             CreatePoolParams {
+        //                 token_name: "btc-heavy".to_string(),
+        //                 balance: Nat::from(300_000u128),
+        //                 weight: Nat::from(70u128),
+        //                 value: Nat::from(150u128),
+        //                 ledger_canister_id: ckbtc_canister,
+        //                 image: "btc-heavy.png".to_string(),
+        //             },
+        //             CreatePoolParams {
+        //                 token_name: "eth-light".to_string(),
+        //                 balance: Nat::from(100_000u128),
+        //                 weight: Nat::from(30u128),
+        //                 value: Nat::from(90u128),
+        //                 ledger_canister_id: cketh_canister,
+        //                 image: "eth-light.png".to_string(),
+        //             },
+        //         ],
+        //         swap_fee: Nat::from(5u128),
+        //     },
+        //     expect_success: true,
+        //     expected_error_message: None,
+        // },
+        // ❌ Invalid: One token value = 0
         TestCase {
             pool_data: PoolData {
-                pool_data: vec![CreatePoolParams {
-                    token_name: "ZeroValueToken".to_string(),
-                    balance: Nat::from(100u128),
-                    weight: Nat::from(10u128),
-                    value: Nat::from(0u128),
-                    ledger_canister_id: ckbtc_canister,
-                    image: "zero.png".to_string(),
-                }],
+                pool_data: vec![
+                    CreatePoolParams {
+                        token_name: "zero-val".to_string(),
+                        balance: Nat::from(150_000_000u128),
+                        weight: Nat::from(50u128),
+                        value: Nat::from(0u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "zero.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "valid-val".to_string(),
+                        balance: Nat::from(200_000_000u128),
+                        weight: Nat::from(50u128),
+                        value: Nat::from(120u128),
+                        ledger_canister_id: cketh_canister,
+                        image: "valid.png".to_string(),
+                    },
+                ],
                 swap_fee: Nat::from(2u128),
             },
             expect_success: false,
             expected_error_message: Some("Invalid value: value cannot be zero.".to_string()),
         },
-        // ❌ Invalid: balance is zero
+        // ❌ Invalid: One token balance = 0
         TestCase {
             pool_data: PoolData {
-                pool_data: vec![CreatePoolParams {
-                    token_name: "ZeroBalance".to_string(),
-                    balance: Nat::from(0u128),
-                    weight: Nat::from(5u128),
-                    value: Nat::from(100u128),
-                    ledger_canister_id: ckbtc_canister,
-                    image: "zero_balance.png".to_string(),
-                }],
+                pool_data: vec![
+                    CreatePoolParams {
+                        token_name: "zero-bal".to_string(),
+                        balance: Nat::from(0u128),
+                        weight: Nat::from(40u128),
+                        value: Nat::from(100u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "zero-bal.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "valid-bal".to_string(),
+                        balance: Nat::from(180_000_000u128),
+                        weight: Nat::from(60u128),
+                        value: Nat::from(120u128),
+                        ledger_canister_id: cketh_canister,
+                        image: "valid-bal.png".to_string(),
+                    },
+                ],
                 swap_fee: Nat::from(1u128),
             },
             expect_success: false,
             expected_error_message: Some("Invalid balance: balance cannot be zero.".to_string()),
         },
-        // ❌ Invalid: weight is zero
+        // ❌ Invalid: One token weight = 0
         TestCase {
             pool_data: PoolData {
-                pool_data: vec![CreatePoolParams {
-                    token_name: "ZeroWeight".to_string(),
-                    balance: Nat::from(100u128),
-                    weight: Nat::from(0u128),
-                    value: Nat::from(100u128),
-                    ledger_canister_id: ckbtc_canister,
-                    image: "zero_weight.png".to_string(),
-                }],
+                pool_data: vec![
+                    CreatePoolParams {
+                        token_name: "zero-weight".to_string(),
+                        balance: Nat::from(200_000_000u128),
+                        weight: Nat::from(0u128),
+                        value: Nat::from(100u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "zero-weight.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "valid-weight".to_string(),
+                        balance: Nat::from(150_000_000u128),
+                        weight: Nat::from(100u128),
+                        value: Nat::from(90u128),
+                        ledger_canister_id: cketh_canister,
+                        image: "valid-weight.png".to_string(),
+                    },
+                ],
                 swap_fee: Nat::from(1u128),
             },
             expect_success: false,
@@ -286,6 +337,9 @@ fn test_create_pools(pic: &PocketIc, backend_canister: Principal, ckbtc_canister
             ic_cdk::println!("    ▸ Value           : {}", pool.value);
             ic_cdk::println!("    ▸ Ledger Canister : {}", pool.ledger_canister_id);
             ic_cdk::println!("    ▸ Image           : {}", pool.image);
+
+            icrc2_approve(pic, backend_canister, pool.ledger_canister_id);
+            ic_cdk::println!("\n------------------------------------------------------------\n");
         }
 
         ic_cdk::println!("  ⚖ Swap Fee          : {}", case.pool_data.swap_fee);
@@ -296,7 +350,8 @@ fn test_create_pools(pic: &PocketIc, backend_canister: Principal, ckbtc_canister
         ic_cdk::println!("------------------------------------------------------------\n");
 
         // Approve tokens before pool creation
-        icrc2_approve(pic, backend_canister, ckbtc_canister);
+        // icrc2_approve(pic, backend_canister, ckbtc_canister);
+        // icrc2_approve(pic, backend_canister, cketh_canister);
 
         let encoded_args = candid::encode_args((&case.pool_data,)).unwrap();
         let response = pic
@@ -361,6 +416,7 @@ fn test_burn_lp_tokens(
     backend_canister: Principal,
     ckbtc_canister: Principal,
     lp_ledger_canister: Principal,
+    cketh_canister: Principal
 ) {
     #[derive(Debug, Clone)]
     struct TestCase {
@@ -375,17 +431,27 @@ fn test_burn_lp_tokens(
         // ✅ Valid burn
         TestCase {
             pool_data: Pool_Data {
-                pool_data: vec![CreatePoolParams {
-                    token_name: "GoldToken".to_string(),
-                    balance: Nat::from(1_000u128),
-                    weight: Nat::from(10u128),
-                    value: Nat::from(1_000u128),
-                    ledger_canister_id: ckbtc_canister,
-                    image: "gold_token.png".to_string(),
-                }],
+                pool_data: vec![
+                    CreatePoolParams {
+                        token_name: "ckbtc".to_string(),
+                        balance: Nat::from(100_000u128),
+                        weight: Nat::from(50u128),
+                        value: Nat::from(100u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "btc.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "cketh".to_string(),
+                        balance: Nat::from(200_000u128),
+                        weight: Nat::from(50u128),
+                        value: Nat::from(100u128),
+                        ledger_canister_id: cketh_canister,
+                        image: "eth.png".to_string(),
+                    },
+                ],
                 swap_fee: Nat::from(5u128),
             },
-            pool_name: "GoldToken".to_string(),
+            pool_name: "ckbtccketh".to_string(),
             amount_to_burn: Nat::from(100u64),
             expect_success: true,
             expected_error_message: None,
@@ -393,35 +459,55 @@ fn test_burn_lp_tokens(
         // ✅ Valid burn with different amount
         // TestCase {
         //     pool_data: Pool_Data {
-        //         pool_data: vec![CreatePoolParams {
-        //             token_name: "SilverToken".to_string(),
-        //             balance: Nat::from(2_000u128),
-        //             weight: Nat::from(20u128),
-        //             value: Nat::from(2_000u128),
-        //             ledger_canister_id: ckbtc_canister,
-        //             image: "silver_token.png".to_string(),
-        //         }],
+        //        pool_data: vec![
+        //             CreatePoolParams {
+        //                 token_name: "btc-heavy".to_string(),
+        //                 balance: Nat::from(300_000u128),
+        //                 weight: Nat::from(70u128),
+        //                 value: Nat::from(150u128),
+        //                 ledger_canister_id: ckbtc_canister,
+        //                 image: "btc-heavy.png".to_string(),
+        //             },
+        //             CreatePoolParams {
+        //                 token_name: "eth-light".to_string(),
+        //                 balance: Nat::from(100_000u128),
+        //                 weight: Nat::from(30u128),
+        //                 value: Nat::from(90u128),
+        //                 ledger_canister_id: cketh_canister,
+        //                 image: "eth-light.png".to_string(),
+        //             },
+        //         ],
         //         swap_fee: Nat::from(2u128),
         //     },
-        //     pool_name: "SilverToken".to_string(),
-        //     amount_to_burn: Nat::from(50u64),
+        //     pool_name: "btc-heavyeth-light".to_string(),
+        //     amount_to_burn: Nat::from(500u64),
         //     expect_success: true,
         //     expected_error_message: None,
         // },
         // ❌ Invalid: amount_to_burn = 0
         TestCase {
             pool_data: Pool_Data {
-                pool_data: vec![CreatePoolParams {
-                    token_name: "ZeroBurn".to_string(),
-                    balance: Nat::from(100u128),
-                    weight: Nat::from(5u128),
-                    value: Nat::from(100u128),
-                    ledger_canister_id: ckbtc_canister,
-                    image: "zero_burn.png".to_string(),
-                }],
+                pool_data: vec![
+                    CreatePoolParams {
+                        token_name: "zero-val".to_string(),
+                        balance: Nat::from(150_000_000u128),
+                        weight: Nat::from(50u128),
+                        value: Nat::from(0u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "zero.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "valid-val".to_string(),
+                        balance: Nat::from(200_000_000u128),
+                        weight: Nat::from(50u128),
+                        value: Nat::from(120u128),
+                        ledger_canister_id: cketh_canister,
+                        image: "valid.png".to_string(),
+                    },
+                ],
                 swap_fee: Nat::from(1u128),
             },
-            pool_name: "ZeroBurn".to_string(),
+            pool_name: "zero-valvalid-val".to_string(),
             amount_to_burn: Nat::from(0u64),
             expect_success: false,
             expected_error_message: Some("Amount to burn must be greater than zero.".to_string()),
@@ -684,6 +770,143 @@ fn test_swap(pic: &PocketIc,
         }
     }
 
+}
+
+fn test_get_user_share_ratio(
+    pic: &PocketIc,
+    backend_canister: Principal,
+    ckbtc_canister: Principal,
+    cketh_canister: Principal,
+) {
+    #[derive(Debug, Clone, CandidType, Deserialize)]
+    struct CreatePoolParams {
+        token_name: String,
+        balance: Nat,
+        weight: Nat,
+        value: Nat,
+        ledger_canister_id: Principal,
+        image: String,
+    }
+
+    #[derive(Debug, Clone, CandidType, Deserialize)]
+    struct PoolData {
+        pool_data: Vec<CreatePoolParams>,
+        swap_fee: Nat,
+    }
+
+    #[derive(Debug, Clone)]
+    struct TestCase {
+        pool_data: PoolData,
+        pool_name: String,
+        amount: Nat,
+        expect_success: bool,
+        expected_error_message: Option<String>,
+    }
+
+    let test_cases: Vec<TestCase> = vec![
+        TestCase {
+            pool_data: PoolData {
+                pool_data: vec![
+                    CreatePoolParams {
+                        token_name: "ckbtc".to_string(),
+                        balance: Nat::from(100_000u128),
+                        weight: Nat::from(50u128),
+                        value: Nat::from(100u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "btc.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "cketh".to_string(),
+                        balance: Nat::from(200_000u128),
+                        weight: Nat::from(50u128),
+                        value: Nat::from(100u128),
+                        ledger_canister_id: cketh_canister,
+                        image: "eth.png".to_string(),
+                    },
+                ],
+                swap_fee: Nat::from(3u128),
+            },
+            pool_name: "ckbtccketh".to_string(),
+            amount: Nat::from(100u128),
+            expect_success: true,
+            expected_error_message: None,
+        }
+    ];
+
+    let user = get_user_principal();
+
+    ic_cdk::println!(
+        "\n======================== Starting Test: get_user_share_ratio ========================\n"
+    );
+
+    for (i, test) in test_cases.iter().enumerate() {
+        ic_cdk::println!("\n============================================================");
+        ic_cdk::println!("🔵 Test Case {}: Pool Name = {}", i + 1, test.pool_name);
+        ic_cdk::println!("============================================================");
+
+        // Log test config
+        for (j, pool) in test.pool_data.pool_data.iter().enumerate() {
+            ic_cdk::println!("  Pool {}:", j + 1);
+            ic_cdk::println!("    ▸ Token: {}", pool.token_name);
+            ic_cdk::println!("    ▸ Balance: {}", pool.balance);
+            ic_cdk::println!("    ▸ Weight: {}", pool.weight);
+            ic_cdk::println!("    ▸ Value: {}", pool.value);
+        }
+        ic_cdk::println!("  ➤ Swap Fee: {}", test.pool_data.swap_fee);
+        ic_cdk::println!("  ➤ Amount: {}", test.amount);
+        ic_cdk::println!("  ➤ Expect Success: {}", test.expect_success);
+
+        // Approve tokens
+        // icrc2_approve(pic, backend_canister, ckbtc_canister);
+        // icrc2_approve(pic, backend_canister, cketh_canister);
+
+        // Encode all three arguments
+        let encoded_args = candid::encode_args((&test.pool_data, &test.pool_name, &test.amount)).unwrap();
+
+        let response = pic
+            .update_call(
+                backend_canister,
+                user,
+                "get_user_share_ratio",
+                encoded_args,
+            )
+            .unwrap();
+
+        match response {
+            WasmResult::Reply(data) => {
+                let result: Result<Vec<Nat>, String> = candid::decode_one(&data).unwrap();
+
+                if test.expect_success {
+                    assert!(
+                        result.is_ok(),
+                        "❌ Test {} failed: Expected success, got error: {:?}",
+                        i + 1,
+                        result.unwrap_err()
+                    );
+                    ic_cdk::println!("✅ Test {} passed! Received response: {:?}", i + 1, result.unwrap());
+                } else {
+                    assert!(
+                        result.is_err(),
+                        "❌ Test {} failed: Expected error, got success: {:?}",
+                        i + 1,
+                        result.unwrap()
+                    );
+                    ic_cdk::println!("✅ Test {} passed! Got expected error: {:?}", i + 1, result.unwrap_err());
+                }
+            }
+            WasmResult::Reject(msg) => {
+                if test.expect_success {
+                    ic_cdk::println!("❌ Test {} failed: Unexpected rejection: {}", i + 1, msg);
+                } else {
+                    ic_cdk::println!("✅ Test {} passed: Rejected as expected: {}", i + 1, msg);
+                }
+            }
+        }
+    }
+
+    ic_cdk::println!(
+        "\n======================== Test Completed ========================\n"
+    );
 }
 
 
