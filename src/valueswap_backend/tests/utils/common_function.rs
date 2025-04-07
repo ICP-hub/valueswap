@@ -6,7 +6,7 @@ pub fn get_user_principal() -> Principal {
     Principal::from_text("4jwha-xpj7p-sk2lp-bdo4u-cijhx-xskuu-qj34g-kqty4-n6jhy-ixgjd-aqe").unwrap()
 }
 
-pub fn icrc2_approve(pic: &PocketIc, backend_canister: Principal, ckbtc_canister: Principal) {
+pub fn icrc2_approve(pic: &PocketIc, backend_canister: Principal, ckbtc_canister: Principal,) {
     let approval_args = ApproveArgs {
         fee: None,
         memo: None,

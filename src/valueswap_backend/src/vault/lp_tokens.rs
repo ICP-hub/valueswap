@@ -723,7 +723,7 @@ async fn get_user_share_ratio(
     .map_err(|e| format!("Failed to get token data: {:?}", e));
 
     ic_cdk::println!("get_burned_tokens result: {:?}", result);
-    result.map(|(response,)| response.tokens)
+    result.map(|(response,)| response)
 }
 
 #[update]
