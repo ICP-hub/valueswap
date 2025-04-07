@@ -210,7 +210,7 @@ fn setup() -> (PocketIc, Principal,Principal , Principal) {
             (Account {
                 owner: Principal::from_text("hyhkx-53cuq-lmkqq-yhjmt-eve7b-j5pyf-3evrj-tncch-ilmtl-nrcee-sqe").unwrap(),
                 subaccount: None,
-            }, Nat::from(10_000_000_000u128)) 
+            }, Nat::from(10_000_000_000_000u128)) 
         ],
         archive_options: ArchiveOptions {
             num_blocks_to_archive: 1000,
@@ -250,7 +250,7 @@ fn setup() -> (PocketIc, Principal,Principal , Principal) {
             (Account {
                 owner: Principal::from_text("hyhkx-53cuq-lmkqq-yhjmt-eve7b-j5pyf-3evrj-tncch-ilmtl-nrcee-sqe").unwrap(),
                 subaccount: None,
-            }, Nat::from(10_000_000_000u64)) 
+            }, Nat::from(10_000_000_000_000u64)) 
         ],
         archive_options: ArchiveOptions {
             num_blocks_to_archive: 1000,
@@ -358,7 +358,7 @@ fn test_swap() {
         pool_data: vec![
             CreatePoolParams {
                 token_name: "ckbtc".to_string(),
-                balance: Nat::from(100000000u128),
+                balance: Nat::from(1000000000u128),
                 weight: Nat::from(50u128),
                 value: Nat::from(100u128),
                 ledger_canister_id: ckbtc_canister,
@@ -366,7 +366,7 @@ fn test_swap() {
             },
             CreatePoolParams {
                 token_name: "cketh".to_string(),
-                balance: Nat::from(2800000000u128),
+                balance: Nat::from(44000000000u128),
                 weight: Nat::from(50u128),
                 value: Nat::from(100u128),
                 ledger_canister_id: cketh_canister,
@@ -395,7 +395,156 @@ fn test_swap() {
 
     let swap_params = SwapParams {
         token1_name: "ckbtc".to_string(),
-        token_amount: Nat::from(100000u128),
+        token_amount: Nat::from(100000000u128),
+        token2_name: "cketh".to_string(),
+        ledger_canister_id1: ckbtc_canister,
+        ledger_canister_id2: cketh_canister,
+        fee: Nat::from(5u64),
+    };
+
+    let encoded_args = candid::encode_args((swap_params.clone(),)).unwrap();
+
+    let response = pic.update_call(
+        backend_canister,
+        hardcoded_principal,
+        "compute_swap",
+        encoded_args,
+    ).unwrap();
+
+    match response {
+        WasmResult::Reply(data) => {
+            let result: Result<(), CustomError> = candid::decode_one(&data).unwrap();
+            assert!(result.is_ok(), "Expected successful swap, got {:?}", result);
+            println!("Swap successful.");
+        },
+        WasmResult::Reject(message) => {
+            panic!("Swap failed with message: {}", message);
+        }
+    }
+
+}
+
+
+
+
+
+
+
+#[test]
+fn test_swap_80_20_pool() {
+    let (pic, backend_canister, ckbtc_canister, cketh_canister) = setup();
+
+
+    let hardcoded_principal = Principal::from_text("hyhkx-53cuq-lmkqq-yhjmt-eve7b-j5pyf-3evrj-tncch-ilmtl-nrcee-sqe").unwrap();
+    let spender_canister = backend_canister; 
+
+
+    let approval_args = ApproveArgs {
+        fee: None,
+        memo: None,
+        from_subaccount: None,
+        created_at_time: None,
+        amount: Nat::from(10000000000000u128),
+        expected_allowance: None,
+        expires_at: None,
+        spender: Account {
+            owner: spender_canister,
+            subaccount: None,
+        },
+    };
+
+    let encoded_args = candid::encode_args((approval_args,)).unwrap();
+
+    let response = pic.update_call(
+        ckbtc_canister,
+        hardcoded_principal,
+        "icrc2_approve",
+        encoded_args.clone(),
+    ).expect("Failed to approve CKBTC");
+
+    let response2 = pic.update_call(
+        cketh_canister,
+        hardcoded_principal,
+        "icrc2_approve",
+        encoded_args,
+    ).expect("Failed to approve CKETH");
+
+
+    match response {
+        WasmResult::Reply(data) => {
+            
+            let result: Result<Nat, ApproveError> = candid::decode_one(&data).unwrap();
+
+            match result {
+                Ok(allowance) => {
+                    println!("Approval successful. Allowance set to: {:?}", allowance);
+                    assert!(allowance > Nat::from(0u64), "Allowance should be greater than zero.");
+                }
+                Err(e) => panic!("Approval failed with error: {:?}", e),
+            }
+        }
+        WasmResult::Reject(message) => panic!("Approval failed with message: {}", message),
+    }
+    
+    match response2 {
+        WasmResult::Reply(data) => {
+            
+            let result: Result<Nat, ApproveError> = candid::decode_one(&data).unwrap();
+
+            match result {
+                Ok(allowance) => {
+                    println!("Approval successful. Allowance set to: {:?}", allowance);
+                    assert!(allowance > Nat::from(0u64), "Allowance should be greater than zero.");
+                }
+                Err(e) => panic!("Approval failed with error: {:?}", e),
+            }
+        }
+        WasmResult::Reject(message) => panic!("Approval failed with message: {}", message),
+    }
+
+
+    let pool_data = Pool_Data {
+        pool_data: vec![
+            CreatePoolParams {
+                token_name: "ckbtc".to_string(),
+                balance: Nat::from(10000000000u128),
+                weight: Nat::from(80u128),
+                value: Nat::from(100u128),
+                ledger_canister_id: ckbtc_canister,
+                image: "image.png".to_string(),
+            },
+            CreatePoolParams {
+                token_name: "cketh".to_string(),
+                balance: Nat::from(114000000000u128),
+                weight: Nat::from(20u128),
+                value: Nat::from(10000u128),
+                ledger_canister_id: cketh_canister,
+                image: "image.png".to_string(),
+            },
+        ],
+        swap_fee: Nat::from(5u128),
+    };
+
+    let encoded_args = candid::encode_args((pool_data,)).unwrap();
+
+    let response = pic.update_call(
+        backend_canister,
+        hardcoded_principal,
+        "create_pools",
+        encoded_args,
+    ).unwrap();
+
+    match response {
+        WasmResult::Reply(data) => {
+            let result: Result<(), CustomError> = candid::decode_one(&data).unwrap();
+            assert!(result.is_ok(), "Expected successful pool creation, got {:?}", result);
+        },
+        WasmResult::Reject(message) => panic!("Failed to create pools: {}", message),
+    }
+
+    let swap_params = SwapParams {
+        token1_name: "ckbtc".to_string(),
+        token_amount: Nat::from(100000000u128),
         token2_name: "cketh".to_string(),
         ledger_canister_id1: ckbtc_canister,
         ledger_canister_id2: cketh_canister,

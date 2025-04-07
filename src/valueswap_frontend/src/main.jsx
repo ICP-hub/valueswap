@@ -30,7 +30,8 @@ import 'react-toastify/dist/ReactToastify.css';
 const signers = [NFIDW, Plug];
 const additionalCanisterIds = [
     process.env.CANISTER_ID_CKBTC,
-    process.env.CANISTER_ID_CKETH
+    process.env.CANISTER_ID_CKETH,
+    process.env.CANISTER_ID_CKUSDC
 ];
 
 // Combine all canister IDs
@@ -43,7 +44,7 @@ const whitelist = [
 const uniqueWhitelist = [...new Set(whitelist)];
 
 const signerClientOptions = {
-  targets: [  process.env.CANISTER_ID_VALUESWAP_BACKEND],
+  targets: whitelist,
   maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000), // 1 week in nanoseconds
   idleOptions: {
     idleTimeout: 4 * 60 * 60 * 1000, // 4 hours in milliseconds

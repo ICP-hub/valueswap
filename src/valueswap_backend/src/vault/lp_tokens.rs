@@ -621,6 +621,7 @@ async fn burn_lp_tokens(
 }
 
 #[update]
+#[candid::candid_method(update)]
 async fn get_user_share_ratio(
     params: Pool_Data,
     pool_name: String,
@@ -722,7 +723,7 @@ async fn get_user_share_ratio(
     .map_err(|e| format!("Failed to get token data: {:?}", e));
 
     ic_cdk::println!("get_burned_tokens result: {:?}", result);
-    result.map(|(burned_tokens_vec,)| burned_tokens_vec)
+    result.map(|(response,)| response.tokens)
 }
 
 #[update]

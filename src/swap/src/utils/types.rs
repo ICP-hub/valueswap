@@ -3,6 +3,11 @@ use serde::{Deserialize as SerdeDeserialize, Serialize};
 use std::fmt;
 use candid::{Nat, Principal};
 
+#[derive(CandidType, Deserialize,Serialize)]
+pub struct BurnedTokensResponse {
+    pub tokens: Vec<Nat>
+}
+
 #[derive(CandidType, SerdeDeserialize, Serialize, Clone, Debug)]
 pub enum SwapError {
     InternalError(String), // Generic internal error with a message
