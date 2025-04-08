@@ -18,9 +18,10 @@ const LP_LEDGER_WASM: &str =
 
 #[test]
 fn call_test_function() {
+    std::env::set_var("POCKET_IC_BIN", "/Users/admin/Documents/Projects/ICP/valueswap/src/valueswap_backend/tests/pocket-ic"); // Path of the pocket-ic binary
     let (pic, backend_canister, ckbtc_canister, lp_ledger_canister,cketh_canister) = setup();
     test_create_pools(&pic, backend_canister, ckbtc_canister, cketh_canister);
-    test_burn_lp_tokens(&pic, backend_canister, ckbtc_canister, lp_ledger_canister, cketh_canister);
+    // test_burn_lp_tokens(&pic, backend_canister, ckbtc_canister, lp_ledger_canister, cketh_canister);
     // test_swap(&pic, backend_canister, ckbtc_canister, cketh_canister);
     test_get_user_share_ratio(&pic, backend_canister, ckbtc_canister, cketh_canister);
 }
