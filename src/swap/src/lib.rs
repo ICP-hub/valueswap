@@ -320,6 +320,7 @@ async fn get_burned_tokens(
         BurnedTokensResponse::Err("Invalid user principal: Cannot be anonymous.".to_string());
     }
 
+    // Validate pool data
     if let Err(err) = params.validate() {
         ic_cdk::println!("Error: Invalid pool data - {:?}", err);
         BurnedTokensResponse::Err(format!("Invalid pool data: {:?}", err));
@@ -343,7 +344,7 @@ async fn get_burned_tokens(
     let mut result: Vec<Nat> = Vec::new();
     let mut total_weight = Nat::from(0u128);
 
-    // Verify weights are properly set
+    // Verify weights and sum them up
     for token in params.pool_data.iter() {
         total_weight += token.weight.clone();
         ic_cdk::println!("Token: {}, Weight: {}", token.token_name, token.weight);
@@ -358,8 +359,7 @@ async fn get_burned_tokens(
 
     // Process each token
     for token in params.pool_data.iter() {
-        // Optimized calculation to minimize precision loss
-        // First multiply, then divide to maintain as much precision as possible
+        // Calculate the token amount based on the weight percentage
         let token_percent = token.weight.clone();
 
         // Calculate token amount - scaled based on weight percentage
@@ -373,9 +373,7 @@ async fn get_burned_tokens(
         ic_cdk::println!("DEBUG: Token calculation details for {}:", token.token_name);
         ic_cdk::println!("  - Weight: {}", token.weight);
         ic_cdk::println!("  - tokens_to_transfer: {}", tokens_to_transfer);
-
         ic_cdk::println!("  - Token percentage: {}", token.weight);
-
         ic_cdk::println!("  - Result: {}", token_amount);
 
         result.push(token_amount);
@@ -388,6 +386,7 @@ async fn get_burned_tokens(
         );
     }
 
+    // Return the tokens inside a tuple
     ic_cdk::println!("DEBUG: Final result vector: {:?}", result);
     BurnedTokensResponse::Ok(result.clone())
 }

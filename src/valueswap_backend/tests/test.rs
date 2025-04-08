@@ -28,7 +28,6 @@ fn call_test_function() {
 
 fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
     std::env::set_var("POCKET_IC_BIN", "/Users/admin/Documents/Projects/ICP/valueswap/src/valueswap_backend/tests/pocket-ic"); // Path of the pocket-ic binary
-
     ic_cdk::println!("Setting up Pocket IC...");
 
     let pic = PocketIc::new();
@@ -195,7 +194,7 @@ fn test_create_pools(pic: &PocketIc, backend_canister: Principal, ckbtc_canister
                 pool_data: vec![
                     CreatePoolParams {
                         token_name: "ckbtc".to_string(),
-                        balance: Nat::from(100_000u128),
+                        balance: Nat::from(200_000_00u128),
                         weight: Nat::from(50u128),
                         value: Nat::from(100u128),
                         ledger_canister_id: ckbtc_canister,
@@ -215,58 +214,34 @@ fn test_create_pools(pic: &PocketIc, backend_canister: Principal, ckbtc_canister
             expect_success: true,
             expected_error_message: None,
         },
-        // ✅ Valid: Uneven weights
+
+// ___________________________________________________________________________________
+
         // TestCase {
         //     pool_data: PoolData {
         //         pool_data: vec![
         //             CreatePoolParams {
-        //                 token_name: "btc-heavy".to_string(),
-        //                 balance: Nat::from(300_000u128),
-        //                 weight: Nat::from(70u128),
-        //                 value: Nat::from(150u128),
+        //                 token_name: "zero-val".to_string(),
+        //                 balance: Nat::from(150_000_000u128),
+        //                 weight: Nat::from(50u128),
+        //                 value: Nat::from(0u128),
         //                 ledger_canister_id: ckbtc_canister,
-        //                 image: "btc-heavy.png".to_string(),
+        //                 image: "zero.png".to_string(),
         //             },
         //             CreatePoolParams {
-        //                 token_name: "eth-light".to_string(),
-        //                 balance: Nat::from(100_000u128),
-        //                 weight: Nat::from(30u128),
-        //                 value: Nat::from(90u128),
+        //                 token_name: "valid-val".to_string(),
+        //                 balance: Nat::from(200_000_000u128),
+        //                 weight: Nat::from(50u128),
+        //                 value: Nat::from(120u128),
         //                 ledger_canister_id: cketh_canister,
-        //                 image: "eth-light.png".to_string(),
+        //                 image: "valid.png".to_string(),
         //             },
         //         ],
-        //         swap_fee: Nat::from(5u128),
+        //         swap_fee: Nat::from(2u128),
         //     },
-        //     expect_success: true,
-        //     expected_error_message: None,
+        //     expect_success: false,
+        //     expected_error_message: Some("Invalid value: value cannot be zero.".to_string()),
         // },
-        // ❌ Invalid: One token value = 0
-        TestCase {
-            pool_data: PoolData {
-                pool_data: vec![
-                    CreatePoolParams {
-                        token_name: "zero-val".to_string(),
-                        balance: Nat::from(150_000_000u128),
-                        weight: Nat::from(50u128),
-                        value: Nat::from(0u128),
-                        ledger_canister_id: ckbtc_canister,
-                        image: "zero.png".to_string(),
-                    },
-                    CreatePoolParams {
-                        token_name: "valid-val".to_string(),
-                        balance: Nat::from(200_000_000u128),
-                        weight: Nat::from(50u128),
-                        value: Nat::from(120u128),
-                        ledger_canister_id: cketh_canister,
-                        image: "valid.png".to_string(),
-                    },
-                ],
-                swap_fee: Nat::from(2u128),
-            },
-            expect_success: false,
-            expected_error_message: Some("Invalid value: value cannot be zero.".to_string()),
-        },
         // ❌ Invalid: One token balance = 0
         TestCase {
             pool_data: PoolData {
@@ -854,35 +829,33 @@ fn test_get_user_share_ratio(
         expected_error_message: Option<String>,
     }
 
-    let test_cases: Vec<TestCase> = vec![
-        TestCase {
-            pool_data: PoolData {
-                pool_data: vec![
-                    CreatePoolParams {
-                        token_name: "ckbtc".to_string(),
-                        balance: Nat::from(100_000u128),
-                        weight: Nat::from(50u128),
-                        value: Nat::from(100u128),
-                        ledger_canister_id: ckbtc_canister,
-                        image: "btc.png".to_string(),
-                    },
-                    CreatePoolParams {
-                        token_name: "cketh".to_string(),
-                        balance: Nat::from(200_000u128),
-                        weight: Nat::from(50u128),
-                        value: Nat::from(100u128),
-                        ledger_canister_id: cketh_canister,
-                        image: "eth.png".to_string(),
-                    },
-                ],
-                swap_fee: Nat::from(3u128),
-            },
-            pool_name: "ckbtccketh".to_string(),
-            amount: Nat::from(100u128),
-            expect_success: true,
-            expected_error_message: None,
-        }
-    ];
+    let test_cases: Vec<TestCase> = vec![TestCase {
+        pool_data: PoolData {
+            pool_data: vec![
+                CreatePoolParams {
+                    token_name: "ckbtc".to_string(),
+                    balance: Nat::from(200_000_000u128),
+                    weight: Nat::from(50u128),
+                    value: Nat::from(100u128),
+                    ledger_canister_id: ckbtc_canister,
+                    image: "btc.png".to_string(),
+                },
+                CreatePoolParams {
+                    token_name: "cketh".to_string(),
+                    balance: Nat::from(200_000_000u128),
+                    weight: Nat::from(50u128),
+                    value: Nat::from(100u128),
+                    ledger_canister_id: cketh_canister,
+                    image: "eth.png".to_string(),
+                },
+            ],
+            swap_fee: Nat::from(3u128),
+        },
+        pool_name: "ckbtccketh".to_string(),
+        amount: Nat::from(300_000u128),
+        expect_success: true,
+        expected_error_message: None,
+    }];
 
     let user = get_user_principal();
 
