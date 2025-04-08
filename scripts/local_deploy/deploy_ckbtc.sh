@@ -63,6 +63,12 @@ echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 dfx deploy ckbtc --argument "$DEPLOY_ARGUMENTS" 
 
 
+# LP_ledger=$(dfx canister id LP_Token)
+# echo "lp ledger id: $LP_ledger"
+
+# Call the Rust function exposed via update method
+# dfx canister call valueswap_backend set_canister_id '( "lp_ledger", principal "'$LP_LEDGER'" )'
+
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
 
 # candid-extractor ../target/wasm32-unknown-unknown/release/valueswap_backend.wasm > ../src/valueswap_backend/valueswap_backend.did

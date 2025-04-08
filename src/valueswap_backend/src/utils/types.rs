@@ -347,6 +347,7 @@ pub enum CustomError {
     StringConversionFailed(String),
     UnableToStorePoolData(String),
     UnableToTransferLP(String),
+    CreateNopool(String),
     NoCanisterIDFound,
     SwappingFailed(String),
     InvalidInput(String),

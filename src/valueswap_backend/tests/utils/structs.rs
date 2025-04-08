@@ -11,6 +11,7 @@ pub enum CustomError {
     StringConversionFailed(String),
     UnableToStorePoolData(String),
     UnableToTransferLP(String),
+    CreateNopool(String),
     NoCanisterIDFound,
     SwappingFailed(String),
     InvalidInput(String),
@@ -158,6 +159,15 @@ pub enum ApproveResult {
     Ok(Nat),
     Err(ApproveError),
 }
+
+#[derive(CandidType, Deserialize ,Serialize, Clone)]
+pub struct SwapTestCase {
+    pub description: &'static str,
+    pub expect_success: bool,
+    pub expected_error_message: Option<String>,
+    pub params: SwapParams,
+}
+
 
 #[derive(CandidType, Deserialize ,Serialize, Clone)]
 pub struct SwapParams {
