@@ -24,7 +24,7 @@ echo "Token Symbol: $TOKEN_SYMBOL"
 
 # Set initial parameters
 export PRE_MINTED_TOKENS=10_000_000_000_000
-export TRANSFER_FEE=10_000
+export TRANSFER_FEE=0
 
 # Switch to the default identity and get its principal ID
 dfx identity use DevJourney
@@ -62,6 +62,12 @@ echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
 dfx deploy ckbtc --argument "$DEPLOY_ARGUMENTS" 
 
+
+# LP_ledger=$(dfx canister id LP_Token)
+# echo "lp ledger id: $LP_ledger"
+
+# Call the Rust function exposed via update method
+# dfx canister call valueswap_backend set_canister_id '( "lp_ledger", principal "'$LP_LEDGER'" )'
 
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
 

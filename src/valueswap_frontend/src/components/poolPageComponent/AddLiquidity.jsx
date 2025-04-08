@@ -4,7 +4,7 @@ import GradientButton from '../../buttons/GradientButton'
 import { IOSSwitch } from '../../buttons/SwitchButton';
 import { convertTokenEquivalentUSD } from '../../utils';
 import { useAuths } from '../utils/useAuthClient';
-
+import { Principal } from '@dfinity/principal';
 
 const AddLiquidity = () => {
 
@@ -16,8 +16,10 @@ const AddLiquidity = () => {
   const [swapFee, setSwapFee] = useState(0)
   const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
   const {backendActor,principal, createTokenActor, getBalance} = useAuths()
+  const [retry,setRetry] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  const initToken = useCallback(async()=>{
+  const initToken = useCallback(async () => {
     const initialToken = tokens[0]
     let data = {}
     console.log("II : ", initialToken)
@@ -31,7 +33,7 @@ const AddLiquidity = () => {
         const {weight, token_name, image,  ledger_canister_id} = initialToken
         console.log("Ledger : ", ledger_canister_id.toText())
         data = await getBalance(ledger_canister_id.toText()).then(balance=>{
-          console.log("Balance : ", balance)
+          console.log("Balance : ", balance, ledger_canister_id.toText())
           return {
             weights: weight.toString(),
             currencyAmount: 0,
@@ -53,7 +55,7 @@ const AddLiquidity = () => {
       setToken1(data)
     }
 
-  },[id,principal,tokens,getBalance])
+  }, [id, principal, tokens, getBalance]);
 
   const initRestToken = useCallback(async () => {
     const splittedTokenArr = tokens.slice(1);
@@ -80,6 +82,8 @@ const AddLiquidity = () => {
             decimals : null,
             canisterId
           };
+        } finally{
+          setLoading(false);
         }
       }));
   
@@ -110,52 +114,37 @@ const AddLiquidity = () => {
       console.error(err);
     }
   }, [id, principal, tokens]);
-  
 
-  useEffect(()=>{
-    initToken()
-    initRestToken()
-  },[tokens])
-
-  /**
-   * Fetches the pool data from the backend
-   * @param {string} pool_id
-   * @returns {void}
-   */
-  const getPoolData = useCallback(async()=>{
-    try{
-      const data = await backendActor.get_specific_pool_data(id)
-      if(data?.Ok){
-        console.log("pool data", data.Ok)
-        const pool_datas = data.Ok 
-        setPoolData(pool_datas)
-        setTokens(pool_datas[0].pool_data)
-        setSwapFee(pool_datas[0].swap_fee)
-      }else{
-        throw new Error(data.Err)
+  const getPoolData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await backendActor.get_specific_pool_data(id);
+      if (data?.Ok) {
+        const pool_datas = data.Ok;
+        setPoolData(pool_datas);
+        setTokens(pool_datas[0].pool_data);
+        setSwapFee(pool_datas[0].swap_fee);
+      } else {
+        throw new Error(data.Err);
       }
-    }catch(err){
-      console.error("Error fetching pool data", err)
-      setTokens([])
-    }finally{
-      console.log("done fetching pool data",tokens)
+    } catch (err) {
+      console.error("Error fetching pool data", err);
+      setTokens([]);
+      if(err?.code === 3000)
+      setRetry((prev)=>({...prev,getPoolData : true}))
     }
-  },[id])
+  }, [id]);
 
   useEffect(() => {
-    console.log("pool id", id)
-    getPoolData()
-  }, [id,principal])
+    getPoolData();
+  }, [id, principal, retry.getPoolData]);
 
-  // let TokenData = portfolioSampleData.TableData[id]
-
-  const selectRang = [
-    "1D",
-    "1W",
-    "1M",
-    "1Y",
-    "All Time"
-  ]
+  useEffect(() => {
+    if (tokens.length > 0) {
+      initToken();
+      initRestToken();
+    }
+  }, [tokens, initToken, initRestToken]);
 
   const [optimizeEnable, setOptimizeEnable] = React.useState(true);
   const [initialTokenAmount, setInitialTokenAmount] = React.useState(0);
@@ -168,7 +157,7 @@ const AddLiquidity = () => {
     const total = restTokensAmount.reduce((acc,amount)=>{
       return acc + parseFloat(amount)
     },initialTokenAmount)
-    console.log("Total : ", total)
+    return total + calculatePoolLocked() + calculatePoolShare() + parseFloat(swapFee)
   },[initialTokenAmount,restTokensAmount])
 
 
@@ -184,7 +173,7 @@ const AddLiquidity = () => {
     let ans;
     switch(type){
       case "total":
-        ans = calculateTotal()
+        ans = "$" + calculateTotal()
         break;
       case "pool_share":
         ans = calculatePoolShare()
@@ -199,7 +188,7 @@ const AddLiquidity = () => {
         break;
     }
     return ans
-  })
+  }, [calculateTotal, calculatePoolShare, swapFee])
 
   const Result = useMemo(()=>({
     heading : 'Total',
@@ -220,41 +209,105 @@ const AddLiquidity = () => {
     ]
   }), [tokens,initialTokenAmount,restTokensAmount,swapFee])
 
-  console.log("Init : \n",token1,"\nRest :",restTokens)
-
-  const addLiquidity = useCallback(async()=>{
-    const pool_data = poolData.map((pool)=>{
-      const params = pool.pool_data
-      const param = params.map((token,index)=>{
-        const amount = index === 0 ? initialTokenAmount : parseInt(restTokensAmount[index - 1])
-        const decimal = index === 0 ? token1?.decimals : restTokens[index - 1]?.decimals // TODO : Use fetched decimals
-        const balance = index  === 0 ? token1?.balance : restTokens[index - 1]?.balance
-        console.log("TYPE FOF AMOUNT : ", typeof amount, amount)
-        return {
-          value : BigInt(amount) * BigInt(10 ** decimal),
-          weight : parseFloat(token.weight),
-          token_name : token.token_name,
-          ledger_canister_id : token.ledger_canister_id,
-          image : token.image,
-          balance : parseFloat(balance) * Math.pow(10, decimal)
-        }
-      })
-      console.log("Param : ", param)
-      return param
-    })
-    console.log(pool_data)
-    try{
-      const response = await backendActor.create_pools({pool_data : pool_data[0], swap_fee : parseFloat(swapFee) || 0})
-      console.log(response)
-      if(response?.Ok){
-        console.log("Success")
-      }else{
-        throw new Error(JSON.stringify(response.Err))
+  
+  const runApproval = useCallback(async (approveParams) => {
+    try {
+      if (!approveParams || approveParams.length === 0) {
+        throw new Error("Approval Params Type Error");
       }
-    }catch(err){
-      console.error(err)
+  
+      console.log("Running approval process... ", approveParams);
+  
+      for (const param of approveParams) {
+        const ledgerCanisterPrincipal = param.ledgerCanisterPrincipal
+        if (!ledgerCanisterPrincipal) {
+          throw new Error("Invalid ledger canister principal");
+        }
+  
+        const actor = await createTokenActor(ledgerCanisterPrincipal);
+        console.log("Actor:", actor);
+  
+        if (actor) {
+          const response = await actor.icrc2_approve(param.approveEntry);
+          console.log("Approval Response:", response);
+          if (!response?.Ok) {
+            throw new Error(`Approval failed: ${JSON.stringify(response.Err)}`);
+          }
+        } else {
+          throw new Error("Failed to create token actor");
+        }
+      }
+  
+      console.log("All approvals successful!");
+      return true;
+    } catch (err) {
+      console.error("Error during approval:", err);
+      return false;
     }
-  },[poolData,initialTokenAmount,restTokensAmount,swapFee])
+  }, [createTokenActor]);
+  
+  const addLiquidity = useCallback(async () => {
+    let approveParams = [];
+    const pool_data = poolData.map((pool) =>
+      pool.pool_data.map((token, index) => {
+        const ledgerCanisterPrincipal = Principal.from(token.ledger_canister_id);
+        const amount = index === 0 ? initialTokenAmount : parseInt(restTokensAmount[index - 1]);
+        const decimal = index === 0 ? token1?.decimals : restTokens[index - 1]?.decimals;
+        const balance = index === 0 ? token1?.balance : restTokens[index - 1]?.balance;
+  
+        let approveEntry = {
+          amount: (BigInt(parseInt(balance)) * BigInt(10 ** ( decimal + 2 ))),
+          from_subaccount: [],
+          spender: {
+            owner: Principal.fromText(process.env.CANISTER_ID_VALUESWAP_BACKEND),
+            subaccount: [],
+          },
+          fee: [],
+          memo: [],
+          created_at_time: [],
+          expected_allowance: [],
+          expires_at: [],
+        };
+        approveParams.push({approveEntry, ledgerCanisterPrincipal});
+  
+        return {
+          value: BigInt(parseInt(balance)) * BigInt(Math.pow(10, decimal)),
+          weight: parseFloat(token.weight),
+          token_name: token.token_name,
+          ledger_canister_id: token.ledger_canister_id,
+          image: token.image,
+          balance: BigInt(amount) * BigInt(10 ** decimal),
+        };
+      })
+    );
+  
+    console.log("Pool Data Array:", pool_data);
+  
+    try {
+      const approvalSuccess = await runApproval(approveParams);
+      if (!approvalSuccess) {
+        throw new Error("Approval failed or was rejected.");
+      }
+  
+      console.log("Approval successful! Now creating liquidity pools...");
+  
+      const createPoolResponse = await backendActor.create_pools({
+        pool_data: pool_data[0],
+        swap_fee: parseFloat(swapFee) || 0,
+      });
+  
+      console.log("Create Pool Response:", createPoolResponse);
+  
+      if (createPoolResponse?.Err) {
+        throw new Error(JSON.stringify(createPoolResponse.Err));
+      }
+  
+      console.log("Liquidity successfully added!");
+    } catch (err) {
+      console.error("Error Adding Liquidity:", err);
+    }
+  }, [poolData, initialTokenAmount, restTokensAmount, swapFee, runApproval]);
+  
 
   const handleInput = (e) => {
     const value = parseFloat(e.target.value) || 0;
@@ -264,11 +317,9 @@ const AddLiquidity = () => {
   const ButtonActive = true; // Static value
   const isAuthenticated = true; // Static value
   const AmountSelectCheck = true; // Static value
-  const poolName = "ExamplePool"; // Static value
 
   // Function to calculate equivalent rest token amounts
   const calculateEquivalentAmounts = useCallback(() => {
-
     if (!token1?.currencyAmount || !token1?.weights){ 
       console.error("Missing required data for first token", token1);
       return
@@ -286,10 +337,6 @@ const AddLiquidity = () => {
       const roundedAmount = Number(requiredTokenAmount.toFixed(8));
       return roundedAmount;
       })
-
-    // equivalentAmounts.forEach((amount, index) => {
-    //   amount = (parseInt(amount) / Math.pow(10, 8)); // TODO : Use fetched decimals
-    // });
 
     console.log("Equivalent Amounts : ", equivalentAmounts);
     setRestTokenAmount(equivalentAmounts);
@@ -309,6 +356,10 @@ const AddLiquidity = () => {
       return amount;
     });
     setRestTokenAmount(newAmounts);
+  }
+
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -355,7 +406,7 @@ const AddLiquidity = () => {
 
         <div className='flex flex-col gap-4'>
           {restTokens.map((token, index) => {
-            const balance = token.balance;
+            const balance = token?.balance;
 
             return (
               <div key={index}>
@@ -375,22 +426,22 @@ const AddLiquidity = () => {
                       />
                     </div>
                     <span className='text-sm sm:text-base font-normal'>
-                      ${parseInt(restTokensAmount[index]) * token.currencyAmount || "0"}
+                      ${parseInt(restTokensAmount[index]) * token?.currencyAmount || "0"}
                     </span>
                   </div>
                   <div className='flex flex-col justify-center'>
                     <div className='flex gap-3 items-center'>
-                      <img src={token.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
+                      <img src={token?.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
                       <span className='text-sm sm:text-2xl font-normal'>
-                        {token.ShortForm.toUpperCase()}
+                        {token?.ShortForm.toUpperCase()}
                       </span>
                       <span className='text-sm sm:text-2xl font-normal'>•</span>
                       <span className='py-1 px-2 sm:px-3'>
-                        {token.weights} %
+                        {token?.weights} %
                       </span>
                     </div>
                     <span className='inline-flex justify-center gap-2 text-center font-normal leading-5 text-sm sm:text-base'>
-                      {balance.toLocaleString()} {token.ShortForm.toUpperCase()}
+                      {balance.toLocaleString()} {token?.ShortForm.toUpperCase()}
                       <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
                     </span>
                   </div>
@@ -409,9 +460,7 @@ const AddLiquidity = () => {
             } else if (!AmountSelectCheck) {
               toast.warn('You do not have enough tokens.');
             } else {
-              // fetchPoolName(poolName);
               addLiquidity();
-              console.log("dispatched finished");
             }
           }}
         >
@@ -419,34 +468,27 @@ const AddLiquidity = () => {
             {initialTokenAmount == 0 ? 'Add Token Amount' : 'Add Liquidity'}
           </GradientButton>
         </div>
-      {/* Info Content */}
         <table className='w-full font-gilroy'>
-          <thead className='text-xl font-semibold'>
-            <td>{Result.heading}</td>
-            <td>{Result.headingData}</td>
-          </thead>
           <tbody className='text-base'>
-            {
-              Result.data.map((data, index) => (
-                <tr key={index}>
-                  <td>{data.title}</td>
-                  {
-                    data.title === 'Gas fee' ? (
-                      <td>{`${data.value} ${token1?.ShortForm} ( $${equivalentUSD} )`}</td>
-                    ) : (
-                      <td>{data.value.toLocaleString()}</td>
-                    )
-                  }
-                </tr>
-              ))
-            }
+            <tr className='text-xl font-semibold'>
+                <td>{Result.heading}</td>
+                <td>{Result.headingData}</td>
+            </tr>
+            {Result.data.map((data, index) => (
+              <tr key={index}>
+                <td>{data.title}</td>
+                {data.title === 'Gas fee' ? (
+                  <td>{`${data.value} ${token1?.ShortForm} ( $${equivalentUSD} )`}</td>
+                ) : (
+                  <td>{data.value.toLocaleString()}</td>
+                )}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
     </div>
   );
-
-   
 }
 
-export default AddLiquidity
+export default AddLiquidity;

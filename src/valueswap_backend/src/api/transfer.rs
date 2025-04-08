@@ -3,7 +3,7 @@ use ic_cdk::api::call::call;
 use candid::{CandidType, Deserialize, Nat, Principal};
 use ic_cdk_macros::update;
 
-use crate::constants::*;
+use crate::{constants::*, get_canister_id_by_name};
 
 #[derive(CandidType, Deserialize,Debug)]
 struct Account {
@@ -55,12 +55,14 @@ pub async fn icrc1_transfer(user_principal: Principal, amount: Nat) -> Result<Bl
     }
 
     // Parse the ledger canister ID and handle invalid format
-    let canister_id = match Principal::from_text(LP_LEDGER_ADDRESS) {
-        Ok(id) => id,
-        Err(_) => {
-            return Err("Invalid ledger canister ID: Check LP_LEDGER_ADDRESS.".to_string());
-        }
-    };
+    // let canister_id = match Principal::from_text(LP_LEDGER_ADDRESS) {
+    //     Ok(id) => id,
+    //     Err(_) => {
+    //         return Err("Invalid ledger canister ID: Check LP_LEDGER_ADDRESS.".to_string());
+    //     }
+    // };
+    let canister_id = get_canister_id_by_name("LP_LEDGER_ADDRESS");
+    ic_cdk::println!("new lp ledger id = {:?}",canister_id.to_text());
 
     // Debug: Log input arguments
     ic_cdk::println!(

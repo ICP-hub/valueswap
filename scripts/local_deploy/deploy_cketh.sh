@@ -20,7 +20,7 @@ echo "Token Symbol: $TOKEN_SYMBOL"
 
 # Set initial parameters
 export PRE_MINTED_TOKENS=10_000_000_000_000
-export TRANSFER_FEE=10_000
+export TRANSFER_FEE=0
 
 # Switch to the default identity and get its principal ID
 dfx identity use DevJourney

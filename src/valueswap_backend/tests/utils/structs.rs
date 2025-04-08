@@ -11,6 +11,7 @@ pub enum CustomError {
     StringConversionFailed(String),
     UnableToStorePoolData(String),
     UnableToTransferLP(String),
+    CreateNopool(String),
     NoCanisterIDFound,
     SwappingFailed(String),
     InvalidInput(String),
@@ -87,7 +88,7 @@ pub struct InitArgs {
     pub(crate) token_symbol: String,
     pub(crate) token_name: String,
     pub(crate) transfer_fee: Nat,
-    pub(crate)metadata: Vec<(String, String)>,
+    pub(crate) metadata: Vec<(String, String)>,
     pub(crate) minting_account: Account,
     pub(crate) initial_balances: Vec<(Account, Nat)>,
     pub(crate) archive_options: ArchiveOptions,
@@ -157,4 +158,23 @@ pub enum ApproveError {
 pub enum ApproveResult {
     Ok(Nat),
     Err(ApproveError),
+}
+
+#[derive(CandidType, Deserialize ,Serialize, Clone)]
+pub struct SwapTestCase {
+    pub description: &'static str,
+    pub expect_success: bool,
+    pub expected_error_message: Option<String>,
+    pub params: SwapParams,
+}
+
+
+#[derive(CandidType, Deserialize ,Serialize, Clone)]
+pub struct SwapParams {
+    pub token1_name: String,
+    pub token_amount: Nat,
+    pub token2_name: String,
+    pub ledger_canister_id1: Principal,
+    pub ledger_canister_id2: Principal,
+    pub fee: Nat,
 }
