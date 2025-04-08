@@ -320,9 +320,10 @@ pub enum InstallError {
 //     pub amount : BTreeMap<String , u64>
 // }
 
-#[derive(Debug,CandidType,Serialize, Deserialize)]
-pub struct BurnedTokensResponse {
-    pub tokens: Vec<Nat>
+#[derive(candid::CandidType, serde::Deserialize, serde::Serialize, Debug)]
+pub enum BurnedTokensResponse {
+    Ok(Vec<Nat>),
+    Err(String),
 }
 
 #[derive(CandidType, Deserialize ,Serialize, Clone)]

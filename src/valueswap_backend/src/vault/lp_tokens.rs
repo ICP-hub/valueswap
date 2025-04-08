@@ -709,7 +709,7 @@ async fn get_user_share_ratio(
 
         let val = borrowed_pool_lp
             .get(&pool_name)
-            .map(|lp_value| lp_value.clone() * base_scaling.clone() * scaling_multiplier);
+            .map(|lp_value| lp_value.clone()  * scaling_multiplier);
 
         ic_cdk::println!("pool_value: {:?}", val);
         val.unwrap_or(Nat::from(0u128))
