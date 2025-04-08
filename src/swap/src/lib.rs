@@ -1,8 +1,8 @@
-use candid::{ Nat, Principal};
+use candid::{Nat, Principal};
 use ic_cdk_macros::*;
+use num_traits::cast::ToPrimitive;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
-use num_traits::cast::ToPrimitive;
 
 mod api;
 mod utils;
@@ -11,13 +11,10 @@ pub use utils::maths::*;
 pub use utils::types::*;
 // use crate::api::metadata::MetadataValue;
 
-
 thread_local! {
     pub static POOL_DATA: RefCell<BTreeMap<Principal, Vec<Pool_Data>>> = RefCell::new(BTreeMap::new());
     pub static POOL_BALANCE : RefCell<BTreeMap<Principal , Nat>> = RefCell::new(BTreeMap::new());
 }
-
-
 
 #[update]
 pub fn pool_balance(user_principal: Principal, params: Pool_Data) {
@@ -53,7 +50,6 @@ pub fn pool_balance(user_principal: Principal, params: Pool_Data) {
     });
 }
 
-
 #[query]
 pub fn get_pool_balance(user_principal: Principal) -> Option<Nat> {
     // Validate user principal
@@ -75,15 +71,11 @@ pub fn get_pool_balance(user_principal: Principal) -> Option<Nat> {
             Some(balance.clone())
         } else {
             // Debug: Log absence of balance
-            ic_cdk::println!(
-                "Debug: No pool balance found for user {}.",
-                user_principal
-            );
+            ic_cdk::println!("Debug: No pool balance found for user {}.", user_principal);
             None
         }
     })
 }
-
 
 // store user_id with pool data
 
@@ -116,7 +108,10 @@ async fn store_pool_data(user_principal: Principal, params: Pool_Data) -> Result
         let mut pool_data_borrowed = pool_data.borrow_mut();
         let liquidity = params.clone();
 
-        pool_data_borrowed.entry(user_principal).or_default().push(liquidity);
+        pool_data_borrowed
+            .entry(user_principal)
+            .or_default()
+            .push(liquidity);
 
         // Debug: Log successful storage
         ic_cdk::println!(
@@ -127,7 +122,6 @@ async fn store_pool_data(user_principal: Principal, params: Pool_Data) -> Result
 
     Ok(())
 }
-
 
 // check if user exists and if it exists update pool data else add user entry with pool data
 
@@ -195,7 +189,6 @@ async fn add_liquidity_to_pool(user_principal: Principal, params: Pool_Data) -> 
     Ok(())
 }
 
-
 // giving back the tokens to the user.
 #[update]
 pub async fn lp_rollback(user: Principal, pool_data: Pool_Data) -> Result<(), String> {
@@ -213,10 +206,12 @@ pub async fn lp_rollback(user: Principal, pool_data: Pool_Data) -> Result<(), St
     }
 
     let platform_principal = ic_cdk::id();
-    ic_cdk::println!("lp rollback platform principal = {}",platform_principal.to_text());
+    ic_cdk::println!(
+        "lp rollback platform principal = {}",
+        platform_principal.to_text()
+    );
     let caller = ic_cdk::caller();
-    ic_cdk::println!("lp rollback caller = {}",caller.to_text());
-    
+    ic_cdk::println!("lp rollback caller = {}", caller.to_text());
 
     // Debug: Log rollback operation
     ic_cdk::println!(
@@ -248,13 +243,13 @@ pub async fn lp_rollback(user: Principal, pool_data: Pool_Data) -> Result<(), St
     }
 
     // Debug: Log successful completion
-    ic_cdk::println!("Debug: LP rollback completed successfully for user principal {}.", user);
+    ic_cdk::println!(
+        "Debug: LP rollback completed successfully for user principal {}.",
+        user
+    );
 
     Ok(())
 }
-
-
-
 
 // TODO : make ledger calls with state checks for balance to prevent TOCTOU vulnerablities
 #[update]
@@ -272,8 +267,8 @@ async fn burn_tokens(
     }
 
     // Define scaling factors
-    let base_scaling = Nat::from(10u128.pow(18));  // 10^18 for base calculations
-    let weight_scaling = Nat::from(100u128);       // Scale for percentages
+    let base_scaling = Nat::from(10u128.pow(18)); // 10^18 for base calculations
+    let weight_scaling = Nat::from(100u128); // Scale for percentages
 
     ic_cdk::println!(
         "Debug: Starting burn_tokens with tokens_to_transfer: {:?}",
@@ -283,8 +278,9 @@ async fn burn_tokens(
     for token in params.pool_data.iter() {
         // Calculate token amount with proper scaling
         // (weight * tokens_to_transfer * weight_scaling) / (base_scaling * 100)
-        let token_amount = (token.weight.clone() * tokens_to_transfer.clone() * weight_scaling.clone()) 
-            / (base_scaling.clone() * Nat::from(100u128));
+        let token_amount =
+            (token.weight.clone() * tokens_to_transfer.clone() * weight_scaling.clone())
+                / (base_scaling.clone() * Nat::from(100u128));
 
         ic_cdk::println!(
             "Debug: Calculated token_amount for {}: {:?}",
@@ -307,7 +303,11 @@ async fn burn_tokens(
     Ok(())
 }
 
-
+#[derive(candid::CandidType, serde::Deserialize, serde::Serialize, Debug)]
+pub enum BurnedTokensResponse {
+    Ok(Vec<Nat>),
+    Err(String),
+}
 #[update]
 #[candid::candid_method(update)]
 async fn get_burned_tokens(
@@ -391,8 +391,6 @@ async fn get_burned_tokens(
     BurnedTokensResponse::Ok(result.clone())
 }
 
-
-
 #[update]
 async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Result<(), String> {
     // Validate user principal
@@ -420,7 +418,8 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Res
     );
 
     // Perform the token transfer
-    let transfer_result = icrc1_transfer(params.ledger_canister_id2, user_principal, amount.clone()).await;
+    let transfer_result =
+        icrc1_transfer(params.ledger_canister_id2, user_principal, amount.clone()).await;
 
     if let Err(e) = transfer_result {
         let error_message = format!("Token transfer failed for user {}: {:?}", user_principal, e);
@@ -507,9 +506,6 @@ async fn swap(user_principal: Principal, params: SwapParams, amount: Nat) -> Res
 
     Ok(())
 }
-
-
-
 
 // #[update]
 // async fn get_user_share_ratio(

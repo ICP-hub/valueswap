@@ -13,6 +13,7 @@ type CreatePoolParams = record {
 };
 type CustomError = variant {
   UnableToRollbackLP : text;
+  CreateNopool : text;
   InvalidInput : text;
   OperationFailed : text;
   LockAcquisitionFailed;
@@ -121,8 +122,10 @@ service : () -> {
     ) -> (float64) query;
   pre_compute_swap : (SwapParams) -> (text, nat);
   remove_canister : (text) -> (Result);
+  remove_canister_id_by_name : (text) -> ();
   remove_user_pool : (Pool_Data) -> (Result_1);
   search_swap_pool : (SwapParams) -> (Result_13) query;
+  set_canister_id_by_name : (text, principal) -> ();
   store_pool_data : (Pool_Data, principal) -> (Result);
   store_pool_data_curr : (Pool_Data) -> (Result);
   total_apr : () -> ();
