@@ -13,6 +13,7 @@ type CreatePoolParams = record {
 };
 type CustomError = variant {
   UnableToRollbackLP : text;
+  CreateNopool : text;
   InvalidInput : text;
   OperationFailed : text;
   LockAcquisitionFailed;

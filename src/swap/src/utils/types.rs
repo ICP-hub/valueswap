@@ -3,7 +3,7 @@ use serde::{Deserialize as SerdeDeserialize, Serialize};
 use std::fmt;
 use candid::{Nat, Principal};
 
-#[derive(CandidType, Deserialize,Serialize)]
+#[derive(CandidType, Deserialize, Serialize, Debug)]
 pub struct BurnedTokensResponse {
     pub tokens: Vec<Nat>
 }

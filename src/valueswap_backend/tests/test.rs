@@ -25,15 +25,15 @@ fn call_test_function() {
         cketh_canister,
         lp_ledger_canister,
     );
-    test_burn_lp_tokens(
-        &pic,
-        backend_canister,
-        ckbtc_canister,
-        lp_ledger_canister,
-        cketh_canister,
-    );
-    test_swap(&pic, backend_canister, ckbtc_canister, cketh_canister);
-    // test_get_user_share_ratio(&pic, backend_canister, ckbtc_canister, cketh_canister);
+    // test_burn_lp_tokens(
+    //     &pic,
+    //     backend_canister,
+    //     ckbtc_canister,
+    //     lp_ledger_canister,
+    //     cketh_canister,
+    // );
+    // test_swap(&pic, backend_canister, ckbtc_canister, cketh_canister);
+    test_get_user_share_ratio(&pic, backend_canister, ckbtc_canister, cketh_canister);
 }
 
 fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {

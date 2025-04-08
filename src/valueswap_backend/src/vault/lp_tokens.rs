@@ -1,7 +1,8 @@
-use candid::{Nat, Principal};
+use candid::{CandidType, Nat, Principal};
 use ic_cdk::api::management_canister::main::{delete_canister, stop_canister};
 use ic_cdk::call;
 use ic_cdk_macros::{query, update};
+use serde::Deserialize;
 use std::cell::RefCell;
 use std::collections::BTreeMap;
 
@@ -170,7 +171,7 @@ pub fn remove_user_pool(params: Pool_Data) -> Result<(), CustomError> {
                 .collect::<Vec<String>>()
                 .join("");
 
-            ic_cdk::println!("pool name remove user pool = {}",pool_to_remove);
+            ic_cdk::println!("pool name remove user pool = {}", pool_to_remove);
             if let Some(index) = user_pools.iter().position(|p| p == &pool_to_remove) {
                 ic_cdk::println!("Removing pool for user: {}", user);
                 user_pools.remove(index);
@@ -190,7 +191,6 @@ pub fn remove_user_pool(params: Pool_Data) -> Result<(), CustomError> {
 
     Ok(())
 }
-
 
 #[query]
 pub fn get_users_pool(user: Principal) -> Result<Option<Vec<String>>, CustomError> {
@@ -325,32 +325,42 @@ pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
     let amount = USERS_LP.with(|share| {
         let mut borrowed_share = share.borrow_mut();
         let mut users_contribution = Nat::from(0u128); // Assuming this was declared somewhere outside originally
-    
+
         for amount in &params.pool_data {
             if amount.value == Nat::from(0u128) || amount.balance == Nat::from(0u128) {
-                ic_cdk::println!("Skipping zero value or balance: value = {}, balance = {}", amount.value, amount.balance);
+                ic_cdk::println!(
+                    "Skipping zero value or balance: value = {}, balance = {}",
+                    amount.value,
+                    amount.balance
+                );
                 continue;
             }
             let contribution = amount.value.clone() * amount.balance.clone();
             ic_cdk::println!(
                 "Adding contribution: value = {}, balance = {}, contribution = {}",
-                amount.value, amount.balance, contribution
+                amount.value,
+                amount.balance,
+                contribution
             );
             users_contribution += contribution;
         }
-    
+
         ic_cdk::println!("Total user contribution: {}", users_contribution);
         ic_cdk::println!("Total pool value: {}", total_pool_value);
         ic_cdk::println!("Total LP supply: {}", total_lp_supply);
-    
-        let lp_amount: Nat = (users_contribution.clone() / total_pool_value.clone()) * total_lp_supply.clone();
-        ic_cdk::println!("Calculated LP amount to be minted for user {}: {}", user, lp_amount);
-    
+
+        let lp_amount: Nat =
+            (users_contribution.clone() / total_pool_value.clone()) * total_lp_supply.clone();
+        ic_cdk::println!(
+            "Calculated LP amount to be minted for user {}: {}",
+            user,
+            lp_amount
+        );
+
         borrowed_share.insert(user, lp_amount.clone());
-    
+
         Some(lp_amount) // Return LP amount for later use
     });
-    
 
     // If LP amount calculation failed, return an error
     let amount = amount.ok_or_else(|| {
@@ -358,7 +368,6 @@ pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
         ic_cdk::println!("{}", err_msg);
         err_msg
     })?;
-
 
     ic_cdk::println!("Calculated LP token amount to assign to user: {}", amount);
     let mut attempts = 0;
@@ -620,6 +629,13 @@ async fn burn_lp_tokens(
     Ok(())
 }
 
+
+#[derive(candid::CandidType, serde::Deserialize, serde::Serialize, Debug)]
+pub enum BurnedTokensResponse {
+    Ok(Vec<Nat>),
+    Err(String),
+}
+
 #[update]
 #[candid::candid_method(update)]
 async fn get_user_share_ratio(
@@ -628,6 +644,11 @@ async fn get_user_share_ratio(
     amount: Nat,
 ) -> Result<Vec<Nat>, String> {
     let user = ic_cdk::caller();
+
+    if user == Principal::anonymous() {
+        ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
+        return Err("Invalid user principal: Cannot be anonymous.".to_string());
+    }
     ic_cdk::println!(
         "Input Params: {:?}, Pool Name: {}, Amount: {}",
         params,
@@ -714,16 +735,24 @@ async fn get_user_share_ratio(
         ic_cdk::println!("WARNING: tokens_to_transfer calculated as zero. Check scaling factors.");
     }
 
-    let result: Result<(Vec<Nat>,), String> = call(
+    let (tokens_vec,): (BurnedTokensResponse,) = call(
         canister_id,
         "get_burned_tokens",
         (params, user, tokens_to_transfer),
     )
     .await
-    .map_err(|e| format!("Failed to get token data: {:?}", e));
+    .map_err(|e| e.1)?;
 
-    ic_cdk::println!("get_burned_tokens result: {:?}", result);
-    result.map(|(response,)| response)
+    match tokens_vec {
+        BurnedTokensResponse::Ok(balance) => {
+            ic_cdk::println!("balance = {:?}", balance);
+            Ok(balance)
+        }
+        BurnedTokensResponse::Err(err) => Err(format!("{:?}", err)),
+    }
+    // ic_cdk::println!("get_burned_tokens result: {:?}", response);
+    // tokens_vec
+    // result.map(|(response,)| response)
 }
 
 #[update]
