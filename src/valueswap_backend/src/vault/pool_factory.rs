@@ -117,6 +117,41 @@ pub fn release_lock(key: &Principal) -> Result<(), CustomError> {
 
     Ok(())
 }
+/// Retrieves the canister ID associated with the given name.
+pub fn get_canister_id_by_name(name: &str) -> Principal {
+    CANISTER_ID.with(|id_map| {
+        id_map
+            .borrow()
+            .get(name)
+            .cloned()
+            .expect(&format!("❌ Canister ID not found for name '{}'", name))
+    })
+}
+
+/// Stores the canister ID associated with the given name.
+#[update]
+pub fn set_canister_id_by_name(name: String, canister_id: Principal) {
+    CANISTER_ID.with(|id_map| {
+        id_map
+            .borrow_mut()
+            .insert(name, canister_id);
+    });
+}
+
+/// Removes the canister ID associated with the given name.
+#[update]
+pub fn remove_canister_id_by_name(name: String) {
+    CANISTER_ID.with(|id_map| {
+        let removed = id_map.borrow_mut().remove(&name);
+        if removed.is_none() {
+            ic_cdk::println!("⚠️ No canister ID found for name '{}'", name);
+        } else {
+            ic_cdk::println!("✅ Canister ID for name '{}' has been removed", name);
+        }
+    });
+}
+
+
 
 fn prevent_anonymous() -> Result<(), String> {
     if api::caller() == Principal::anonymous() {
@@ -242,7 +277,7 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                 decrease_total_lp(amount);
 
                 // Return the original error after rollback attempt
-                return Err(CustomError::UnableToTransferLP(e));
+                return Err(CustomError::CreateNopool("unable to create pool, rollback done successfully".to_string()));
             }
             ic_cdk::println!("outside the potential rollbacks");
             // users_lp_share(params.clone()).await.unwrap();
@@ -1192,7 +1227,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
 
     match result {
         Ok(_) => {
-            println!("Token deposit successful, resuming process...");
+            ic_cdk::println!("Token deposit successful, resuming process...");
 
             let swap_result: Result<(), String> = call(
                 canister_id.clone(),
@@ -1208,7 +1243,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
             }
         }
         Err(err) => {
-            println!(
+            ic_cdk::println!(
                 "Error during token deposit: {:?}. Initiating rollback...",
                 err
             );
