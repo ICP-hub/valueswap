@@ -314,51 +314,55 @@ async fn get_burned_tokens(
     params: Pool_Data,
     user: Principal,
     tokens_to_transfer: Nat,
-) -> Result<(BurnedTokensResponse,), String> {
-    // Validate user principal
+) -> BurnedTokensResponse {
     if user == Principal::anonymous() {
         ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
-        return Err("Invalid user principal: Cannot be anonymous.".to_string());
+        BurnedTokensResponse::Err("Invalid user principal: Cannot be anonymous.".to_string());
     }
 
-    // Validate pool data
     if let Err(err) = params.validate() {
         ic_cdk::println!("Error: Invalid pool data - {:?}", err);
-        return Err(format!("Invalid pool data: {:?}", err));
+        BurnedTokensResponse::Err(format!("Invalid pool data: {:?}", err));
     }
 
-    // Validate that tokens_to_transfer is positive
+    // // Validate tokens_to_transfer is positive
     if tokens_to_transfer <= Nat::from(0u128) {
-        ic_cdk::println!("Error: tokens_to_transfer must be positive, got: {}", tokens_to_transfer);
-        return Err("tokens_to_transfer must be positive".to_string());
+        ic_cdk::println!(
+            "Error: tokens_to_transfer must be positive, got: {}",
+            tokens_to_transfer
+        );
+        BurnedTokensResponse::Err("tokens_to_transfer must be positive".to_string());
     }
 
     ic_cdk::println!("DEBUG: Incoming tokens_to_transfer: {}", tokens_to_transfer);
 
-    // Keep the same scaling factors for consistency
-    let base_scaling = Nat::from(10u128.pow(18));  // 10^18 for base calculations
-    let weight_scaling = Nat::from(100u128);       // Scale for percentages
-    
+    // Keep the same scaling factors as in get_user_share_ratio for consistency
+    let base_scaling = Nat::from(10u128.pow(18)); // 10^18 for base calculations
+    let weight_scaling = Nat::from(100u128); // Scale for percentages
+
     let mut result: Vec<Nat> = Vec::new();
     let mut total_weight = Nat::from(0u128);
 
-    // Verify weights and sum them up
+    // Verify weights are properly set
     for token in params.pool_data.iter() {
         total_weight += token.weight.clone();
         ic_cdk::println!("Token: {}, Weight: {}", token.token_name, token.weight);
     }
-    
+
     ic_cdk::println!("Total weight: {}", total_weight);
-    
-    // Warn if the total weight does not add up to 100
-    if total_weight != Nat::from(100u128) {
+
+    // Warn if weights don't add up to 100
+    if total_weight <= Nat::from(0u128) || total_weight != Nat::from(100u128) {
         ic_cdk::println!("WARNING: Total weight is {} (expected 100)", total_weight);
     }
 
     // Process each token
     for token in params.pool_data.iter() {
-        // Calculate the token amount based on the weight percentage
+        // Optimized calculation to minimize precision loss
+        // First multiply, then divide to maintain as much precision as possible
         let token_percent = token.weight.clone();
+
+        // Calculate token amount - scaled based on weight percentage
         let token_amount = if tokens_to_transfer > Nat::from(0u128) {
             (tokens_to_transfer.clone() * token_percent) / Nat::from(100u128)
         } else {
@@ -366,12 +370,12 @@ async fn get_burned_tokens(
         };
 
         // Detailed logging for debugging
-        ic_cdk::println!(
-            "DEBUG: Token calculation details for {}:", token.token_name
-        );
+        ic_cdk::println!("DEBUG: Token calculation details for {}:", token.token_name);
         ic_cdk::println!("  - Weight: {}", token.weight);
         ic_cdk::println!("  - tokens_to_transfer: {}", tokens_to_transfer);
+
         ic_cdk::println!("  - Token percentage: {}", token.weight);
+
         ic_cdk::println!("  - Result: {}", token_amount);
 
         result.push(token_amount);
@@ -384,9 +388,8 @@ async fn get_burned_tokens(
         );
     }
 
-    // Return the tokens inside a tuple
     ic_cdk::println!("DEBUG: Final result vector: {:?}", result);
-    Ok((BurnedTokensResponse { tokens: result },))
+    BurnedTokensResponse::Ok(result.clone())
 }
 
 

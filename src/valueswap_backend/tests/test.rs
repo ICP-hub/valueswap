@@ -26,6 +26,8 @@ fn call_test_function() {
 }
 
 fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
+    std::env::set_var("POCKET_IC_BIN", "/Users/admin/Documents/Projects/ICP/valueswap/src/valueswap_backend/tests/pocket-ic"); // Path of the pocket-ic binary
+
     ic_cdk::println!("Setting up Pocket IC...");
 
     let pic = PocketIc::new();
@@ -316,6 +318,54 @@ fn test_create_pools(pic: &PocketIc, backend_canister: Principal, ckbtc_canister
             expect_success: false,
             expected_error_message: Some("Invalid weight: weight must be non-zero.".to_string()),
         },
+        // ❌ Invalid: value is zero
+        // TestCase {
+        //     pool_data: PoolData {
+        //         pool_data: vec![CreatePoolParams {
+        //             token_name: "ZeroValueToken".to_string(),
+        //             balance: Nat::from(100u128),
+        //             weight: Nat::from(10u128),
+        //             value: Nat::from(0u128),
+        //             ledger_canister_id: ckbtc_canister,
+        //             image: "zero.png".to_string(),
+        //         }],
+        //         swap_fee: Nat::from(2u128),
+        //     },
+        //     expect_success: false,
+        //     expected_error_message: Some("Invalid value: value cannot be zero.".to_string()),
+        // },
+        // // ❌ Invalid: balance is zero
+        // TestCase {
+        //     pool_data: PoolData {
+        //         pool_data: vec![CreatePoolParams {
+        //             token_name: "ZeroBalance".to_string(),
+        //             balance: Nat::from(0u128),
+        //             weight: Nat::from(5u128),
+        //             value: Nat::from(100u128),
+        //             ledger_canister_id: ckbtc_canister,
+        //             image: "zero_balance.png".to_string(),
+        //         }],
+        //         swap_fee: Nat::from(1u128),
+        //     },
+        //     expect_success: false,
+        //     expected_error_message: Some("Invalid balance: balance cannot be zero.".to_string()),
+        // },
+        // // ❌ Invalid: weight is zero
+        // TestCase {
+        //     pool_data: PoolData {
+        //         pool_data: vec![CreatePoolParams {
+        //             token_name: "ZeroWeight".to_string(),
+        //             balance: Nat::from(100u128),
+        //             weight: Nat::from(0u128),
+        //             value: Nat::from(100u128),
+        //             ledger_canister_id: ckbtc_canister,
+        //             image: "zero_weight.png".to_string(),
+        //         }],
+        //         swap_fee: Nat::from(1u128),
+        //     },
+        //     expect_success: false,
+        //     expected_error_message: Some("Invalid weight: weight must be non-zero.".to_string()),
+        // },
     ];
 
     let hardcoded_principal = get_user_principal();

@@ -628,6 +628,11 @@ async fn get_user_share_ratio(
     amount: Nat,
 ) -> Result<Vec<Nat>, String> {
     let user = ic_cdk::caller();
+
+    if user == Principal::anonymous() {
+        ic_cdk::println!("Error: Invalid user principal: Cannot be anonymous.");
+        return Err("Invalid user principal: Cannot be anonymous.".to_string());
+    }
     ic_cdk::println!(
         "Input Params: {:?}, Pool Name: {}, Amount: {}",
         params,
@@ -714,16 +719,24 @@ async fn get_user_share_ratio(
         ic_cdk::println!("WARNING: tokens_to_transfer calculated as zero. Check scaling factors.");
     }
 
-    let result: Result<(Vec<Nat>,), String> = call(
+    let (tokens_vec,): (BurnedTokensResponse,) = call(
         canister_id,
         "get_burned_tokens",
         (params, user, tokens_to_transfer),
     )
     .await
-    .map_err(|e| format!("Failed to get token data: {:?}", e));
+    .map_err(|e| e.1)?;
 
-    ic_cdk::println!("get_burned_tokens result: {:?}", result);
-    result.map(|(response,)| response)
+    match tokens_vec {
+        BurnedTokensResponse::Ok(balance) => {
+            ic_cdk::println!("balance = {:?}", balance);
+            Ok(balance)
+        }
+        BurnedTokensResponse::Err(err) => Err(format!("{:?}", err)),
+    }
+    // ic_cdk::println!("get_burned_tokens result: {:?}", response);
+    // tokens_vec
+    // result.map(|(response,)| response)
 }
 
 #[update]
