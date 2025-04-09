@@ -117,24 +117,22 @@ pub fn release_lock(key: &Principal) -> Result<(), CustomError> {
 
     Ok(())
 }
-/// Retrieves the canister ID associated with the given name.
-pub fn get_canister_id_by_name(name: &str) -> Principal {
+/// Retrieves the canister ID associated with the given name, or returns an error.
+pub fn get_canister_id_by_name(name: &str) -> Result<Principal, String> {
     CANISTER_ID.with(|id_map| {
         id_map
             .borrow()
             .get(name)
             .cloned()
-            .expect(&format!("❌ Canister ID not found for name '{}'", name))
+            .ok_or_else(|| format!("❌ Canister ID not found for name '{}'", name))
     })
 }
 
 /// Stores the canister ID associated with the given name.
 #[update]
-pub fn set_canister_id_by_name(name: String, canister_id: Principal) {
+pub fn set_canister_id(name: String, canister_id: Principal) {
     CANISTER_ID.with(|id_map| {
-        id_map
-            .borrow_mut()
-            .insert(name, canister_id);
+        id_map.borrow_mut().insert(name, canister_id);
     });
 }
 
@@ -277,7 +275,9 @@ async fn create_pools(params: Pool_Data) -> Result<(), CustomError> {
                 decrease_total_lp(amount);
 
                 // Return the original error after rollback attempt
-                return Err(CustomError::CreateNopool("unable to create pool, rollback done successfully".to_string()));
+                return Err(CustomError::CreateNopool(
+                    "unable to create pool, rollback done successfully".to_string(),
+                ));
             }
             ic_cdk::println!("outside the potential rollbacks");
             // users_lp_share(params.clone()).await.unwrap();
@@ -801,6 +801,7 @@ fn add_liquidity_curr(params: Pool_Data) -> Result<(), String> {
     Ok(())
 }
 
+// basically as the name suggest this function is used to search the pool key or pool name if it exist.
 #[query]
 fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
     if params.token1_name.trim().is_empty() || params.token2_name.trim().is_empty() {
@@ -844,8 +845,12 @@ fn search_swap_pool(params: SwapParams) -> Result<Vec<String>, String> {
 
 #[update]
 async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
+    ic_cdk::println!("Starting pre_compute_swap with params: {:?}", params);
     let required_pools = match search_swap_pool(params.clone()) {
-        Ok(pools) => pools,
+        Ok(pools) => {
+            ic_cdk::println!("Matching pools found: {:?}", pools);
+            pools
+        }
         Err(_) => {
             ic_cdk::println!("No matching pools found.");
             return ("No matching pools found.".to_string(), Nat::from(0u128));
@@ -859,6 +864,7 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
     let pool_data = POOL_DATA.with(|pool| pool.borrow().clone());
 
     for pool_key in required_pools {
+        ic_cdk::println!("Checking pool_key: {}", pool_key);
         let pool_entries = match pool_data.get(&pool_key) {
             Some(entries) => entries,
             None => {
@@ -868,6 +874,7 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
         };
 
         for data in pool_entries {
+            ic_cdk::println!("Inspecting pool entry: {:?}", data);
             // Find the tokenA (input) and tokenB (output) from the pool data
             let tokenA_data = data
                 .pool_data
@@ -886,10 +893,17 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
                 .join("");
 
             if let (Some(tokenA), Some(tokenB)) = (tokenA_data, tokenB_data) {
+                ic_cdk::println!(
+                    "TokenA and TokenB found in pool: {} & {}",
+                    tokenA.token_name,
+                    tokenB.token_name
+                );
                 let w_i = tokenA.weight.clone();
                 let w_o = tokenB.weight.clone();
                 let amount_out = params.token_amount.clone();
                 let fee = data.swap_fee.clone();
+
+                ic_cdk::println!("Weights -> w_i: {}, w_o: {}, Fee: {}", w_i, w_o, fee);
 
                 // Fetch the pool canister ID asynchronously
                 let pool_canister_id = with_state(|pool| {
@@ -914,6 +928,8 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
                     .await
                     .unwrap();
 
+                ic_cdk::println!("Fetched balances -> b_i: {}, b_o: {}", b_i, b_o);
+
                 let decimals_a = get_decimals(tokenA.ledger_canister_id.clone());
                 let decimals_b = get_decimals(tokenB.ledger_canister_id.clone());
 
@@ -933,10 +949,21 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
                 );
 
                 // Calculate the required input using the out_given_in formula
-                let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out);
+                let required_input = out_given_in(b_i, w_i, b_o, w_o, amount_out.clone());
+
+                ic_cdk::println!(
+                    "Required input calculated: {} for desired output {}",
+                    required_input,
+                    amount_out
+                );
 
                 // Ensure the user has enough balance to provide the input
                 if required_input >= max_output_amount {
+                    ic_cdk::println!(
+                        "New best pool found: {} with max output amount: {}",
+                        pool_key,
+                        required_input
+                    );
                     max_output_amount = max(required_input, max_output_amount);
                     best_pool = Some(pool_key.clone());
                 }
@@ -947,8 +974,18 @@ async fn pre_compute_swap(params: SwapParams) -> (String, Nat) {
     }
 
     match best_pool {
-        Some(pool) => (pool, max_output_amount),
-        None => ("No suitable pool found.".to_string(), Nat::from(0u128)),
+        Some(pool) => {
+            ic_cdk::println!(
+                "Best pool selected: {} with max output: {}",
+                pool,
+                max_output_amount
+            );
+            (pool, max_output_amount)
+        }
+        None => {
+            ic_cdk::println!("No suitable pool found after evaluation.");
+            ("No suitable pool found.".to_string(), Nat::from(0u128))
+        }
     }
 }
 
@@ -1138,6 +1175,26 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
             "token2_name cannot be empty".to_string(),
         ));
     }
+    if params.token1_name == params.token2_name {
+        return Err(CustomError::InvalidSwapParams(
+            "token1_name and token2_name must be different".to_string(),
+        ));
+    }
+    if params.token1_name.len() > 100 {
+        return Err(CustomError::InvalidSwapParams(
+            "token1_name cannot exceed 100 characters".to_string(),
+        ));
+    }
+    if params.token2_name.len() > 100 {
+        return Err(CustomError::InvalidSwapParams(
+            "token2_name cannot exceed 100 characters".to_string(),
+        ));
+    }
+    if params.token_amount < params.fee {
+        return Err(CustomError::InvalidSwapParams(
+            "token_amount must be greater than fee".to_string(),
+        ));
+    }
     if params.token_amount == Nat::from(0u32) {
         return Err(CustomError::InvalidSwapParams(
             "token_amount must be greater than zero".to_string(),
@@ -1248,6 +1305,7 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
                 err
             );
 
+            // tell: the amount will be less becasue of the fee.
             let rollback_result: Result<(), String> = call(
                 canister_id,
                 "icrc1_transfer",
