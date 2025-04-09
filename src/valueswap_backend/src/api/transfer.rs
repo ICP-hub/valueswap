@@ -61,7 +61,12 @@ pub async fn icrc1_transfer(user_principal: Principal, amount: Nat) -> Result<Bl
     //         return Err("Invalid ledger canister ID: Check LP_LEDGER_ADDRESS.".to_string());
     //     }
     // };
-    let canister_id = get_canister_id_by_name("LP_LEDGER_ADDRESS");
+    let canister_id = match get_canister_id_by_name("LP_LEDGER_ADDRESS"){
+        Ok(id) => id,
+        Err(_) => {
+            return Err("Invalid ledger canister ID: Check LP_LEDGER_ADDRESS.".to_string());
+        }
+    };
     ic_cdk::println!("new lp ledger id = {:?}",canister_id.to_text());
 
     // Debug: Log input arguments

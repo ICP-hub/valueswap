@@ -26,6 +26,7 @@ type CustomError = variant {
   VaultEmpty : text;
   PoolDataEmpty;
   AnotherOperationInProgress : text;
+  LockReleaseFailed;
   TokenDepositFailed;
   SwappingFailed : text;
 };
@@ -125,7 +126,7 @@ service : () -> {
   remove_canister_id_by_name : (text) -> ();
   remove_user_pool : (Pool_Data) -> (Result_1);
   search_swap_pool : (SwapParams) -> (Result_13) query;
-  set_canister_id_by_name : (text, principal) -> ();
+  set_canister_id : (text, principal) -> ();
   store_pool_data : (Pool_Data, principal) -> (Result);
   store_pool_data_curr : (Pool_Data) -> (Result);
   total_apr : () -> ();

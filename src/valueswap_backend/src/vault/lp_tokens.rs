@@ -11,7 +11,7 @@ use crate::api::transfer::icrc1_transfer;
 use crate::constants::asset_address::LP_LEDGER_ADDRESS;
 use crate::utils::types::*;
 use crate::vault::apy::*;
-use crate::with_state;
+use crate::{acquire_lock, release_lock, with_state};
 
 thread_local! {
     static TOTAL_LP_SUPPLY : RefCell<Nat> = RefCell::new(Nat::from(0u128));
@@ -307,6 +307,8 @@ pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
     let user = ic_cdk::caller();
     ic_cdk::println!("Starting LP share calculation for user: {}", user);
 
+    // let base_scaling = Nat::from(10u128.pow(18));
+
     params
         .validate()
         .map_err(|e| format!("Invalid pool data: {:?}", e))?;
@@ -350,7 +352,8 @@ pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
         ic_cdk::println!("Total LP supply: {}", total_lp_supply);
 
         let lp_amount: Nat =
-            (users_contribution.clone() / total_pool_value.clone()) * total_lp_supply.clone();
+            // ((users_contribution.clone()) / total_pool_value.clone()) * total_lp_supply.clone();
+            (users_contribution.clone() * total_lp_supply.clone()) /total_pool_value.clone();
         ic_cdk::println!(
             "Calculated LP amount to be minted for user {}: {}",
             user,
@@ -554,6 +557,15 @@ async fn burn_lp_tokens(
 
     let user = ic_cdk::caller();
 
+    let operation_key = user.clone();
+    // Acquire the lock
+    {
+        if let Err(e) = acquire_lock(&operation_key) {
+            ic_cdk::println!("Lock acquisition failed: {:?}", e);
+            return Err("LockAcquisitionFailed".to_string());
+        }
+    }
+
     if pool_name.trim().is_empty() {
         return Err("Pool name cannot be empty.".to_string());
     }
@@ -563,72 +575,82 @@ async fn burn_lp_tokens(
     }
 
     let target_canister_id = ic_cdk::id();
+    let result = async {
+        // Transfer tokens to the canister
+        let result = deposit_tokens(amount.clone(), ledger_canister_id, target_canister_id).await;
+        if let Err(e) = result {
+            return Err(format!("Transfer failed: {}", e));
+        }
 
-    // Transfer tokens to the canister
-    let result = deposit_tokens(amount.clone(), ledger_canister_id, target_canister_id).await;
-    if let Err(e) = result {
-        return Err(format!("Transfer failed: {}", e));
+        let canister_id = with_state(|pool| {
+            let pool_borrowed = &mut pool.token_pools;
+            pool_borrowed
+                .get(&pool_name)
+                .map(|user_principal| user_principal.principal)
+        })
+        .ok_or_else(|| format!("No canister ID found for the pool: {}", pool_name))?;
+
+        let pool_total_lp = POOL_LP_SHARE.with(|share| {
+            let borrowed_share = share.borrow();
+            borrowed_share
+                .get(&pool_name)
+                .cloned()
+                .unwrap_or(Nat::from(0u128))
+        });
+
+        if pool_total_lp <= Nat::from(0u128) {
+            return Err(format!("No LP tokens in the pool: {}", pool_name));
+        }
+
+        // Calculate user share ratio with proper scaling
+        let user_share_ratio = (amount.clone() * base_scaling.clone()) / pool_total_lp.clone();
+
+        let pool_value: Nat = POOL_LP_SHARE.with(|pool_lp| {
+            let borrowed_pool_lp = pool_lp.borrow();
+            borrowed_pool_lp
+                .get(&pool_name)
+                .map(|lp_value| lp_value.clone() * weight_scaling.clone())
+                .unwrap_or(Nat::from(0u128))
+        });
+
+        if pool_value <= Nat::from(0u128) {
+            return Err(format!("No tokens in the pool: {}", pool_name));
+        }
+
+        // Calculate tokens to transfer with proper scaling
+        let tokens_to_transfer = (pool_value * user_share_ratio) / base_scaling.clone();
+
+        let result: Result<(), String> = call(
+            canister_id,
+            "burn_tokens",
+            (params, user, tokens_to_transfer),
+        )
+        .await
+        .map_err(|e| format!("Failed to perform swap: {:?}", e));
+
+        if let Err(e) = result {
+            return Err(e);
+        }
+
+        // Update pool state
+        decrease_pool_lp(pool_name.clone(), amount.clone());
+        decrease_user_pool_lp(user, pool_name, amount.clone());
+        decrease_total_lp(amount);
+
+        ic_cdk::println!("Successfully burned LP tokens for user: {}", user);
+
+        Ok(())
     }
-
-    let canister_id = with_state(|pool| {
-        let pool_borrowed = &mut pool.token_pools;
-        pool_borrowed
-            .get(&pool_name)
-            .map(|user_principal| user_principal.principal)
-    })
-    .ok_or_else(|| format!("No canister ID found for the pool: {}", pool_name))?;
-
-    let pool_total_lp = POOL_LP_SHARE.with(|share| {
-        let borrowed_share = share.borrow();
-        borrowed_share
-            .get(&pool_name)
-            .cloned()
-            .unwrap_or(Nat::from(0u128))
-    });
-
-    if pool_total_lp <= Nat::from(0u128) {
-        return Err(format!("No LP tokens in the pool: {}", pool_name));
+    .await;
+    // Release the lock
+    {
+        if let Err(e) = release_lock(&operation_key) {
+            ic_cdk::println!("Lock release failed: {:?}", e);
+            return Err("LockReleaseFailed".to_string());
+        }
     }
-
-    // Calculate user share ratio with proper scaling
-    let user_share_ratio = (amount.clone() * base_scaling.clone()) / pool_total_lp.clone();
-
-    let pool_value: Nat = POOL_LP_SHARE.with(|pool_lp| {
-        let borrowed_pool_lp = pool_lp.borrow();
-        borrowed_pool_lp
-            .get(&pool_name)
-            .map(|lp_value| lp_value.clone() * weight_scaling.clone())
-            .unwrap_or(Nat::from(0u128))
-    });
-
-    if pool_value <= Nat::from(0u128) {
-        return Err(format!("No tokens in the pool: {}", pool_name));
-    }
-
-    // Calculate tokens to transfer with proper scaling
-    let tokens_to_transfer = (pool_value * user_share_ratio) / base_scaling.clone();
-
-    let result: Result<(), String> = call(
-        canister_id,
-        "burn_tokens",
-        (params, user, tokens_to_transfer),
-    )
-    .await
-    .map_err(|e| format!("Failed to perform swap: {:?}", e));
-
-    if let Err(e) = result {
-        return Err(e);
-    }
-
-    // Update pool state
-    decrease_pool_lp(pool_name.clone(), amount.clone());
-    decrease_user_pool_lp(user, pool_name, amount.clone());
-    decrease_total_lp(amount);
-
-    ic_cdk::println!("Successfully burned LP tokens for user: {}", user);
-    Ok(())
+    result
 }
-
 
 #[derive(candid::CandidType, serde::Deserialize, serde::Serialize, Debug)]
 pub enum BurnedTokensResponse {
@@ -709,7 +731,7 @@ async fn get_user_share_ratio(
 
         let val = borrowed_pool_lp
             .get(&pool_name)
-            .map(|lp_value| lp_value.clone()  * scaling_multiplier);
+            .map(|lp_value| lp_value.clone() * scaling_multiplier);
 
         ic_cdk::println!("pool_value: {:?}", val);
         val.unwrap_or(Nat::from(0u128))
