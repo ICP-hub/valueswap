@@ -79,7 +79,7 @@ impl Pool_Data {
             ));
         }
 
-
+        let mut ratio = Nat::from(0u128);
 
         // Validate each pool data entry
         for pool in &self.pool_data {
@@ -87,6 +87,14 @@ impl Pool_Data {
             if pool.token_name.trim().is_empty() || pool.token_name.len() > 100 {
                 return Err(CustomError::InvalidInput(
                     "Token name cannot be empty or exceed 100 characters".to_string(),
+                ));
+            }
+
+            ratio += pool.weight.clone();
+
+            if ratio > Nat::from(100u128){
+                return Err(CustomError::InvalidInput(
+                    "Invalid weights: total weight exceeds 100".to_string(),
                 ));
             }
 
@@ -112,6 +120,12 @@ impl Pool_Data {
             }
 
             // Image URL validation is commented out; assuming it's handled elsewhere if needed
+        }
+
+        if ratio < Nat::from(100u128){
+            return Err(CustomError::InvalidInput(
+                "Invalid weights: total weight should be 100".to_string(),
+            ));
         }
 
         Ok(())
@@ -326,8 +340,7 @@ pub enum BurnedTokensResponse {
     Err(String),
 }
 
-#[derive(CandidType, Deserialize ,Serialize, Clone)]
-
+#[derive(CandidType, Deserialize ,Serialize, Clone,Debug)]
 pub struct SwapParams {
     pub token1_name : String,
     pub token_amount : Nat,
@@ -345,6 +358,7 @@ pub enum CustomError {
     TokenDepositFailed,
     CanisterCreationFailed(String),
     LockAcquisitionFailed,
+    LockReleaseFailed,
     StringConversionFailed(String),
     UnableToStorePoolData(String),
     UnableToTransferLP(String),

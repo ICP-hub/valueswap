@@ -149,8 +149,6 @@ pub fn remove_canister_id_by_name(name: String) {
     });
 }
 
-
-
 fn prevent_anonymous() -> Result<(), String> {
     if api::caller() == Principal::anonymous() {
         Err("Anonymous access not allowed".to_string())
@@ -1212,138 +1210,147 @@ async fn compute_swap(params: SwapParams) -> Result<(), CustomError> {
     }
 
     let user = ic_cdk::caller();
+    let operation_key = user.clone();
 
     {
-        let mut locks = LOCKS1
-            .lock()
-            .map_err(|_| CustomError::LockAcquisitionFailed)?;
-        if locks.get(&user).copied().unwrap_or(false) {
-            return Err(CustomError::AnotherOperationInProgress(user.to_string()));
+        if let Err(e) = acquire_lock(&operation_key) {
+            ic_cdk::println!("Lock acquisition failed: {:?}", e);
+            return Err(CustomError::LockAcquisitionFailed);
         }
-        locks.insert(user.clone(), true);
     }
 
     // Ensure lock is released after operation
-    let release_lock = || {
-        let mut locks = LOCKS1.lock().unwrap_or_else(|e| {
-            panic!("Failed to unlock LOCKS: {}", e);
-        });
-        locks.remove(&user);
-    };
+    // let release_lock = || {
+    //     let mut locks = LOCKS1.lock().unwrap_or_else(|e| {
+    //         panic!("Failed to unlock LOCKS: {}", e);
+    //     });
+    //     locks.remove(&user);
+    // };
 
-    let (pool_name, _) = pre_compute_swap(params.clone()).await;
-    if pool_name == "No suitable pool found.".to_string()
-        || pool_name == "No matching pools found.".to_string()
-    {
-        release_lock();
-        return Err(CustomError::NoCanisterIDFound);
-    }
-
-    let (_, amount) = pre_compute_swap(params.clone()).await;
-
-    let canister_id = with_state(|pool| {
-        let pool_borrowed = &mut pool.token_pools;
-        // Extract the principal if available
-        pool_borrowed
-            .get(&pool_name)
-            .map(|user_principal| user_principal.principal)
-    });
-
-    let canister_id = match canister_id {
-        Some(id) => id,
-        None => {
-            release_lock();
+    let result = async {
+        let (pool_name, _) = pre_compute_swap(params.clone()).await;
+        if pool_name == "No suitable pool found.".to_string()
+            || pool_name == "No matching pools found.".to_string()
+        {
+            // release_lock();
             return Err(CustomError::NoCanisterIDFound);
         }
-    };
 
-    ic_cdk::println!("swap pool canister's canister_id {:}", canister_id.clone());
+        let (_, amount) = pre_compute_swap(params.clone()).await;
 
-    // let amount_as_u64 = amount as u64;
-    // deposit_tokens(amount_as_u64.clone(), ledger_canister_id, canister_id.clone());
+        let canister_id = with_state(|pool| {
+            let pool_borrowed = &mut pool.token_pools;
+            // Extract the principal if available
+            pool_borrowed
+                .get(&pool_name)
+                .map(|user_principal| user_principal.principal)
+        });
 
-    // let user_principal_id = api::caller();
-    let pool_lp_token = get_pool_lp_tokens(pool_name.clone());
+        let canister_id = match canister_id {
+            Some(id) => id,
+            None => {
+                // release_lock();
+                return Err(CustomError::NoCanisterIDFound);
+            }
+        };
 
-    let pool_lp_token_limit = (Nat::from(30u128) * (pool_lp_token)) / Nat::from(1000u128);
+        ic_cdk::println!("swap pool canister's canister_id {:}", canister_id.clone());
 
-    let token_amount = params.token_amount.clone();
+        // let amount_as_u64 = amount as u64;
+        // deposit_tokens(amount_as_u64.clone(), ledger_canister_id, canister_id.clone());
 
-    if token_amount > pool_lp_token_limit {
-        return Err(CustomError::SwappingFailed(
-            "Token amount is greater than expected".to_string(),
-        ));
+        // let user_principal_id = api::caller();
+        let pool_lp_token = get_pool_lp_tokens(pool_name.clone());
+
+        let pool_lp_token_limit = (Nat::from(30u128) * (pool_lp_token)) / Nat::from(1000u128);
+
+        let token_amount = params.token_amount.clone();
+
+        if token_amount > pool_lp_token_limit {
+            return Err(CustomError::SwappingFailed(
+                "Token amount is greater than expected".to_string(),
+            ));
+        }
+
+        let result = deposit_tokens(
+            token_amount.clone(),
+            params.ledger_canister_id1.clone(),
+            canister_id.clone(),
+        )
+        .await;
+
+        match result {
+            Ok(_) => {
+                ic_cdk::println!("Token deposit successful, resuming process...");
+
+                let swap_result: Result<(), String> = call(
+                    canister_id.clone(),
+                    "swap",
+                    (api::caller(), params.clone(), amount),
+                )
+                .await
+                .map_err(|e| format!("Failed to perform swap: {:?}", e));
+
+                if let Err(e) = swap_result {
+                    // release_lock();
+                    return Err(CustomError::SwappingFailed(e));
+                }
+            }
+            Err(err) => {
+                ic_cdk::println!(
+                    "Error during token deposit: {:?}. Initiating rollback...",
+                    err
+                );
+
+                // tell: the amount will be less becasue of the fee.
+                let rollback_result: Result<(), String> = call(
+                    canister_id,
+                    "icrc1_transfer",
+                    (canister_id, api::caller(), token_amount),
+                )
+                .await
+                .map_err(|e| format!("Failed to perform rollback: {:?}", e));
+
+                if let Err(rollback_err) = rollback_result {
+                    ic_cdk::println!("Rollback failed: {:?}", rollback_err);
+                }
+
+                // release_lock();
+                return Err(CustomError::TokenDepositFailed);
+            }
+        }
+
+        // release_lock();
+        users_apy(
+            canister_id.clone(),
+            pool_name.clone(),
+            params.fee,
+            params.token_amount,
+        );
+
+        // ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
+        // Proceed with the call using the extracted principal
+        // let result: Result<(), String> = call(
+        //     canister_id,
+        //     "swap",
+        //     (api::caller(),params.clone() , amount),
+        // )
+        // .await
+        // .map_err(|e| format!("Failed to perform swap: {:?}", e));
+
+        // if let Err(e) = result {
+        //     return Err(e);
+        // }
+
+        Ok(())
     }
-
-    let result = deposit_tokens(
-        token_amount.clone(),
-        params.ledger_canister_id1.clone(),
-        canister_id.clone(),
-    )
     .await;
-
-    match result {
-        Ok(_) => {
-            ic_cdk::println!("Token deposit successful, resuming process...");
-
-            let swap_result: Result<(), String> = call(
-                canister_id.clone(),
-                "swap",
-                (api::caller(), params.clone(), amount),
-            )
-            .await
-            .map_err(|e| format!("Failed to perform swap: {:?}", e));
-
-            if let Err(e) = swap_result {
-                release_lock();
-                return Err(CustomError::SwappingFailed(e));
-            }
-        }
-        Err(err) => {
-            ic_cdk::println!(
-                "Error during token deposit: {:?}. Initiating rollback...",
-                err
-            );
-
-            // tell: the amount will be less becasue of the fee.
-            let rollback_result: Result<(), String> = call(
-                canister_id,
-                "icrc1_transfer",
-                (canister_id, api::caller(), token_amount),
-            )
-            .await
-            .map_err(|e| format!("Failed to perform rollback: {:?}", e));
-
-            if let Err(rollback_err) = rollback_result {
-                ic_cdk::println!("Rollback failed: {:?}", rollback_err);
-            }
-
-            release_lock();
-            return Err(CustomError::TokenDepositFailed);
+    // Release the lock
+    {
+        if let Err(e) = release_lock(&operation_key) {
+            ic_cdk::println!("Lock release failed: {:?}", e);
+            return Err(CustomError::LockReleaseFailed);
         }
     }
-
-    release_lock();
-    users_apy(
-        canister_id.clone(),
-        pool_name.clone(),
-        params.fee,
-        params.token_amount,
-    );
-
-    // ic_cdk::println!("pool canister ka canister ID{:}", canister_id.clone());
-    // Proceed with the call using the extracted principal
-    // let result: Result<(), String> = call(
-    //     canister_id,
-    //     "swap",
-    //     (api::caller(),params.clone() , amount),
-    // )
-    // .await
-    // .map_err(|e| format!("Failed to perform swap: {:?}", e));
-
-    // if let Err(e) = result {
-    //     return Err(e);
-    // }
-
-    Ok(())
+    result
 }
