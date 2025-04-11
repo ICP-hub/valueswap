@@ -584,7 +584,7 @@ async fn burn_lp_tokens(
         .map_err(|e| format!("Invalid pool data: {:?}", e))?;
 
     let base_scaling = Nat::from(10u128.pow(18)); // 10^18 for base calculations
-    let weight_scaling = Nat::from(100u128); // Scale for percentages
+    let weight_scaling = Nat::from(1000u128); // Scale for percentages
 
     let user = ic_cdk::caller();
 
