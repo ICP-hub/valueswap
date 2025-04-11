@@ -248,7 +248,34 @@ fn test_create_pools(
         },
         expect_success: true,
         expected_error_message: None,
-    }];
+    },
+    // ✅ Different weights, non-zero valid values
+    TestCase {
+        pool_data: PoolData {
+            pool_data: vec![
+                CreatePoolParams {
+                    token_name: "btc".to_string(),
+                    balance: Nat::from(90_000u128),
+                    weight: Nat::from(30u128),
+                    value: Nat::from(500_000u128),
+                    ledger_canister_id: ckbtc_canister,
+                    image: "btc_icon.png".to_string(),
+                },
+                CreatePoolParams {
+                    token_name: "eth".to_string(),
+                    balance: Nat::from(700_000u128),
+                    weight: Nat::from(70u128),
+                    value: Nat::from(150_000u128),
+                    ledger_canister_id: cketh_canister,
+                    image: "eth_icon.png".to_string(),
+                },
+            ],
+            swap_fee: Nat::from(2u128),
+        },
+        expect_success: true,
+        expected_error_message: None,
+    }
+    ];
 
     set_canister_id(
         &pic,

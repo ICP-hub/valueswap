@@ -167,6 +167,12 @@ pub struct SwapTestCase {
     pub params: SwapParams,
 }
 
+// this is to check mutex.
+#[derive(CandidType, Deserialize ,Serialize, Clone)]
+pub struct SwapTestCaseMutex {
+    pub params: SwapParams,
+}
+
 
 #[derive(CandidType, Deserialize ,Serialize, Clone)]
 pub struct SwapParams {
