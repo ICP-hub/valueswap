@@ -29,6 +29,7 @@ fn call_test_function() {
 }
 
 fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
+    std::env::set_var("POCKET_IC_BIN", "/Users/admin/Documents/Projects/ICP/valueswap/src/valueswap_backend/tests/pocket-ic"); // Path of the pocket-ic binary
     ic_cdk::println!("Setting up Pocket IC...");
 
     let pic = PocketIc::new();

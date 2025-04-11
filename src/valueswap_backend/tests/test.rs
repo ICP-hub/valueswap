@@ -8,6 +8,9 @@ use utils::structs::*;
 
 use crate::utils::structs::InitArgs;
 use std::fs;
+// TODO add printing statement for burned values
+// TODO use different canister for different tokens for 3 tokens
+// TODO add precompute swap for logging values during swap
 
 const BACKEND_WASM: &str = "../../target/wasm32-unknown-unknown/release/valueswap_backend.wasm";
 const CKBTC_WASM: &str = "../../.dfx/local/canisters/ckbtc/ckbtc.wasm.gz";
@@ -19,6 +22,7 @@ const CKETH_WASM: &str = "../../.dfx/local/canisters/cketh/cketh.wasm.gz";
 // validation can be added for the invalid canister ids.
 #[test]
 fn call_test_function() {
+    std::env::set_var("POCKET_IC_BIN", "/Users/admin/Documents/Projects/ICP/valueswap/src/valueswap_backend/tests/pocket-ic"); // Path of the pocket-ic binary
     let (pic, backend_canister, ckbtc_canister, lp_ledger_canister, cketh_canister) = setup();
     test_create_pools(
         &pic,

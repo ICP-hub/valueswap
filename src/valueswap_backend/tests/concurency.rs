@@ -18,6 +18,7 @@ const CKETH_WASM: &str = "../../.dfx/local/canisters/cketh/cketh.wasm.gz";
 
 #[test]
 fn call_test_function() {
+    
     let (pic, backend_canister, ckbtc_canister, lp_ledger_canister, cketh_canister, random_users) =
         setup();
     test_create_pools(
@@ -54,6 +55,7 @@ fn setup() -> (
     Principal,
     Vec<Principal>,
 ) {
+    std::env::set_var("POCKET_IC_BIN", "/Users/admin/Documents/Projects/ICP/valueswap/src/valueswap_backend/tests/pocket-ic"); // Path of the pocket-ic binary
     ic_cdk::println!("Setting up Pocket IC...");
 
     let pic = PocketIc::new();
