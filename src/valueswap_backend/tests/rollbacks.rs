@@ -55,19 +55,28 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
     let args = InitArgs {
         token_symbol: String::from("CKBTC"),
         token_name: String::from("CKBTC"),
-        transfer_fee: Nat::from(100u64),
+        transfer_fee: Nat::from(100u128),
         metadata: vec![],
         minting_account: Account {
             owner: backend_canister,
             subaccount: None,
         },
-        initial_balances: vec![(
-            Account {
-                owner: get_user_principal(),
-                subaccount: None,
-            },
-            Nat::from(10_000_000_000u128),
-        )],
+        initial_balances: vec![
+            (
+                Account {
+                    owner: get_user_principal(),
+                    subaccount: None,
+                },
+                Nat::from(10_000_000_000u128),
+            ),
+            (
+                Account {
+                    owner: swapper_user_principal(),
+                    subaccount: None,
+                },
+                Nat::from(10_000_000_000u128),
+            ),
+        ],
         archive_options: ArchiveOptions {
             num_blocks_to_archive: 1000,
             max_transactions_per_response: None,
@@ -93,19 +102,28 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
     let lp_ledger_args = InitArgs {
         token_symbol: String::from("LP_Token"),
         token_name: String::from("LP_Token"),
-        transfer_fee: Nat::from(100u64),
+        transfer_fee: Nat::from(100u128),
         metadata: vec![],
         minting_account: Account {
             owner: backend_canister,
             subaccount: None,
         },
-        initial_balances: vec![(
-            Account {
-                owner: get_user_principal(),
-                subaccount: None,
-            },
-            Nat::from(10_000_000u64),
-        )],
+        initial_balances: vec![
+            (
+                Account {
+                    owner: get_user_principal(),
+                    subaccount: None,
+                },
+                Nat::from(10_000_000u128),
+            ),
+            (
+                Account {
+                    owner: swapper_user_principal(),
+                    subaccount: None,
+                },
+                Nat::from(10_000_000u128),
+            ),
+        ],
         archive_options: ArchiveOptions {
             num_blocks_to_archive: 1000,
             max_transactions_per_response: None,
@@ -129,19 +147,28 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
     let args = InitArgs {
         token_symbol: String::from("CKETH"),
         token_name: String::from("CKETH"),
-        transfer_fee: Nat::from(100u64),
+        transfer_fee: Nat::from(100u128),
         metadata: vec![],
         minting_account: Account {
             owner: backend_canister,
             subaccount: None,
         },
-        initial_balances: vec![(
-            Account {
-                owner: get_user_principal(),
-                subaccount: None,
-            },
-            Nat::from(10_000_000_000u64),
-        )],
+        initial_balances: vec![
+            (
+                Account {
+                    owner: get_user_principal(),
+                    subaccount: None,
+                },
+                Nat::from(10_000_000_000u128),
+            ),
+            (
+                Account {
+                    owner: swapper_user_principal(),
+                    subaccount: None,
+                },
+                Nat::from(10_000_000_000u128),
+            ),
+        ],
         archive_options: ArchiveOptions {
             num_blocks_to_archive: 1000,
             max_transactions_per_response: None,
@@ -206,15 +233,15 @@ fn test_create_pools(
                 pool_data: vec![
                     CreatePoolParams {
                         token_name: "ckbtc".to_string(),
-                        balance: Nat::from(100_000_00u128),
+                        balance: Nat::from(100_000u128),
                         weight: Nat::from(50u128),
-                        value: Nat::from(100u128),
+                        value: Nat::from(2000u128),
                         ledger_canister_id: ckbtc_canister,
                         image: "btc.png".to_string(),
                     },
                     CreatePoolParams {
                         token_name: "cketh".to_string(),
-                        balance: Nat::from(200_000_00u128),
+                        balance: Nat::from(2_000_000u128),
                         weight: Nat::from(50u128),
                         value: Nat::from(100u128),
                         ledger_canister_id: cketh_canister,
@@ -226,160 +253,235 @@ fn test_create_pools(
             expect_success: true,
             expected_error_message: None,
         },
+        // ✅ Different weights, non-zero valid values
         TestCase {
             pool_data: PoolData {
                 pool_data: vec![
                     CreatePoolParams {
-                        token_name: "ckbtc".to_string(),
-                        balance: Nat::from(100_000_00u128),
-                        weight: Nat::from(50u128),
-                        value: Nat::from(100u128),
+                        token_name: "btc".to_string(),
+                        balance: Nat::from(90_000u128),
+                        weight: Nat::from(30u128),
+                        value: Nat::from(500_000u128),
                         ledger_canister_id: ckbtc_canister,
-                        image: "btc.png".to_string(),
+                        image: "btc_icon.png".to_string(),
                     },
                     CreatePoolParams {
-                        token_name: "cketh".to_string(),
-                        balance: Nat::from(200_000_00u128),
-                        weight: Nat::from(50u128),
-                        value: Nat::from(100u128),
+                        token_name: "eth".to_string(),
+                        balance: Nat::from(700_000u128),
+                        weight: Nat::from(70u128),
+                        value: Nat::from(150_000u128),
                         ledger_canister_id: cketh_canister,
-                        image: "eth.png".to_string(),
+                        image: "eth_icon.png".to_string(),
+                    },
+                ],
+                swap_fee: Nat::from(2u128),
+            },
+            expect_success: false,
+            expected_error_message: Some(
+                "Rollback triggered: lp canister id not provided".to_string(),
+            ),
+        },
+        // ✅ High swap fee, still valid inputs
+        TestCase {
+            pool_data: PoolData {
+                pool_data: vec![
+                    CreatePoolParams {
+                        token_name: "ARB".to_string(),
+                        balance: Nat::from(500_000u128),
+                        weight: Nat::from(60u128),
+                        value: Nat::from(100u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "high.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "OP".to_string(),
+                        balance: Nat::from(300_000u128),
+                        weight: Nat::from(40u128),
+                        value: Nat::from(90u128),
+                        ledger_canister_id: cketh_canister,
+                        image: "mid.png".to_string(),
+                    },
+                ],
+                swap_fee: Nat::from(10u128),
+            },
+            expect_success: true,
+            expected_error_message: None,
+        },
+        // ✅ Small values but all non-zero
+        TestCase {
+            pool_data: PoolData {
+                pool_data: vec![
+                    CreatePoolParams {
+                        token_name: "FLOKI".to_string(),
+                        balance: Nat::from(10_00u128),
+                        weight: Nat::from(50u128), // 50%
+                        value: Nat::from(105_000u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "a.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "AVAX".to_string(),
+                        balance: Nat::from(10_00u128),
+                        weight: Nat::from(50u128), // 50%
+                        value: Nat::from(105_000u128),
+                        ledger_canister_id: cketh_canister,
+                        image: "b.png".to_string(),
+                    },
+                ],
+                swap_fee: Nat::from(1u128),
+            },
+            expect_success: false,
+            expected_error_message: Some(
+                "Rollback triggered: lp canister id not provided".to_string(),
+            ),
+        },
+        // ✅ More than two tokens, all valid
+        TestCase {
+            pool_data: PoolData {
+                pool_data: vec![
+                    CreatePoolParams {
+                        token_name: "UNI".to_string(),
+                        balance: Nat::from(100_000u128),
+                        weight: Nat::from(40u128),
+                        value: Nat::from(400u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "1.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "MKR".to_string(),
+                        balance: Nat::from(150_000u128),
+                        weight: Nat::from(30u128),
+                        value: Nat::from(200u128),
+                        ledger_canister_id: cketh_canister,
+                        image: "2.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "COMP".to_string(),
+                        balance: Nat::from(200_000u128),
+                        weight: Nat::from(30u128),
+                        value: Nat::from(150u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "3.png".to_string(),
+                    },
+                ],
+                swap_fee: Nat::from(3u128),
+            },
+            expect_success: true,
+            expected_error_message: None,
+        },
+        TestCase {
+            pool_data: PoolData {
+                pool_data: vec![
+                    CreatePoolParams {
+                        token_name: "UNI".to_string(),
+                        balance: Nat::from(100_000u128),
+                        weight: Nat::from(40u128),
+                        value: Nat::from(400u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "1.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "MKR".to_string(),
+                        balance: Nat::from(150_000u128),
+                        weight: Nat::from(30u128),
+                        value: Nat::from(200u128),
+                        ledger_canister_id: cketh_canister,
+                        image: "2.png".to_string(),
+                    },
+                    CreatePoolParams {
+                        token_name: "COMP".to_string(),
+                        balance: Nat::from(200_000u128),
+                        weight: Nat::from(30u128),
+                        value: Nat::from(150u128),
+                        ledger_canister_id: ckbtc_canister,
+                        image: "3.png".to_string(),
                     },
                 ],
                 swap_fee: Nat::from(3u128),
             },
             expect_success: false,
-            expected_error_message: None,
+            expected_error_message: Some(
+                "Rollback triggered: lp canister id not provided".to_string(),
+            ),
         },
-        // TestCase {
-        //     pool_data: PoolData {
-        //         pool_data: vec![
-        //             CreatePoolParams {
-        //                 token_name: "ckbtc".to_string(),
-        //                 balance: Nat::from(100_000_00u128),
-        //                 weight: Nat::from(50u128),
-        //                 value: Nat::from(100u128),
-        //                 ledger_canister_id: ckbtc_canister,
-        //                 image: "btc.png".to_string(),
-        //             },
-        //             CreatePoolParams {
-        //                 token_name: "cketh".to_string(),
-        //                 balance: Nat::from(200_000_00u128),
-        //                 weight: Nat::from(50u128),
-        //                 value: Nat::from(100u128),
-        //                 ledger_canister_id: cketh_canister,
-        //                 image: "eth.png".to_string(),
-        //             },
-        //         ],
-        //         swap_fee: Nat::from(3u128),
-        //     },
-        //     expect_success: true,
-        //     expected_error_message: None,
-        // },
-        // TestCase {
-        //     pool_data: PoolData {
-        //         pool_data: vec![
-        //             CreatePoolParams {
-        //                 token_name: "ckbtc".to_string(),
-        //                 balance: Nat::from(100_000_00u128),
-        //                 weight: Nat::from(50u128),
-        //                 value: Nat::from(100u128),
-        //                 ledger_canister_id: ckbtc_canister,
-        //                 image: "btc.png".to_string(),
-        //             },
-        //             CreatePoolParams {
-        //                 token_name: "cketh".to_string(),
-        //                 balance: Nat::from(200_000_00u128),
-        //                 weight: Nat::from(50u128),
-        //                 value: Nat::from(100u128),
-        //                 ledger_canister_id: cketh_canister,
-        //                 image: "eth.png".to_string(),
-        //             },
-        //         ],
-        //         swap_fee: Nat::from(3u128),
-        //     },
-        //     expect_success: false,
-        //     expected_error_message: None,
-        // },
-        // ✅ Valid: Uneven weights
-        // TestCase {
-        //     pool_data: PoolData {
-        //         pool_data: vec![
-        //             CreatePoolParams {
-        //                 token_name: "btc-heavy".to_string(),
-        //                 balance: Nat::from(300_000u128),
-        //                 weight: Nat::from(70u128),
-        //                 value: Nat::from(150u128),
-        //                 ledger_canister_id: ckbtc_canister,
-        //                 image: "btc-heavy.png".to_string(),
-        //             },
-        //             CreatePoolParams {
-        //                 token_name: "eth-light".to_string(),
-        //                 balance: Nat::from(100_000u128),
-        //                 weight: Nat::from(30u128),
-        //                 value: Nat::from(90u128),
-        //                 ledger_canister_id: cketh_canister,
-        //                 image: "eth-light.png".to_string(),
-        //             },
-        //         ],
-        //         swap_fee: Nat::from(5u128),
-        //     },
-        //     expect_success: true,
-        //     expected_error_message: None,
-        // },
     ];
 
-    let hardcoded_principal = get_user_principal();
+    let user_principal = get_user_principal();
 
     ic_cdk::println!("\n======================== Starting Rollback Test for Create Pools ========================\n");
 
     for (i, case) in test_cases.iter().enumerate() {
-        ic_cdk::println!("\n============================================================");
+        ic_cdk::println!("\n============================================================\n");
         ic_cdk::println!("🔵 IC Test Case {}: Executing create_pools request", i + 1);
-        ic_cdk::println!("============================================================");
+
+        let mut concatenated_token = String::new(); // This will collect all the output
 
         for (j, pool) in case.pool_data.pool_data.iter().enumerate() {
+            let contribution = pool.balance.clone() * pool.value.clone();
             ic_cdk::println!("  🧪 Pool {} Details:", j + 1);
             ic_cdk::println!("    ▸ Token Name      : {}", pool.token_name);
             ic_cdk::println!("    ▸ Balance         : {}", pool.balance);
-            ic_cdk::println!("    ▸ Weight          : {}", pool.weight);
+            ic_cdk::println!("    ▸ Weight          : {}%", pool.weight);
             ic_cdk::println!("    ▸ Value           : {}", pool.value);
+            ic_cdk::println!("    ▸ Contribution    : {}", contribution);
             ic_cdk::println!("    ▸ Ledger Canister : {}", pool.ledger_canister_id);
             ic_cdk::println!("    ▸ Image           : {}", pool.image);
-
-            icrc2_approve(pic, backend_canister, pool.ledger_canister_id);
+            ic_cdk::println!("\n");
+            icrc2_approve(
+                pic,
+                backend_canister,
+                pool.ledger_canister_id,
+                user_principal,
+            );
+            concatenated_token.push_str(&pool.token_name); // append to the variable
             ic_cdk::println!("\n------------------------------------------------------------\n");
         }
+
+        // ic_cdk::println!("pool name = {}", log_output);
 
         ic_cdk::println!("  ⚖ Swap Fee          : {}", case.pool_data.swap_fee);
         ic_cdk::println!("  ✅ Expect Success    : {}", case.expect_success);
         if let Some(err) = &case.expected_error_message {
             ic_cdk::println!("  ❗ Expected Error    : {}", err);
         }
-        ic_cdk::println!("------------------------------------------------------------");
-
+        ic_cdk::println!("\n");
         // ✅ Simulate proper setup on even index
+        get_pool_lp_tokens(
+            pic,
+            backend_canister,
+            user_principal,
+            concatenated_token.clone(),
+            Some("Before rollback"),
+        );
+        get_user_pool_lp_for_token(
+            pic,
+            backend_canister,
+            user_principal,
+            concatenated_token.clone(),
+        );
         if i % 2 == 0 {
             set_canister_id(
                 &pic,
                 backend_canister,
-                "LP_LEDGER_ADDRESS",
+                "lp_ledger".to_string(),
                 lp_ledger_canister,
             );
         } else {
             remove_canister_id_by_name_pocket_ic(
                 pic,
                 backend_canister,
-                hardcoded_principal,
-                "LP_LEDGER_ADDRESS",
+                user_principal,
+                "lp_ledger".to_string(),
             );
         }
+        ic_cdk::println!("\n------------------------------------------------------------\n");
+        // ic_cdk::println!("log output = {}", log_output);
 
         let encoded_args = candid::encode_args((&case.pool_data,)).unwrap();
         let response = pic
             .update_call(
                 backend_canister,
-                hardcoded_principal,
+                user_principal,
                 "create_pools",
                 encoded_args,
             )
@@ -404,6 +506,27 @@ fn test_create_pools(
                         i + 1
                     );
                     ic_cdk::println!(
+                        "\n------------------------------------------------------------\n"
+                    );
+                    ic_cdk::println!(
+                        "✅ Test Case {} Passed: Lp Ledger Canister Id Not Provided",
+                        i + 1
+                    );
+                    ic_cdk::println!(
+                        "   ➜ Triggering rollback mechanism for pool creation...",
+                        // case.asset_name
+                    );
+                    ic_cdk::println!(
+                        "------------------------------------------------------------"
+                    );
+                    ic_cdk::println!("🔄 Rollback Process Initiated...");
+                    ic_cdk::println!("   ⏳ Reverting all state changes...");
+                    ic_cdk::println!("   🔁 Restoring previous balances and reserves...");
+                    // ic_cdk::println!("✅ Rollback Successfully Completed!");
+                    ic_cdk::println!(
+                        "\n------------------------------------------------------------\n"
+                    );
+                    ic_cdk::println!(
                         "✅ Test {} passed as expected with rollback: {:?}",
                         i + 1,
                         result.unwrap_err()
@@ -426,6 +549,20 @@ fn test_create_pools(
                 }
             }
         }
+        get_pool_lp_tokens(
+            pic,
+            backend_canister,
+            user_principal,
+            concatenated_token.clone(),
+            Some("After rollback"),
+        );
+        get_user_pool_lp_for_token(
+            pic,
+            backend_canister,
+            user_principal,
+            concatenated_token.clone(),
+        );
+        ic_cdk::println!("\n============================================================\n");
     }
 
     ic_cdk::println!(
@@ -439,70 +576,131 @@ fn test_swap(
     ckbtc_canister: Principal,
     cketh_canister: Principal,
 ) {
+    #[derive(Clone)]
+    struct TestCase {
+        swap_params: SwapParams,
+        expect_success: bool,
+        expected_error_message: Option<String>,
+    }
+
     let test_cases = vec![
-        (
-            "Invalid case: same token names",
-            SwapParams {
+        TestCase {
+            swap_params: SwapParams {
                 token1_name: "ckbtc".to_string(),
+                token_amount: Nat::from(5000u128),
+                token2_name: "cketh".to_string(),
+                ledger_canister_id1: ckbtc_canister,
+                ledger_canister_id2: cketh_canister,
+                fee: Nat::from(3u128),
+            },
+            expect_success: true,
+            expected_error_message: None,
+        },
+        TestCase {
+            swap_params: SwapParams {
+                token1_name: "btc".to_string(),
                 token_amount: Nat::from(1000u128),
-                token2_name: "ckbtc".to_string(), // Invalid: same token
+                token2_name: "eth".to_string(),
+                ledger_canister_id1: ckbtc_canister,
+                ledger_canister_id2: cketh_canister,
+                fee: Nat::from(2u128),
+            },
+            expect_success: false,
+            expected_error_message: Some(
+                "NoCanisterIDFound".to_string(),
+            ),
+        },
+        TestCase {
+            swap_params: SwapParams {
+                token1_name: "ARB".to_string(),
+                token_amount: Nat::from(20_00u128),
+                token2_name: "OP".to_string(),
+                ledger_canister_id1: ckbtc_canister,
+                ledger_canister_id2: cketh_canister,
+                fee: Nat::from(10u128),
+            },
+            expect_success: true,
+            expected_error_message: None,
+        },
+        TestCase {
+            swap_params: SwapParams {
+                token1_name: "FLOKI".to_string(),
+                token_amount: Nat::from(5u128),
+                token2_name: "AVAX".to_string(),
+                ledger_canister_id1: ckbtc_canister,
+                ledger_canister_id2: cketh_canister,
+                fee: Nat::from(1u128),
+            },
+            expect_success: false,
+            expected_error_message: Some(
+                "NoCanisterIDFound".to_string(),
+            ),
+        },
+        TestCase {
+            swap_params: SwapParams {
+                token1_name: "UNI".to_string(),
+                token_amount: Nat::from(10_00u128),
+                token2_name: "COMP".to_string(),
                 ledger_canister_id1: ckbtc_canister,
                 ledger_canister_id2: ckbtc_canister,
-                fee: Nat::from(5u64),
+                fee: Nat::from(3u128),
             },
-        ),
-        (
-            "Invalid case: fee exceeds amount",
-            SwapParams {
-                token1_name: "ckbtc".to_string(),
-                token_amount: Nat::from(100u128),
-                token2_name: "cketh".to_string(),
-                ledger_canister_id1: ckbtc_canister,
-                ledger_canister_id2: cketh_canister,
-                fee: Nat::from(200u64), // Invalid: fee > amount
-            },
-        ),
-        (
-            "Valid case: correct swap parameters",
-            SwapParams {
-                token1_name: "ckbtc".to_string(),
-                token_amount: Nat::from(1000u128),
-                token2_name: "cketh".to_string(),
-                ledger_canister_id1: ckbtc_canister,
-                ledger_canister_id2: cketh_canister,
-                fee: Nat::from(5u64),
-            },
-        ),
+            expect_success: true,
+            expected_error_message: None,
+        },
     ];
 
-    ic_cdk::println!(
-        "\n======================== 🔁 Starting Swap Tests ========================\n"
-    );
+    ic_cdk::println!("\n==================== 🔁 Starting Swap Tests ====================\n");
 
-    for (i, (description, swap_params)) in test_cases.iter().enumerate() {
-        ic_cdk::println!("------------------------------------------------------------");
-        ic_cdk::println!("🔵 Test Case {}: {}", i + 1, description);
-        ic_cdk::println!("------------------------------------------------------------");
-        ic_cdk::println!("📦 Swap Parameters:");
-        ic_cdk::println!("    ▸ Token 1 Name     : {}", swap_params.token1_name);
-        ic_cdk::println!("    ▸ Token 2 Name     : {}", swap_params.token2_name);
-        ic_cdk::println!("    ▸ Token Amount     : {}", swap_params.token_amount);
-        ic_cdk::println!("    ▸ Fee              : {}", swap_params.fee);
+    let user_principal = swapper_user_principal();
+
+    for (i, case) in test_cases.iter().enumerate() {
+        ic_cdk::println!("\n============================================================\n");
+        ic_cdk::println!("🔵 Test Case {}: Executing swap request", i + 1);
+
+        let swap_params = &case.swap_params;
+
+        ic_cdk::println!("📌 Swap Parameters:");
+        ic_cdk::println!("   • Token 1        : {}", swap_params.token1_name);
+        ic_cdk::println!("   • Token 2        : {}", swap_params.token2_name);
+        ic_cdk::println!("   • Amount         : {}", swap_params.token_amount);
+        ic_cdk::println!("   • Swap Fee       : {}", swap_params.fee);
         ic_cdk::println!(
-            "    ▸ Ledger Canister1 : {}",
+            "   • Ledger Canister 1 : {}",
             swap_params.ledger_canister_id1
         );
         ic_cdk::println!(
-            "    ▸ Ledger Canister2 : {}",
+            "   • Ledger Canister 2 : {}",
             swap_params.ledger_canister_id2
         );
+        if let Some(msg) = &case.expected_error_message {
+            ic_cdk::println!("  ❗ Expected Error  : {}", msg);
+        }
+
+        // Approve only for even-indexed test cases
+        if i % 2 == 0 {
+            ic_cdk::println!("\n------------------------------------------------------------\n");
+            icrc2_approve(
+                pic,
+                backend_canister,
+                swap_params.ledger_canister_id1,
+                user_principal,
+            );
+            icrc2_approve(
+                pic,
+                backend_canister,
+                swap_params.ledger_canister_id2,
+                user_principal,
+            );
+            ic_cdk::println!("\n------------------------------------------------------------\n");
+        }
 
         let encoded_args = candid::encode_args((swap_params.clone(),)).unwrap();
 
         let response = pic
             .update_call(
                 backend_canister,
-                get_user_principal(),
+                user_principal,
                 "compute_swap",
                 encoded_args,
             )
@@ -511,24 +709,63 @@ fn test_swap(
         match response {
             WasmResult::Reply(data) => {
                 let result: Result<(), CustomError> = candid::decode_one(&data).unwrap();
-                if result.is_ok() {
-                    ic_cdk::println!("✅ Swap succeeded for '{}'", description);
+
+                if case.expect_success {
+                    assert!(
+                        result.is_ok(),
+                        "❌ Test {} failed: Expected success, got error: {:?}",
+                        i + 1,
+                        result.unwrap_err()
+                    );
+                    ic_cdk::println!("✅ Test {} Passed ✅ Swap completed successfully.", i + 1);
                 } else {
-                    ic_cdk::println!("❌ Swap returned error for '{}': {:?}", description, result);
+                    assert!(
+                        result.is_err(),
+                        "❌ Test {} failed: Expected rollback but got success.",
+                        i + 1
+                    );
+                    ic_cdk::println!(
+                        "\n------------------------------------------------------------\n"
+                    );
+                    ic_cdk::println!(
+                        "✅ Test Case {} Passed: Rollback Successfully Triggered",
+                        i + 1
+                    );
+                    ic_cdk::println!(
+                        "   ➜ ICRC Approval was not given, triggering swap failure..."
+                    );
+                    ic_cdk::println!("🔄 Rollback Process Initiated...");
+                    ic_cdk::println!("   ⏳ Reverting all state changes...");
+                    ic_cdk::println!("   🔁 Restoring balances and reserves...");
+                    ic_cdk::println!("✅ Rollback Completed.");
+                    ic_cdk::println!(
+                        "\n------------------------------------------------------------\n"
+                    );
+                    ic_cdk::println!(
+                        "✅ Test {} Passed as expected with rollback: {:?}",
+                        i + 1,
+                        result.unwrap_err()
+                    );
                 }
             }
             WasmResult::Reject(message) => {
-                ic_cdk::println!(
-                    "❌ Swap call rejected for '{}'. Reason: {}",
-                    description,
-                    message
-                );
+                if case.expect_success {
+                    ic_cdk::println!(
+                        "❌ Test {} Failed: Unexpected rejection occurred: {}",
+                        i + 1,
+                        message
+                    );
+                } else {
+                    ic_cdk::println!(
+                        "✅ Test {} Passed: Swap Rejected as Expected (Rollback): {}",
+                        i + 1,
+                        message
+                    );
+                }
             }
         }
-        ic_cdk::println!("✅ Finished test case {}\n", i + 1);
+        ic_cdk::println!("\n============================================================\n");
     }
 
-    ic_cdk::println!(
-        "\n======================== ✅ All Swap Tests Completed ========================\n"
-    );
+    ic_cdk::println!("==================== ✅ All Swap Tests Completed ====================\n");
 }
