@@ -117,12 +117,14 @@ pub fn release_lock(key: &Principal) -> Result<(), CustomError> {
 
     Ok(())
 }
+
 /// Retrieves the canister ID associated with the given name, or returns an error.
-pub fn get_canister_id_by_name(name: &str) -> Result<Principal, String> {
+#[query]
+pub fn get_canister_id_by_name(name: String) -> Result<Principal, String> {
     CANISTER_ID.with(|id_map| {
         id_map
             .borrow()
-            .get(name)
+            .get(&name)
             .cloned()
             .ok_or_else(|| format!("❌ Canister ID not found for name '{}'", name))
     })

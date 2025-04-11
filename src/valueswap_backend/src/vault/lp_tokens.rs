@@ -302,6 +302,37 @@ pub fn get_user_pools_with_lp(user: Principal) -> Option<BTreeMap<String, Nat>> 
     })
 }
 
+#[query]
+pub fn get_user_pool_lp_for_token(user: Principal, token_name: String) -> Option<Nat> {
+    if user == Principal::anonymous() {
+        ic_cdk::println!("Warning: Anonymous principal is not allowed.");
+        return None;
+    }
+
+    USERS_POOL_LP.with(|users_pool_lp| {
+        let borrowed = users_pool_lp.borrow();
+        match borrowed.get(&user) {
+            Some(pools) => {
+                match pools.get(&token_name) {
+                    Some(value) => {
+                        ic_cdk::println!("Found LP value for user {} and token '{}': {}", user, token_name, value);
+                        Some(value.clone())
+                    }
+                    None => {
+                        ic_cdk::println!("Token '{}' not found for user {}", token_name, user);
+                        None
+                    }
+                }
+            }
+            None => {
+                ic_cdk::println!("No pools found for user: {}", user);
+                None
+            }
+        }
+    })
+}
+
+
 #[update]
 pub async fn users_lp_share(params: Pool_Data) -> Result<(), String> {
     let user = ic_cdk::caller();
