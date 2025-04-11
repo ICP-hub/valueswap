@@ -28,7 +28,7 @@ pub fn icrc2_approve(
         memo: None,
         from_subaccount: None,
         created_at_time: None,
-        amount: Nat::from(100_000_000u128),
+        amount: Nat::from(100_000_000_000u128),
         expected_allowance: None,
         expires_at: None,
         spender: Account {
