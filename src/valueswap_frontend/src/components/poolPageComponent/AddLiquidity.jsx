@@ -333,7 +333,7 @@ const AddLiquidity = () => {
       toast.success("Liquidity successfully added!");
       console.log("Liquidity successfully added!");
     } catch (err) {
-      toast.error("Error Adding Liquidity!");
+      toast.error("Error Adding Liquidity");
       console.error("Error Adding Liquidity:", err);
     }
   }, [poolData, initialTokenAmount, restTokensAmount, swapFee, runApproval]);
