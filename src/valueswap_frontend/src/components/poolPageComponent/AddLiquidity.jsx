@@ -1,39 +1,41 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useParams } from 'react-router-dom';
-import GradientButton from '../../buttons/GradientButton'
-import { IOSSwitch } from '../../buttons/SwitchButton';
-import { convertTokenEquivalentUSD } from '../../utils';
-import { useAuths } from '../utils/useAuthClient';
-import { Principal } from '@dfinity/principal';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useParams } from "react-router-dom";
+import GradientButton from "../../buttons/GradientButton";
+import { IOSSwitch } from "../../buttons/SwitchButton";
+import { convertTokenEquivalentUSD } from "../../utils";
+import { useAuths } from "../utils/useAuthClient";
+import { Principal } from "@dfinity/principal";
+import { toast } from "react-toastify";
 
 const AddLiquidity = () => {
-
-  const { id } = useParams()
-  const [tokens, setTokens] = useState([])
-  const [restTokens, setRestTokens] = useState([])
+  const { id } = useParams();
+  const [tokens, setTokens] = useState([]);
+  const [restTokens, setRestTokens] = useState([]);
   const [token1, setToken1] = useState(null);
   const [poolData, setPoolData] = useState([]);
-  const [swapFee, setSwapFee] = useState(0)
-  const Heading = ['Pool Compositions', 'Swapping', 'Liquidiity Overview']
-  const {backendActor,principal, createTokenActor, getBalance} = useAuths()
-  const [retry,setRetry] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [swapFee, setSwapFee] = useState(0);
+  const Heading = ["Pool Compositions", "Swapping", "Liquidiity Overview"];
+  const { backendActor, principal, createTokenActor, getBalance } = useAuths();
+  const [retry, setRetry] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const initToken = useCallback(async () => {
-    const initialToken = tokens[0]
-    let data = {}
-    console.log("II : ", initialToken)
-    try{
-      const response = await backendActor.get_decimals(initialToken?.ledger_canister_id);
+    const initialToken = tokens[0];
+    let data = {};
+    console.log("II : ", initialToken);
+    try {
+      const response = await backendActor.get_decimals(
+        initialToken?.ledger_canister_id
+      );
       let decimals = 0;
-      if(response?.Ok){
+      if (response?.Ok) {
         decimals = parseInt(response.Ok);
       }
-      if(initialToken && decimals){
-        const {weight, token_name, image,  ledger_canister_id} = initialToken
-        console.log("Ledger : ", ledger_canister_id.toText())
-        data = await getBalance(ledger_canister_id.toText()).then(balance=>{
-          console.log("Balance : ", balance, ledger_canister_id.toText())
+      if (initialToken && decimals) {
+        const { weight, token_name, image, ledger_canister_id } = initialToken;
+        console.log("Ledger : ", ledger_canister_id.toText());
+        data = await getBalance(ledger_canister_id.toText()).then((balance) => {
+          console.log("Balance : ", balance, ledger_canister_id.toText());
           return {
             weights: weight.toString(),
             currencyAmount: 0,
@@ -42,73 +44,80 @@ const AddLiquidity = () => {
             ImagePath: image,
             decimals,
             balance: parseFloat(balance) / Math.pow(10, decimals),
-            canisterId: ledger_canister_id
-          }
-      });
+            canisterId: ledger_canister_id,
+          };
+        });
       }
-      if(initialToken?.token_name){
-        data.currencyAmount = await convertTokenEquivalentUSD(initialToken?.token_name)
+      if (initialToken?.token_name) {
+        data.currencyAmount = await convertTokenEquivalentUSD(
+          initialToken?.token_name
+        );
       }
-    }catch(err){
-      console.error(err)
-    }finally{
-      setToken1(data)
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setToken1(data);
     }
-
   }, [id, principal, tokens, getBalance]);
 
   const initRestToken = useCallback(async () => {
     const splittedTokenArr = tokens.slice(1);
-  
+
     try {
       // Step 1: Fetch metadata for all tokens in parallel
-      const metadataResults = await Promise.all(splittedTokenArr.map(async (token) => {
-        const canisterId = token?.ledger_canister_id
-        try{
-          const response = await backendActor.get_decimals(canisterId);
-          console.log(response, "Meta")
-          if(response?.Ok){
-            const decimals = parseInt(response.Ok);
+      const metadataResults = await Promise.all(
+        splittedTokenArr.map(async (token) => {
+          const canisterId = token?.ledger_canister_id;
+          try {
+            const response = await backendActor.get_decimals(canisterId);
+            console.log(response, "Meta");
+            if (response?.Ok) {
+              const decimals = parseInt(response.Ok);
+              return {
+                token,
+                decimals,
+                canisterId,
+              };
+            }
+          } catch (err) {
+            console.error(err);
             return {
               token,
-              decimals,
-              canisterId
+              decimals: null,
+              canisterId,
             };
+          } finally {
+            setLoading(false);
           }
-        }catch(err){
-          console.error(err)
-          return {
-            token,
-            decimals : null,
-            canisterId
-          };
-        } finally{
-          setLoading(false);
-        }
-      }));
-  
-      // Step 2: Process tokens and fetch USD equivalents in parallel
-      const restTT = await Promise.all(metadataResults.map(async ({ token, decimals, canisterId }) => {
-        if (!decimals) return null; // Skip if decimals are missing
-        const data = await getBalance(canisterId.toText()).then(balance=>{
-        return {
-          ImagePath: token.image,
-          ShortForm: token.token_name.toUpperCase(),
-          weights: parseFloat(token.weight),
-          balance: parseFloat(balance) / Math.pow(10, decimals), // TODO : Use fetched decimals
-          CanisterId: canisterId,
-          currencyAmount: 0 ,// Initialize for now,
-          decimals
-        };
-      })
-  
-        // Fetch USD conversion
-        data.currencyAmount = await convertTokenEquivalentUSD(token?.token_name);
-        return data;
-      }));
+        })
+      );
 
-      console.log(restTT)
-  
+      // Step 2: Process tokens and fetch USD equivalents in parallel
+      const restTT = await Promise.all(
+        metadataResults.map(async ({ token, decimals, canisterId }) => {
+          if (!decimals) return null; // Skip if decimals are missing
+          const data = await getBalance(canisterId.toText()).then((balance) => {
+            return {
+              ImagePath: token.image,
+              ShortForm: token.token_name.toUpperCase(),
+              weights: parseFloat(token.weight),
+              balance: parseFloat(balance) / Math.pow(10, decimals), // TODO : Use fetched decimals
+              CanisterId: canisterId,
+              currencyAmount: 0, // Initialize for now,
+              decimals,
+            };
+          });
+
+          // Fetch USD conversion
+          data.currencyAmount = await convertTokenEquivalentUSD(
+            token?.token_name
+          );
+          return data;
+        })
+      );
+
+      console.log(restTT);
+
       setRestTokens(restTT); // Remove any null values
     } catch (err) {
       console.error(err);
@@ -130,8 +139,8 @@ const AddLiquidity = () => {
     } catch (err) {
       console.error("Error fetching pool data", err);
       setTokens([]);
-      if(err?.code === 3000)
-      setRetry((prev)=>({...prev,getPoolData : true}))
+      if (err?.code === 3000)
+        setRetry((prev) => ({ ...prev, getPoolData: true }));
     }
   }, [id]);
 
@@ -150,116 +159,136 @@ const AddLiquidity = () => {
   const [initialTokenAmount, setInitialTokenAmount] = React.useState(0);
   const [equivalentUSD, setEquivalentUSD] = React.useState(0);
   const initialTokenRef = React.useRef(null);
-  const [restTokensAmount,setRestTokenAmount] = useState([]);
+  const [restTokensAmount, setRestTokenAmount] = useState([]);
   const restTokensRefs = React.useRef([]);
 
-  const calculateTotal = useCallback(()=>{
-    const total = restTokensAmount.reduce((acc,amount)=>{
-      return acc + parseFloat(amount)
-    },initialTokenAmount)
-    return total + calculatePoolLocked() + calculatePoolShare() + parseFloat(swapFee)
-  },[initialTokenAmount,restTokensAmount])
+  const calculateTotal = useCallback(() => {
+    const total = restTokensAmount.reduce((acc, amount) => {
+      return acc + parseFloat(amount);
+    }, initialTokenAmount);
+    return (
+      total + calculatePoolLocked() + calculatePoolShare() + parseFloat(swapFee)
+    );
+  }, [initialTokenAmount, restTokensAmount]);
 
+  const calculatePoolShare = useCallback(() => {
+    return 0.001;
+  }, []);
 
-  const calculatePoolShare = useCallback(()=>{
-    return 0.001
-  },[])
+  const calculatePoolLocked = useCallback(() => {
+    return 0;
+  }, []);
 
-  const calculatePoolLocked = useCallback(()=>{
-    return 0
-  },[])
-
-  const calculateResult = useCallback((type)=>{
-    let ans;
-    switch(type){
-      case "total":
-        ans = "$" + calculateTotal()
-        break;
-      case "pool_share":
-        ans = calculatePoolShare()
-        break;
-      case "gas_fee":
-        ans = swapFee.toLocaleString()
-        break;
-      case "total_pool_value_locked":
-        ans = calculatePoolLocked()
-        break;
-      default:
-        break;
-    }
-    return ans
-  }, [calculateTotal, calculatePoolShare, swapFee])
-
-  const Result = useMemo(()=>({
-    heading : 'Total',
-    headingData : calculateResult("total"),
-    data : [
-      {
-        title : 'Total Pool value locked',
-        value : calculateResult("total_pool_value_locked")
-      },
-      {
-        title : 'Your pool share',
-        value : calculateResult("pool_share"),
-      },
-      {
-        title : 'Gas fee',
-        value : calculateResult("gas_fee")
+  const calculateResult = useCallback(
+    (type) => {
+      let ans;
+      switch (type) {
+        case "total":
+          ans = "$" + calculateTotal();
+          break;
+        case "pool_share":
+          ans = calculatePoolShare();
+          break;
+        case "gas_fee":
+          ans = swapFee.toLocaleString();
+          break;
+        case "total_pool_value_locked":
+          ans = calculatePoolLocked();
+          break;
+        default:
+          break;
       }
-    ]
-  }), [tokens,initialTokenAmount,restTokensAmount,swapFee])
+      return ans;
+    },
+    [calculateTotal, calculatePoolShare, swapFee]
+  );
 
-  
-  const runApproval = useCallback(async (approveParams) => {
-    try {
-      if (!approveParams || approveParams.length === 0) {
-        throw new Error("Approval Params Type Error");
-      }
-  
-      console.log("Running approval process... ", approveParams);
-  
-      for (const param of approveParams) {
-        const ledgerCanisterPrincipal = param.ledgerCanisterPrincipal
-        if (!ledgerCanisterPrincipal) {
-          throw new Error("Invalid ledger canister principal");
+  const Result = useMemo(
+    () => ({
+      heading: "Total",
+      headingData: calculateResult("total"),
+      data: [
+        {
+          title: "Total Pool value locked",
+          value: calculateResult("total_pool_value_locked"),
+        },
+        {
+          title: "Your pool share",
+          value: calculateResult("pool_share"),
+        },
+        {
+          title: "Gas fee",
+          value: calculateResult("gas_fee"),
+        },
+      ],
+    }),
+    [tokens, initialTokenAmount, restTokensAmount, swapFee]
+  );
+
+  const runApproval = useCallback(
+    async (approveParams) => {
+      try {
+        if (!approveParams || approveParams.length === 0) {
+          throw new Error("Approval Params Type Error");
         }
-  
-        const actor = await createTokenActor(ledgerCanisterPrincipal);
-        console.log("Actor:", actor);
-  
-        if (actor) {
-          const response = await actor.icrc2_approve(param.approveEntry);
-          console.log("Approval Response:", response);
-          if (!response?.Ok) {
-            throw new Error(`Approval failed: ${JSON.stringify(response.Err)}`);
+
+        console.log("Running approval process... ", approveParams);
+
+        for (const param of approveParams) {
+          const ledgerCanisterPrincipal = param.ledgerCanisterPrincipal;
+          if (!ledgerCanisterPrincipal) {
+            throw new Error("Invalid ledger canister principal");
           }
-        } else {
-          throw new Error("Failed to create token actor");
+
+          const actor = await createTokenActor(ledgerCanisterPrincipal);
+          console.log("Actor:", actor);
+
+          if (actor) {
+            const response = await actor.icrc2_approve(param.approveEntry);
+            console.log("Approval Response:", response);
+            if (!response?.Ok) {
+              throw new Error(
+                `Approval failed: ${JSON.stringify(response.Err)}`
+              );
+            }
+          } else {
+            throw new Error("Failed to create token actor");
+          }
         }
+
+        console.log("All approvals successful!");
+        return true;
+      } catch (err) {
+        console.error("Error during approval:", err);
+        return false;
       }
-  
-      console.log("All approvals successful!");
-      return true;
-    } catch (err) {
-      console.error("Error during approval:", err);
-      return false;
-    }
-  }, [createTokenActor]);
-  
+    },
+    [createTokenActor]
+  );
+
   const addLiquidity = useCallback(async () => {
     let approveParams = [];
     const pool_data = poolData.map((pool) =>
       pool.pool_data.map((token, index) => {
-        const ledgerCanisterPrincipal = Principal.from(token.ledger_canister_id);
-        const amount = index === 0 ? initialTokenAmount : parseInt(restTokensAmount[index - 1]);
-        const decimal = index === 0 ? token1?.decimals : restTokens[index - 1]?.decimals;
-        const balance = index === 0 ? token1?.balance : restTokens[index - 1]?.balance;
-  
+        const ledgerCanisterPrincipal = Principal.from(
+          token.ledger_canister_id
+        );
+        const amount =
+          index === 0
+            ? initialTokenAmount
+            : parseInt(restTokensAmount[index - 1]);
+        const decimal =
+          index === 0 ? token1?.decimals : restTokens[index - 1]?.decimals;
+        const balance =
+          index === 0 ? token1?.balance : restTokens[index - 1]?.balance;
+
         let approveEntry = {
-          amount: (BigInt(parseInt(balance)) * BigInt(10 ** ( decimal + 2 ))),
+          amount: BigInt(parseInt(balance)) * BigInt(10 ** (decimal + 2)),
           from_subaccount: [],
           spender: {
-            owner: Principal.fromText(process.env.CANISTER_ID_VALUESWAP_BACKEND),
+            owner: Principal.fromText(
+              process.env.CANISTER_ID_VALUESWAP_BACKEND
+            ),
             subaccount: [],
           },
           fee: [],
@@ -268,8 +297,8 @@ const AddLiquidity = () => {
           expected_allowance: [],
           expires_at: [],
         };
-        approveParams.push({approveEntry, ledgerCanisterPrincipal});
-  
+        approveParams.push({ approveEntry, ledgerCanisterPrincipal });
+
         return {
           value: BigInt(parseInt(balance)) * BigInt(Math.pow(10, decimal)),
           weight: parseFloat(token.weight),
@@ -280,34 +309,34 @@ const AddLiquidity = () => {
         };
       })
     );
-  
+
     console.log("Pool Data Array:", pool_data);
-  
+
     try {
       const approvalSuccess = await runApproval(approveParams);
       if (!approvalSuccess) {
         throw new Error("Approval failed or was rejected.");
       }
-  
+
       console.log("Approval successful! Now creating liquidity pools...");
-  
+
       const createPoolResponse = await backendActor.create_pools({
         pool_data: pool_data[0],
         swap_fee: parseFloat(swapFee) || 0,
       });
-  
+
       console.log("Create Pool Response:", createPoolResponse);
-  
+
       if (createPoolResponse?.Err) {
         throw new Error(JSON.stringify(createPoolResponse.Err));
       }
-  
+      toast.success("Liquidity successfully added!");
       console.log("Liquidity successfully added!");
     } catch (err) {
+      toast.error("Error Adding Liquidity!");
       console.error("Error Adding Liquidity:", err);
     }
   }, [poolData, initialTokenAmount, restTokensAmount, swapFee, runApproval]);
-  
 
   const handleInput = (e) => {
     const value = parseFloat(e.target.value) || 0;
@@ -320,34 +349,41 @@ const AddLiquidity = () => {
 
   // Function to calculate equivalent rest token amounts
   const calculateEquivalentAmounts = useCallback(() => {
-    if (!token1?.currencyAmount || !token1?.weights){ 
+    if (!token1?.currencyAmount || !token1?.weights) {
       console.error("Missing required data for first token", token1);
-      return
-    };
+      return;
+    }
     const token1USD = token1.currencyAmount * initialTokenAmount;
-    console.log(token1USD,"Token1USD")
-    if(token1USD <= 0) return;
+    console.log(token1USD, "Token1USD");
+    if (token1USD <= 0) return;
     const totalPoolValue = token1USD / (parseInt(token1.weights) / 100);
     console.log("Total pool value:", totalPoolValue);
     const equivalentAmounts = restTokens.map((token, index) => {
-      const tokenTargetUSDValue = totalPoolValue * (parseInt(token.weights) / 100);
-      console.log("Token Target", tokenTargetUSDValue)
+      const tokenTargetUSDValue =
+        totalPoolValue * (parseInt(token.weights) / 100);
+      console.log("Token Target", tokenTargetUSDValue);
       const requiredTokenAmount = tokenTargetUSDValue / token.currencyAmount;
-      console.log("Required Token Amount", requiredTokenAmount)
+      console.log("Required Token Amount", requiredTokenAmount);
       const roundedAmount = Number(requiredTokenAmount.toFixed(8));
       return roundedAmount;
-      })
+    });
 
     console.log("Equivalent Amounts : ", equivalentAmounts);
     setRestTokenAmount(equivalentAmounts);
-  }, [token1, backendActor,restTokens, initialTokenAmount]);
+  }, [token1, backendActor, restTokens, initialTokenAmount]);
 
   // Call the function after fetching the pool data
   useEffect(() => {
     if (tokens.length > 0) {
       calculateEquivalentAmounts();
     }
-  }, [restTokens, calculateEquivalentAmounts,token1?.currencyAmount,initialTokenAmount,optimizeEnable]);
+  }, [
+    restTokens,
+    calculateEquivalentAmounts,
+    token1?.currencyAmount,
+    initialTokenAmount,
+    optimizeEnable,
+  ]);
 
   const handleRestTokenInput = (e, index) => {
     const value = parseFloat(e.target.value) || 0;
@@ -356,63 +392,83 @@ const AddLiquidity = () => {
       return amount;
     });
     setRestTokenAmount(newAmounts);
-  }
+  };
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className=''>
-      <div className='w-max m-auto flex flex-col gap-4 p-3 sm:p-6 relative space-y-2'>
-        <div className='flex gap-2 items-center justify-end w-full'>
-          <p className='font-gilroy text-sm'>Auto optimize liquidity</p>
-          <IOSSwitch sx={{ m: 1 }} defaultChecked onClick={() => setOptimizeEnable((prev) => !prev)} />
+    <div className="">
+      <div className="w-max m-auto flex flex-col gap-4 p-3 sm:p-6 relative space-y-2">
+        <div className="flex gap-2 items-center justify-end w-full">
+          <p className="font-gilroy text-sm">Auto optimize liquidity</p>
+          <IOSSwitch
+            sx={{ m: 1 }}
+            defaultChecked
+            onClick={() => setOptimizeEnable((prev) => !prev)}
+          />
         </div>
-        <div className='flex justify-between gap-12 items-center font-gilroy backdrop-blur-[32px] 
-        md:px-6 px-3 md:py-8 py-4 rounded-xl border border-[#C0D9FF66]'>
-          <div className='flex flex-col'>
+        <div
+          className="flex justify-between gap-12 items-center font-gilroy backdrop-blur-[32px] 
+        md:px-6 px-3 md:py-8 py-4 rounded-xl border border-[#C0D9FF66]"
+        >
+          <div className="flex flex-col">
             <div>
               <input
-                className={`${initialTokenAmount > token1?.balance ? "text-red-500" : ""} font-normal leading-5 text-xl sm:text-3xl py-1 inline-block bg-transparent border-none outline-none`}
+                className={`${
+                  initialTokenAmount > token1?.balance ? "text-red-500" : ""
+                } font-normal leading-5 text-xl sm:text-3xl py-1 inline-block bg-transparent border-none outline-none`}
                 type="number"
-                min='0'
+                min="0"
                 value={isNaN(initialTokenAmount) ? "" : initialTokenAmount}
                 ref={initialTokenRef}
                 onChange={(e) => handleInput(e)}
               />
             </div>
-            <span className='text-sm sm:text-base font-normal'>
-              ${(token1?.currencyAmount * initialTokenAmount) || 0}
+            <span className="text-sm sm:text-base font-normal">
+              ${token1?.currencyAmount * initialTokenAmount || 0}
             </span>
           </div>
-          <div className='flex flex-col justify-center'>
-            <div className='flex gap-3 items-center'>
-              <img src={token1?.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
-              <span className='text-base sm:text-2xl font-normal'>
+          <div className="flex flex-col justify-center">
+            <div className="flex gap-3 items-center">
+              <img
+                src={token1?.ImagePath}
+                alt=""
+                className="h-3 aspect-square sm:h-4 transform scale-150 rounded-full"
+              />
+              <span className="text-base sm:text-2xl font-normal">
                 {token1?.ShortForm}
               </span>
-              <span className='text-sm sm:text-2xl font-normal'>•</span>
-              <span className='py-1 px-2 sm:px-3'>
-                {token1?.weights} %
-              </span>
+              <span className="text-sm sm:text-2xl font-normal">•</span>
+              <span className="py-1 px-2 sm:px-3">{token1?.weights} %</span>
             </div>
-            <span className='inline-flex justify-center gap-2 w-full text-center font-normal leading-5 text-sm sm:text-base'>
-              <p className={`${initialTokenAmount > token1?.balance ? "text-red-500" : ""}`}>{token1?.balance} {token1?.ShortForm}</p>
-              <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
+            <span className="inline-flex justify-center gap-2 w-full text-center font-normal leading-5 text-sm sm:text-base">
+              <p
+                className={`${
+                  initialTokenAmount > token1?.balance ? "text-red-500" : ""
+                }`}
+              >
+                {token1?.balance} {token1?.ShortForm}
+              </p>
+              <p className="text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]">
+                Max
+              </p>
             </span>
           </div>
         </div>
 
-        <div className='flex flex-col gap-4'>
+        <div className="flex flex-col gap-4">
           {restTokens.map((token, index) => {
             const balance = token?.balance;
 
             return (
               <div key={index}>
-                <div className='flex justify-between items-center font-gilroy backdrop-blur-[32px] 
-                md:px-6 px-3 md:py-8 py-4 rounded-xl border border-[#C0D9FF66]'>
-                  <div className='flex flex-col'>
+                <div
+                  className="flex justify-between items-center font-gilroy backdrop-blur-[32px] 
+                md:px-6 px-3 md:py-8 py-4 rounded-xl border border-[#C0D9FF66]"
+                >
+                  <div className="flex flex-col">
                     <div>
                       <input
                         className="font-normal leading-5 text-xl sm:text-3xl py-1 inline-block outline-none bg-transparent"
@@ -425,24 +481,33 @@ const AddLiquidity = () => {
                         disabled={optimizeEnable}
                       />
                     </div>
-                    <span className='text-sm sm:text-base font-normal'>
-                      ${parseInt(restTokensAmount[index]) * token?.currencyAmount || "0"}
+                    <span className="text-sm sm:text-base font-normal">
+                      $
+                      {parseInt(restTokensAmount[index]) *
+                        token?.currencyAmount || "0"}
                     </span>
                   </div>
-                  <div className='flex flex-col justify-center'>
-                    <div className='flex gap-3 items-center'>
-                      <img src={token?.ImagePath} alt="" className='h-3 aspect-square sm:h-4 transform scale-150 rounded-full' />
-                      <span className='text-sm sm:text-2xl font-normal'>
+                  <div className="flex flex-col justify-center">
+                    <div className="flex gap-3 items-center">
+                      <img
+                        src={token?.ImagePath}
+                        alt=""
+                        className="h-3 aspect-square sm:h-4 transform scale-150 rounded-full"
+                      />
+                      <span className="text-sm sm:text-2xl font-normal">
                         {token?.ShortForm.toUpperCase()}
                       </span>
-                      <span className='text-sm sm:text-2xl font-normal'>•</span>
-                      <span className='py-1 px-2 sm:px-3'>
+                      <span className="text-sm sm:text-2xl font-normal">•</span>
+                      <span className="py-1 px-2 sm:px-3">
                         {token?.weights} %
                       </span>
                     </div>
-                    <span className='inline-flex justify-center gap-2 text-center font-normal leading-5 text-sm sm:text-base'>
-                      {balance.toLocaleString()} {token?.ShortForm.toUpperCase()}
-                      <p className='text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]'>Max</p>
+                    <span className="inline-flex justify-center gap-2 text-center font-normal leading-5 text-sm sm:text-base">
+                      {balance.toLocaleString()}{" "}
+                      {token?.ShortForm.toUpperCase()}
+                      <p className="text-white bg-gray-600 rounded-md px-2 h-fit text-[12px]">
+                        Max
+                      </p>
                     </span>
                   </div>
                 </div>
@@ -454,30 +519,36 @@ const AddLiquidity = () => {
           className={`font-gilroy text-base font-medium`}
           onClick={() => {
             if (!isAuthenticated) {
-              toast.warn('Please login first');
+              toast.warn("Please login first");
             } else if (!ButtonActive) {
-              toast.warn('Please select all the coins');
+              toast.warn("Please select all the coins");
             } else if (!AmountSelectCheck) {
-              toast.warn('You do not have enough tokens.');
+              toast.warn("You do not have enough tokens.");
             } else {
               addLiquidity();
             }
           }}
         >
-          <GradientButton CustomCss={`my-2 sm:my-4 w-full md:w-full ${ButtonActive ? 'opacity-100 cursor-pointer' : 'opacity-50 cursor-default'}`}>
-            {initialTokenAmount == 0 ? 'Add Token Amount' : 'Add Liquidity'}
+          <GradientButton
+            CustomCss={`my-2 sm:my-4 w-full md:w-full ${
+              ButtonActive
+                ? "opacity-100 cursor-pointer"
+                : "opacity-50 cursor-default"
+            }`}
+          >
+            {initialTokenAmount == 0 ? "Add Token Amount" : "Add Liquidity"}
           </GradientButton>
         </div>
-        <table className='w-full font-gilroy'>
-          <tbody className='text-base'>
-            <tr className='text-xl font-semibold'>
-                <td>{Result.heading}</td>
-                <td>{Result.headingData}</td>
+        <table className="w-full font-gilroy">
+          <tbody className="text-base">
+            <tr className="text-xl font-semibold">
+              <td>{Result.heading}</td>
+              <td>{Result.headingData}</td>
             </tr>
             {Result.data.map((data, index) => (
               <tr key={index}>
                 <td>{data.title}</td>
-                {data.title === 'Gas fee' ? (
+                {data.title === "Gas fee" ? (
                   <td>{`${data.value} ${token1?.ShortForm} ( $${equivalentUSD} )`}</td>
                 ) : (
                   <td>{data.value.toLocaleString()}</td>
@@ -489,6 +560,6 @@ const AddLiquidity = () => {
       </div>
     </div>
   );
-}
+};
 
 export default AddLiquidity;
