@@ -112,6 +112,13 @@ impl Pool_Data {
                 ));
             }
 
+            // Validate weight and value
+            if pool.balance == Nat::from(0u64) {
+                return Err(CustomError::InvalidInput(
+                    "balance must be greater than zero".to_string()
+                ));
+            }
+
             // Validate ledger canister ID
             if pool.ledger_canister_id.to_text().is_empty() {
                 return Err(CustomError::InvalidInput(

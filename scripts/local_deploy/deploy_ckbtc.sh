@@ -62,6 +62,7 @@ echo "Deploy arguments: $DEPLOY_ARGUMENTS"
 
 dfx deploy ckbtc --argument "$DEPLOY_ARGUMENTS" 
 
+#!/bin/bash
 
 # Canister nickname for storing in the backend map
 NAME="lp_ledger"
@@ -72,6 +73,7 @@ CANISTER_ID=$(dfx canister id LP_ledger_canister)
 # Store it via your Rust backend using the update method
 echo "Storing \"$NAME\" with canister ID: $CANISTER_ID"
 dfx canister call valueswap_backend set_canister_id "(\"$NAME\", principal \"$CANISTER_ID\")"
+
 
 # cargo build --release --target wasm32-unknown-unknown --package valueswap_backend
 

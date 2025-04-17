@@ -162,9 +162,14 @@ pub enum ApproveResult {
 
 #[derive(CandidType, Deserialize ,Serialize, Clone)]
 pub struct SwapTestCase {
-    pub description: &'static str,
     pub expect_success: bool,
     pub expected_error_message: Option<String>,
+    pub params: SwapParams,
+}
+
+// this is to check mutex.
+#[derive(CandidType, Deserialize ,Serialize, Clone)]
+pub struct SwapTestCaseMutex {
     pub params: SwapParams,
 }
 

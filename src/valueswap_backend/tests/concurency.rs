@@ -1,5 +1,6 @@
 mod utils;
 
+use candid::types::principal;
 use candid::{decode_one, encode_args, CandidType, Nat, Principal};
 use pocket_ic::{PocketIc, WasmResult};
 use serde::Deserialize;
@@ -17,59 +18,101 @@ const CKETH_WASM: &str = "../../.dfx/local/canisters/cketh/cketh.wasm.gz";
 
 #[test]
 fn call_test_function() {
-    let (pic, backend_canister, ckbtc_canister, lp_ledger_canister, cketh_canister) = setup();
-    test_create_pools(&pic, backend_canister, ckbtc_canister, cketh_canister, lp_ledger_canister);
-    // test_burn_lp_tokens(
-    //     &pic,
-    //     backend_canister,
-    //     ckbtc_canister,
-    //     lp_ledger_canister,
-    //     cketh_canister,
-    // );
-    // test_swap(&pic, backend_canister, ckbtc_canister, cketh_canister);
+    
+    let (pic, backend_canister, ckbtc_canister, lp_ledger_canister, cketh_canister, random_users) =
+        setup();
+    test_create_pools(
+        &pic,
+        backend_canister,
+        ckbtc_canister,
+        cketh_canister,
+        lp_ledger_canister,
+        random_users.clone(),
+    );
+    test_burn_lp_tokens(
+        &pic,
+        backend_canister,
+        ckbtc_canister,
+        lp_ledger_canister,
+        cketh_canister,
+        random_users.clone(),
+    );
+    test_swap(
+        &pic,
+        backend_canister,
+        ckbtc_canister,
+        cketh_canister,
+        random_users,
+    );
     // test_get_user_share_ratio(&pic, backend_canister, ckbtc_canister, cketh_canister);
 }
 
-fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
+fn setup() -> (
+    PocketIc,
+    Principal,
+    Principal,
+    Principal,
+    Principal,
+    Vec<Principal>,
+) {
+    std::env::set_var("POCKET_IC_BIN", "/Users/admin/Documents/Projects/ICP/valueswap/src/valueswap_backend/tests/pocket-ic"); // Path of the pocket-ic binary
     ic_cdk::println!("Setting up Pocket IC...");
 
     let pic = PocketIc::new();
     ic_cdk::println!("Pocket IC setup complete.");
 
+    let random_users: Vec<Principal> = generate_principals(4);
+
+    // Deploy backend canister
     let backend_canister = pic.create_canister();
     ic_cdk::println!("backend canister = {}", backend_canister.to_text());
     pic.add_cycles(backend_canister, 2_000_000_000_000_000); // 2T Cycles
     let backend_wasm = fs::read(BACKEND_WASM).expect("Wasm file not found, run 'dfx build'.");
     pic.install_canister(backend_canister, backend_wasm, vec![], None);
 
+    // Deploy CKBTC canister
     let ckbtc_canister = pic.create_canister();
-    pic.add_cycles(ckbtc_canister, 2_000_000_000_000_000); // 2T Cycles
-    let ckbtc_wasm = fs::read(CKBTC_WASM).expect("Wasm file not found, run 'dfx build'.");
+    pic.add_cycles(ckbtc_canister, 2_000_000_000_000_000);
+    let ckbtc_wasm = fs::read(CKBTC_WASM).expect("CKBTC Wasm not found");
 
+    // Deploy LP Ledger canister
     let lp_ledger_canister = pic.create_canister();
     pic.add_cycles(lp_ledger_canister, 2_000_000_000_000);
-    let lp_ledger_wasm = fs::read(LP_LEDGER_WASM).expect("Wasm file not found, run 'dfx build'.");
+    let lp_ledger_wasm = fs::read(LP_LEDGER_WASM).expect("LP Ledger Wasm not found");
 
+    // Deploy CKETH canister
     let cketh_canister = pic.create_canister();
-    pic.add_cycles(cketh_canister, 2_000_000_000_000); // 2T Cycles
-    let cketh_wasm = fs::read(CKETH_WASM).expect("Wasm file not found, run 'dfx build'.");
+    pic.add_cycles(cketh_canister, 2_000_000_000_000);
+    let cketh_wasm = fs::read(CKETH_WASM).expect("CKETH Wasm not found");
 
-    let args = InitArgs {
-        token_symbol: String::from("CKBTC"),
-        token_name: String::from("CKBTC"),
+    // Generate initial balances for all random users
+    let generate_balances = |amount: u128| -> Vec<(Account, Nat)> {
+        random_users
+            .iter()
+            .map(|&user| {
+                (
+                    Account {
+                        owner: user,
+                        subaccount: None,
+                    },
+                    Nat::from(amount),
+                )
+            })
+            .collect()
+    };
+
+    // ------------------------
+    // CKBTC Init
+    let ckbtc_args = InitArgs {
+        token_symbol: "CKBTC".to_string(),
+        token_name: "CKBTC".to_string(),
         transfer_fee: Nat::from(100u64),
         metadata: vec![],
         minting_account: Account {
             owner: backend_canister,
             subaccount: None,
         },
-        initial_balances: vec![(
-            Account {
-                owner: get_user_principal(),
-                subaccount: None,
-            },
-            Nat::from(10_000_000_000u128),
-        )],
+        initial_balances: generate_balances(10_000_000_000),
         archive_options: ArchiveOptions {
             num_blocks_to_archive: 1000,
             max_transactions_per_response: None,
@@ -82,32 +125,22 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
         },
         feature_flags: Some(FeatureFlags { icrc2: true }),
     };
-
-    let args_encoded =
-        encode_args((LedgerArgument::Init(args),)).expect("Failed to encode arguments");
-
-    pic.install_canister(ckbtc_canister, ckbtc_wasm, args_encoded, None);
+    let ckbtc_encoded = encode_args((LedgerArgument::Init(ckbtc_args),)).expect("encode failed");
+    pic.install_canister(ckbtc_canister, ckbtc_wasm, ckbtc_encoded, None);
     println!("CKBTC canister: {}", ckbtc_canister);
 
-    ic_cdk::println!("LP Ledger canister: {}", lp_ledger_canister);
-
-    // Define the initialization arguments for the LP Ledger canister
-    let lp_ledger_args = InitArgs {
-        token_symbol: String::from("LP_Token"),
-        token_name: String::from("LP_Token"),
+    // ------------------------
+    // LP Ledger Init
+    let lp_args = InitArgs {
+        token_symbol: "LP_Token".to_string(),
+        token_name: "LP_Token".to_string(),
         transfer_fee: Nat::from(100u64),
         metadata: vec![],
         minting_account: Account {
             owner: backend_canister,
             subaccount: None,
         },
-        initial_balances: vec![(
-            Account {
-                owner: get_user_principal(),
-                subaccount: None,
-            },
-            Nat::from(10_000_000u64),
-        )],
+        initial_balances: generate_balances(10_000_000),
         archive_options: ArchiveOptions {
             num_blocks_to_archive: 1000,
             max_transactions_per_response: None,
@@ -120,30 +153,22 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
         },
         feature_flags: Some(FeatureFlags { icrc2: true }),
     };
-
-    let lp_args_encoded =
-        encode_args((LedgerArgument::Init(lp_ledger_args),)).expect("Failed to encode arguments");
-
-    // Install the LP Ledger canister
-    pic.install_canister(lp_ledger_canister, lp_ledger_wasm, lp_args_encoded, None);
+    let lp_encoded = encode_args((LedgerArgument::Init(lp_args),)).expect("encode failed");
+    pic.install_canister(lp_ledger_canister, lp_ledger_wasm, lp_encoded, None);
     println!("LP Ledger canister: {}", lp_ledger_canister);
 
-    let args = InitArgs {
-        token_symbol: String::from("CKETH"),
-        token_name: String::from("CKETH"),
+    // ------------------------
+    // CKETH Init
+    let cketh_args = InitArgs {
+        token_symbol: "CKETH".to_string(),
+        token_name: "CKETH".to_string(),
         transfer_fee: Nat::from(100u64),
         metadata: vec![],
         minting_account: Account {
             owner: backend_canister,
             subaccount: None,
         },
-        initial_balances: vec![(
-            Account {
-                owner: get_user_principal(),
-                subaccount: None,
-            },
-            Nat::from(10_000_000_000u64),
-        )],
+        initial_balances: generate_balances(10_000_000_000),
         archive_options: ArchiveOptions {
             num_blocks_to_archive: 1000,
             max_transactions_per_response: None,
@@ -156,11 +181,8 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
         },
         feature_flags: Some(FeatureFlags { icrc2: true }),
     };
-
-    let args_encoded =
-        encode_args((LedgerArgument::Init(args),)).expect("Failed to encode arguments");
-
-    pic.install_canister(cketh_canister, cketh_wasm, args_encoded, None);
+    let cketh_encoded = encode_args((LedgerArgument::Init(cketh_args),)).expect("encode failed");
+    pic.install_canister(cketh_canister, cketh_wasm, cketh_encoded, None);
     println!("CKETH canister: {}", cketh_canister);
 
     (
@@ -169,6 +191,7 @@ fn setup() -> (PocketIc, Principal, Principal, Principal, Principal) {
         ckbtc_canister,
         lp_ledger_canister,
         cketh_canister,
+        random_users,
     )
 }
 
@@ -177,7 +200,8 @@ fn test_create_pools(
     backend_canister: Principal,
     ckbtc_canister: Principal,
     cketh_canister: Principal,
-    lp_ledger_canister: Principal
+    lp_ledger_canister: Principal,
+    random_users: Vec<Principal>,
 ) {
     #[derive(Debug, Clone, CandidType, Deserialize)]
     struct CreatePoolParams {
@@ -207,15 +231,15 @@ fn test_create_pools(
             pool_data: vec![
                 CreatePoolParams {
                     token_name: "ckbtc".to_string(),
-                    balance: Nat::from(100_000_00u128),
+                    balance: Nat::from(100_000u128),
                     weight: Nat::from(50u128),
-                    value: Nat::from(100u128),
+                    value: Nat::from(2000u128),
                     ledger_canister_id: ckbtc_canister,
                     image: "btc.png".to_string(),
                 },
                 CreatePoolParams {
                     token_name: "cketh".to_string(),
-                    balance: Nat::from(200_000_00u128),
+                    balance: Nat::from(2_000_000u128),
                     weight: Nat::from(50u128),
                     value: Nat::from(100u128),
                     ledger_canister_id: cketh_canister,
@@ -226,13 +250,39 @@ fn test_create_pools(
         },
         expect_success: true,
         expected_error_message: None,
-    }];
+    },
+    // ✅ Different weights, non-zero valid values
+    TestCase {
+        pool_data: PoolData {
+            pool_data: vec![
+                CreatePoolParams {
+                    token_name: "btc".to_string(),
+                    balance: Nat::from(90_000u128),
+                    weight: Nat::from(30u128),
+                    value: Nat::from(500_000u128),
+                    ledger_canister_id: ckbtc_canister,
+                    image: "btc_icon.png".to_string(),
+                },
+                CreatePoolParams {
+                    token_name: "eth".to_string(),
+                    balance: Nat::from(700_000u128),
+                    weight: Nat::from(70u128),
+                    value: Nat::from(150_000u128),
+                    ledger_canister_id: cketh_canister,
+                    image: "eth_icon.png".to_string(),
+                },
+            ],
+            swap_fee: Nat::from(2u128),
+        },
+        expect_success: true,
+        expected_error_message: None,
+    }
+    ];
 
-    let hardcoded_principal = get_user_principal();
     set_canister_id(
         &pic,
         backend_canister,
-        "LP_LEDGER_ADDRESS",
+        "lp_ledger".to_string(),
         lp_ledger_canister,
     );
 
@@ -243,48 +293,56 @@ fn test_create_pools(
     for (i, case) in test_cases.iter().enumerate() {
         let mut msg_ids = Vec::new();
 
-        for attempt in 0..5 {
-            ic_cdk::println!("\n============================================================");
-            ic_cdk::println!("🔁 Attempt {} for Test Case {}", attempt + 1, i + 1);
-            ic_cdk::println!("============================================================");
+        ic_cdk::println!("\n============================================================");
+        ic_cdk::println!("🔁 IC Test Case {}: Executing create_pools request", i + 1,);
+
+        for (j, pool) in case.pool_data.pool_data.iter().enumerate() {
+            let contribution = pool.balance.clone() * pool.value.clone();
+
+            ic_cdk::println!("  🧪 Pool {} Details:", j + 1);
+            ic_cdk::println!("    ▸ Token Name      : {}", pool.token_name);
+            ic_cdk::println!("    ▸ Balance         : {}", pool.balance);
+            ic_cdk::println!("    ▸ Weight          : {}%", pool.weight);
+            ic_cdk::println!("    ▸ Value           : {}", pool.value);
+            ic_cdk::println!("    ▸ Contribution    : {}", contribution);
+            ic_cdk::println!("    ▸ Ledger Canister : {}", pool.ledger_canister_id);
+            ic_cdk::println!("    ▸ Image           : {}", pool.image);
+            ic_cdk::println!("\n------------------------------------------------------------\n");
+        }
+
+        ic_cdk::println!("  ⚖ Swap Fee          : {}", case.pool_data.swap_fee);
+        ic_cdk::println!("  ✅ Expect Success    : {}", case.expect_success);
+        if let Some(err) = &case.expected_error_message {
+            ic_cdk::println!("  ❗ Expected Error    : {}", err);
+        }
+        ic_cdk::println!("\n------------------------------------------------------------\n");
+
+        for user_principal in &random_users {
+            let user = user_principal;
 
             for (j, pool) in case.pool_data.pool_data.iter().enumerate() {
-                ic_cdk::println!("  🧪 Pool {} Details:", j + 1);
-                ic_cdk::println!("    ▸ Token Name      : {}", pool.token_name);
-                ic_cdk::println!("    ▸ Balance         : {}", pool.balance);
-                ic_cdk::println!("    ▸ Weight          : {}", pool.weight);
-                ic_cdk::println!("    ▸ Value           : {}", pool.value);
-                ic_cdk::println!("    ▸ Ledger Canister : {}", pool.ledger_canister_id);
-                ic_cdk::println!("    ▸ Image           : {}", pool.image);
-
-                icrc2_approve(pic, backend_canister, pool.ledger_canister_id);
+                icrc2_approve(pic, backend_canister, pool.ledger_canister_id, *user);
             }
-
-            ic_cdk::println!("  ⚖ Swap Fee          : {}", case.pool_data.swap_fee);
-            ic_cdk::println!("  ✅ Expect Success    : {}", case.expect_success);
-            if let Some(err) = &case.expected_error_message {
-                ic_cdk::println!("  ❗ Expected Error    : {}", err);
-            }
+            ic_cdk::println!("\n------------------------------------------------------------\n");
 
             let encoded_args = candid::encode_args((&case.pool_data,)).unwrap();
             let msg_id = pic
                 .submit_call(
                     backend_canister,
-                    hardcoded_principal,
+                    *user,
                     "create_pools",
                     encoded_args.clone(),
                 )
                 .unwrap();
 
-            msg_ids.push(msg_id);
+            msg_ids.push((msg_id, user));
         }
 
-        // Collect and evaluate responses
-        for (idx, msg_id) in msg_ids.into_iter().enumerate() {
+        for (idx, (msg_id, user)) in msg_ids.into_iter().enumerate() {
             let response = pic.await_call(msg_id).unwrap();
 
-            ic_cdk::println!("\n📨 Response for Attempt {}:", idx + 1);
-            ic_cdk::println!("Response: {:?}", response);
+            // ic_cdk::println!("\n📨 Response for Attempt {} by User: {}", idx + 1, user.to_text());
+            // ic_cdk::println!("Response: {:?}", response);
 
             match response {
                 WasmResult::Reply(data) => {
@@ -293,44 +351,51 @@ fn test_create_pools(
                     if case.expect_success {
                         assert!(
                             result.is_ok(),
-                            "❌ Attempt {} failed: Expected success, got error: {:?}",
+                            "❌ Attempt {} failed (User: {}): Expected success, got error: {:?}",
                             idx + 1,
+                            user.to_text(),
                             result.unwrap_err()
                         );
                         ic_cdk::println!(
-                            "✅ Attempt {} passed! Pool created successfully.",
-                            idx + 1
+                            "✅ Attempt {} passed! Pool created successfully by User: {}.",
+                            idx + 1,
+                            user.to_text()
                         );
                     } else {
                         assert!(
                             result.is_err(),
-                            "❌ Attempt {} failed: Expected error, but got success.",
-                            idx + 1
+                            "❌ Attempt {} failed (User: {}): Expected error, but got success.",
+                            idx + 1,
+                            user.to_text()
                         );
                         ic_cdk::println!(
-                            "✅ Attempt {} passed as expected: {:?}",
+                            "✅ Attempt {} passed as expected: {:?} (User: {})",
                             idx + 1,
-                            result.unwrap_err()
+                            result.unwrap_err(),
+                            user.to_text()
                         );
                     }
                 }
                 WasmResult::Reject(message) => {
                     if case.expect_success {
                         ic_cdk::println!(
-                            "❌ Attempt {} failed: Unexpected rejection: {}",
+                            "❌ Attempt {} failed: Unexpected rejection: {} (User: {})",
                             idx + 1,
-                            message
+                            message,
+                            user
                         );
                     } else {
                         ic_cdk::println!(
-                            "✅ Attempt {} passed! Rejected as expected: {}",
+                            "✅ Attempt {} passed! Rejected as expected: {} (User: {})",
                             idx + 1,
-                            message
+                            message,
+                            user
                         );
                     }
                 }
             }
         }
+        ic_cdk::println!("\n============================================================\n");
     }
 
     ic_cdk::println!(
@@ -344,6 +409,7 @@ fn test_burn_lp_tokens(
     ckbtc_canister: Principal,
     lp_ledger_canister: Principal,
     cketh_canister: Principal,
+    random_users: Vec<Principal>,
 ) {
     #[derive(Debug, Clone)]
     struct TestCase {
@@ -361,15 +427,15 @@ fn test_burn_lp_tokens(
                 pool_data: vec![
                     CreatePoolParams {
                         token_name: "ckbtc".to_string(),
-                        balance: Nat::from(100_000_00u128),
+                        balance: Nat::from(100_000u128),
                         weight: Nat::from(50u128),
-                        value: Nat::from(100u128),
+                        value: Nat::from(2000u128),
                         ledger_canister_id: ckbtc_canister,
                         image: "btc.png".to_string(),
                     },
                     CreatePoolParams {
                         token_name: "cketh".to_string(),
-                        balance: Nat::from(200_000_00u128),
+                        balance: Nat::from(2_000_000u128),
                         weight: Nat::from(50u128),
                         value: Nat::from(100u128),
                         ledger_canister_id: cketh_canister,
@@ -383,127 +449,32 @@ fn test_burn_lp_tokens(
             expect_success: true,
             expected_error_message: None,
         },
-        // ✅ Valid burn with different amount
-        // TestCase {
-        //     pool_data: Pool_Data {
-        //        pool_data: vec![
-        //             CreatePoolParams {
-        //                 token_name: "btc-heavy".to_string(),
-        //                 balance: Nat::from(300_000u128),
-        //                 weight: Nat::from(70u128),
-        //                 value: Nat::from(150u128),
-        //                 ledger_canister_id: ckbtc_canister,
-        //                 image: "btc-heavy.png".to_string(),
-        //             },
-        //             CreatePoolParams {
-        //                 token_name: "eth-light".to_string(),
-        //                 balance: Nat::from(100_000u128),
-        //                 weight: Nat::from(30u128),
-        //                 value: Nat::from(90u128),
-        //                 ledger_canister_id: cketh_canister,
-        //                 image: "eth-light.png".to_string(),
-        //             },
-        //         ],
-        //         swap_fee: Nat::from(2u128),
-        //     },
-        //     pool_name: "btc-heavyeth-light".to_string(),
-        //     amount_to_burn: Nat::from(500u64),
-        //     expect_success: true,
-        //     expected_error_message: None,
-        // },
-        // ❌ Invalid: amount_to_burn = 0
-        TestCase {
-            pool_data: Pool_Data {
-                pool_data: vec![
-                    CreatePoolParams {
-                        token_name: "zero-val".to_string(),
-                        balance: Nat::from(150_000_000u128),
-                        weight: Nat::from(50u128),
-                        value: Nat::from(0u128),
-                        ledger_canister_id: ckbtc_canister,
-                        image: "zero.png".to_string(),
-                    },
-                    CreatePoolParams {
-                        token_name: "valid-val".to_string(),
-                        balance: Nat::from(200_000_000u128),
-                        weight: Nat::from(50u128),
-                        value: Nat::from(120u128),
-                        ledger_canister_id: cketh_canister,
-                        image: "valid.png".to_string(),
-                    },
-                ],
-                swap_fee: Nat::from(1u128),
-            },
-            pool_name: "zero-valvalid-val".to_string(),
-            amount_to_burn: Nat::from(0u64),
-            expect_success: false,
-            expected_error_message: Some("Amount to burn must be greater than zero.".to_string()),
-        },
-        // ❌ Invalid: pool does not exist
-        TestCase {
-            pool_data: Pool_Data {
-                pool_data: vec![], // Empty pool_data
-                swap_fee: Nat::from(2u128),
-            },
-            pool_name: "NonExistentPool".to_string(),
-            amount_to_burn: Nat::from(10u64),
-            expect_success: false,
-            expected_error_message: Some("Pool not found.".to_string()),
-        },
-        // ❌ Invalid: insufficient LP token balance
-        TestCase {
-            pool_data: Pool_Data {
-                pool_data: vec![
-                    CreatePoolParams {
-                        token_name: "zero-weight".to_string(),
-                        balance: Nat::from(200_000_000u128),
-                        weight: Nat::from(0u128),
-                        value: Nat::from(100u128),
-                        ledger_canister_id: ckbtc_canister,
-                        image: "zero-weight.png".to_string(),
-                    },
-                    CreatePoolParams {
-                        token_name: "valid-weight".to_string(),
-                        balance: Nat::from(150_000_000u128),
-                        weight: Nat::from(100u128),
-                        value: Nat::from(90u128),
-                        ledger_canister_id: cketh_canister,
-                        image: "valid-weight.png".to_string(),
-                    },
-                ],
-                swap_fee: Nat::from(2u128),
-            },
-            pool_name: "zero-weightvalid-weight".to_string(),
-            amount_to_burn: Nat::from(10_000u64),
-            expect_success: false,
-            expected_error_message: Some("Insufficient LP token balance.".to_string()),
-        },
     ];
-
-    let user = get_user_principal();
 
     ic_cdk::println!(
         "\n======================== Starting IC Burn Lp tokens Tests ========================\n"
     );
 
     for (i, case) in test_cases.iter().enumerate() {
+        let mut msg_ids: Vec<(pocket_ic::common::rest::RawMessageId, &Principal)> = Vec::new();
         ic_cdk::println!("\n============================================================");
         ic_cdk::println!(
             "🔥 IC Test Case {}: Executing burn_lp_tokens request",
             i + 1
         );
-        ic_cdk::println!("============================================================");
         for (j, pool) in case.pool_data.pool_data.iter().enumerate() {
+            let contribution = pool.balance.clone() * pool.value.clone();
+
             ic_cdk::println!("  🧪 Pool {} Details:", j + 1);
             ic_cdk::println!("    ▸ Token Name      : {}", pool.token_name);
             ic_cdk::println!("    ▸ Balance         : {}", pool.balance);
             ic_cdk::println!("    ▸ Weight          : {}", pool.weight);
             ic_cdk::println!("    ▸ Value           : {}", pool.value);
+            ic_cdk::println!("    ▸ Contribution    : {}", contribution);
             ic_cdk::println!("    ▸ Ledger Canister : {}", pool.ledger_canister_id);
             ic_cdk::println!("    ▸ Image           : {}", pool.image);
+            ic_cdk::println!("\n------------------------------------------------------------\n");
         }
-
-        ic_cdk::println!("\n------------------------------------------------------------\n");
 
         ic_cdk::println!("  ⚖ Swap Fee              : {}", case.pool_data.swap_fee);
         ic_cdk::println!("  💠 Pool Name            : {}", case.pool_name);
@@ -514,154 +485,205 @@ fn test_burn_lp_tokens(
         }
         ic_cdk::println!("------------------------------------------------------------\n");
 
-        // Approve LP tokens before burning
-        icrc2_approve(pic, backend_canister, lp_ledger_canister);
-
-        let encoded_args = candid::encode_args((
-            case.pool_data.clone(),
-            case.pool_name.clone(),
-            case.amount_to_burn.clone(),
-            lp_ledger_canister,
-        ))
-        .unwrap();
-
-        let response = pic
-            .update_call(backend_canister, user, "burn_lp_tokens", encoded_args)
+        for user_principal in &random_users {
+            for (j, pool) in case.pool_data.pool_data.iter().enumerate() {
+                icrc2_approve(pic, backend_canister, lp_ledger_canister, *user_principal);
+            }
+            let encoded_args = candid::encode_args((
+                case.pool_data.clone(),
+                case.pool_name.clone(),
+                case.amount_to_burn.clone(),
+                lp_ledger_canister,
+            ))
             .unwrap();
 
-        match response {
-            WasmResult::Reply(data) => {
-                let result: Result<(), String> = candid::decode_one(&data).unwrap();
+            let msg_id = pic
+                .submit_call(
+                    backend_canister,
+                    *user_principal,
+                    "burn_lp_tokens",
+                    encoded_args,
+                )
+                .unwrap();
+            msg_ids.push((msg_id, user_principal));
+        }
 
-                if case.expect_success {
-                    assert!(
-                        result.is_ok(),
-                        "❌ Test {} failed: Expected success but got error: {:?}",
-                        i + 1,
-                        result.unwrap_err()
-                    );
-                    ic_cdk::println!("✅ Test {} passed! LP tokens successfully burned.", i + 1);
-                } else {
-                    assert!(
-                        result.is_err(),
-                        "❌ Test {} failed: Expected error but got success.",
-                        i + 1
-                    );
-                    ic_cdk::println!("✅ Test {} passed! Error: {:?}", i + 1, result.unwrap_err());
+        ic_cdk::println!("\n------------------------------------------------------------\n");
+
+        for (idx, (msg_id, user)) in msg_ids.into_iter().enumerate() {
+            let response = pic.await_call(msg_id).unwrap();
+            match response {
+                WasmResult::Reply(data) => {
+                    let result: Result<(), String> = candid::decode_one(&data).unwrap();
+
+                    if case.expect_success {
+                        assert!(
+                            result.is_ok(),
+                            "❌ Test {} failed: Expected success but got error: {:?}",
+                            i + 1,
+                            result.unwrap_err()
+                        );
+                        ic_cdk::println!(
+                            "✅ Test {} passed! LP tokens successfully burned.",
+                            i + 1
+                        );
+                    } else {
+                        assert!(
+                            result.is_err(),
+                            "❌ Test {} failed: Expected error but got success.",
+                            i + 1
+                        );
+                        ic_cdk::println!(
+                            "✅ Test {} passed! Error: {:?}",
+                            i + 1,
+                            result.unwrap_err()
+                        );
+                    }
                 }
-            }
-            WasmResult::Reject(msg) => {
-                if case.expect_success {
-                    ic_cdk::println!("❌ Test {} failed: Unexpected rejection: {}", i + 1, msg);
-                } else {
-                    ic_cdk::println!("✅ Test {} passed! Rejected as expected: {}", i + 1, msg);
+                WasmResult::Reject(msg) => {
+                    if case.expect_success {
+                        ic_cdk::println!("❌ Test {} failed: Unexpected rejection: {}", i + 1, msg);
+                    } else {
+                        ic_cdk::println!("✅ Test {} passed! Rejected as expected: {}", i + 1, msg);
+                    }
                 }
             }
         }
+        ic_cdk::println!("\n============================================================\n");
     }
     ic_cdk::println!(
         "\n======================== IC Burn Lp Tokens Tests Completed ========================\n"
     );
 }
 
-fn test_swap(
+pub fn test_swap(
     pic: &PocketIc,
     backend_canister: Principal,
     ckbtc_canister: Principal,
     cketh_canister: Principal,
+    random_users: Vec<Principal>,
 ) {
-    let test_cases = vec![
-        (
-            "Invalid case: same token names",
-            SwapParams {
-                token1_name: "ckbtc".to_string(),
-                token_amount: Nat::from(1000u128),
-                token2_name: "ckbtc".to_string(), // Invalid: same token
-                ledger_canister_id1: ckbtc_canister,
-                ledger_canister_id2: ckbtc_canister,
-                fee: Nat::from(5u64),
-            },
-        ),
-        (
-            "Invalid case: fee exceeds amount",
-            SwapParams {
-                token1_name: "ckbtc".to_string(),
-                token_amount: Nat::from(100u128),
-                token2_name: "cketh".to_string(),
-                ledger_canister_id1: ckbtc_canister,
-                ledger_canister_id2: cketh_canister,
-                fee: Nat::from(200u64), // Invalid: fee > amount
-            },
-        ),
-        (
-            "Valid case: correct swap parameters",
-            SwapParams {
-                token1_name: "ckbtc".to_string(),
-                token_amount: Nat::from(1000u128),
-                token2_name: "cketh".to_string(),
-                ledger_canister_id1: ckbtc_canister,
-                ledger_canister_id2: cketh_canister,
-                fee: Nat::from(5u64),
-            },
-        ),
-    ];
+    let test_cases = vec![SwapTestCase {
+        expect_success: true,
+        expected_error_message: None,
+        params: SwapParams {
+            token1_name: "ckbtc".to_string(),
+            token_amount: Nat::from(1000u128),
+            token2_name: "cketh".to_string(),
+            ledger_canister_id1: ckbtc_canister,
+            ledger_canister_id2: cketh_canister,
+            fee: Nat::from(3u64),
+        },
+    }];
 
-    ic_cdk::println!(
-        "\n======================== 🔁 Starting Swap Tests ========================\n"
-    );
+    println!("\n======================== 🔁 Starting Swap Tests ========================\n");
 
-    for (i, (description, swap_params)) in test_cases.iter().enumerate() {
-        ic_cdk::println!("------------------------------------------------------------");
-        ic_cdk::println!("🔵 Test Case {}: {}", i + 1, description);
-        ic_cdk::println!("------------------------------------------------------------");
-        ic_cdk::println!("📦 Swap Parameters:");
-        ic_cdk::println!("    ▸ Token 1 Name     : {}", swap_params.token1_name);
-        ic_cdk::println!("    ▸ Token 2 Name     : {}", swap_params.token2_name);
-        ic_cdk::println!("    ▸ Token Amount     : {}", swap_params.token_amount);
-        ic_cdk::println!("    ▸ Fee              : {}", swap_params.fee);
-        ic_cdk::println!(
+    for (i, case) in test_cases.iter().enumerate() {
+        println!("\n============================================================");
+        println!("🔵 Test Case {}: Executing swap function ", i + 1);
+
+        println!("📦 Swap Parameters:");
+        println!("    ▸ Token 1 Name     : {}", case.params.token1_name);
+        println!("    ▸ Token 2 Name     : {}", case.params.token2_name);
+        println!("    ▸ Token Amount     : {}", case.params.token_amount);
+        println!("    ▸ Fee              : {}", case.params.fee);
+        println!(
             "    ▸ Ledger Canister1 : {}",
-            swap_params.ledger_canister_id1
+            case.params.ledger_canister_id1
         );
-        ic_cdk::println!(
+        println!(
             "    ▸ Ledger Canister2 : {}",
-            swap_params.ledger_canister_id2
+            case.params.ledger_canister_id2
         );
 
-        let encoded_args = candid::encode_args((swap_params.clone(),)).unwrap();
+        println!("\n------------------------------------------------------------\n");
 
-        let response = pic
-            .update_call(
+        for user_principal in &random_users {
+            // Approve on both ledgers
+            icrc2_approve(
+                pic,
                 backend_canister,
-                get_user_principal(),
-                "compute_swap",
-                encoded_args,
-            )
-            .unwrap();
+                case.params.ledger_canister_id1,
+                *user_principal,
+            );
+            icrc2_approve(
+                pic,
+                backend_canister,
+                case.params.ledger_canister_id2,
+                *user_principal,
+            );
 
-        match response {
-            WasmResult::Reply(data) => {
-                let result: Result<(), CustomError> = candid::decode_one(&data).unwrap();
-                if result.is_ok() {
-                    ic_cdk::println!("✅ Swap succeeded for '{}'", description);
-                } else {
-                    ic_cdk::println!("❌ Swap returned error for '{}': {:?}", description, result);
+            println!(
+                "🔐 Approved backend for both tokens for user: {}",
+                user_principal
+            );
+
+            let encoded_args = candid::encode_args((case.params.clone(),)).unwrap();
+
+            let msg_id = pic
+                .submit_call(
+                    backend_canister,
+                    *user_principal,
+                    "compute_swap",
+                    encoded_args,
+                )
+                .unwrap();
+
+            let response = pic.await_call(msg_id);
+
+            match response {
+                Ok(WasmResult::Reply(data)) => {
+                    let result: Result<(), CustomError> = candid::decode_one(&data).unwrap();
+
+                    if case.expect_success {
+                        assert!(
+                            result.is_ok(),
+                            "❌ Test {} failed: Expected success, got error: {:?}",
+                            i + 1,
+                            result.unwrap_err()
+                        );
+                        println!("✅ Test {} passed! Swap executed successfully.", i + 1);
+                    } else {
+                        assert!(
+                            result.is_err(),
+                            "❌ Test {} failed: Expected rejection, but swap succeeded.",
+                            i + 1
+                        );
+                        let expected_msg = case.expected_error_message.as_ref().unwrap();
+                        println!(
+                            "✅ Test {} passed! Swap failed as expected with message: {}",
+                            i + 1,
+                            expected_msg
+                        );
+                    }
+                }
+                Ok(WasmResult::Reject(message)) => {
+                    if case.expect_success {
+                        println!(
+                            "❌ Test {} failed: Unexpected rejection occurred: {}",
+                            i + 1,
+                            message
+                        );
+                    } else {
+                        println!(
+                            "✅ Test {} passed! Swap call rejected as expected. Reason: {}",
+                            i + 1,
+                            message
+                        );
+                    }
+                }
+                Err(err) => {
+                    println!("❌ Test {} failed due to error: {}", i + 1, err);
                 }
             }
-            WasmResult::Reject(message) => {
-                ic_cdk::println!(
-                    "❌ Swap call rejected for '{}'. Reason: {}",
-                    description,
-                    message
-                );
-            }
+
+            println!("\n------------------------------------------------------------\n");
         }
-        ic_cdk::println!("✅ Finished test case {}\n", i + 1);
+
+        println!("\n============================================================\n");
     }
 
-    ic_cdk::println!(
-        "\n======================== ✅ All Swap Tests Completed ========================\n"
-    );
+    println!("\n======================== ✅ All Swap Tests Completed ========================\n");
 }
 
 fn test_get_user_share_ratio(
@@ -700,7 +722,7 @@ fn test_get_user_share_ratio(
             pool_data: vec![
                 CreatePoolParams {
                     token_name: "ckbtc".to_string(),
-                    balance: Nat::from(100_000u128),
+                    balance: Nat::from(200_000_000u128),
                     weight: Nat::from(50u128),
                     value: Nat::from(100u128),
                     ledger_canister_id: ckbtc_canister,
@@ -708,7 +730,7 @@ fn test_get_user_share_ratio(
                 },
                 CreatePoolParams {
                     token_name: "cketh".to_string(),
-                    balance: Nat::from(200_000u128),
+                    balance: Nat::from(200_000_000u128),
                     weight: Nat::from(50u128),
                     value: Nat::from(100u128),
                     ledger_canister_id: cketh_canister,
@@ -718,7 +740,7 @@ fn test_get_user_share_ratio(
             swap_fee: Nat::from(3u128),
         },
         pool_name: "ckbtccketh".to_string(),
-        amount: Nat::from(100u128),
+        amount: Nat::from(300_000u128),
         expect_success: true,
         expected_error_message: None,
     }];

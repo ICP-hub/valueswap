@@ -117,6 +117,8 @@ pub fn release_lock(key: &Principal) -> Result<(), CustomError> {
 
     Ok(())
 }
+
+/// Retrieves the canister ID associated with the given name, or returns an error.
 #[query]
 pub fn get_canister_id_by_name(name: String) -> Result<Principal, String> {
     CANISTER_ID.with(|id_map| {

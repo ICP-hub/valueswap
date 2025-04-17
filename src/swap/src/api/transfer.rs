@@ -184,6 +184,12 @@ pub async fn icrc1_transfer(
 
     ic_cdk::println!("✅ Fetched transaction fee: {}", fee);
 
+    if amount < fee {
+        return Err(format!(
+            "Transfer amount {} is less than the transaction fee {}",
+            amount, fee
+        ));
+    }
     // Deduct the transaction fee
     amount -= fee;
     ic_cdk::println!("updated amount {}", amount);
