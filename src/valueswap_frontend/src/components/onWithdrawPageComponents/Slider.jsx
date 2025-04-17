@@ -1,32 +1,20 @@
 import { useCallback, useEffect, useState } from "react"
 import BorderGradientButton from "../../buttons/BorderGradientButton"
 import { useAuthClient } from "../utils/useAuthClient"
-
 const SLIDE_OPTIONS = [25, 50, 75, 100]
+const STEPS = 25
 
-const Slider = ({poolData}) => {
-    const [value, setValue] = useState(SLIDE_OPTIONS[0])
-    const {backendActor} = useAuthClient()
-
-    const getUserShareRatio = useCallback(async()=>{
-        console.log("poolData", {
-            poolData : poolData[0],
-            name : "ckbtccketh",
-            amount : 1.0
-        })
-        try{
-            const response = await backendActor.get_user_share_ratio(poolData[0],"ckbtccketh", 1.0)
-            console.log("response", response)
-        }catch(err){    
-            console.error("Error getting user share ratio", err)
-        }finally{
-            console.log("done getting user share ratio")
-        }
-    },[poolData, backendActor])
+const Slider = ({poolData, handleChange}) => {
+    const [value, setValue] = useState(0)
 
     useEffect(()=>{
-        getUserShareRatio()
-    },[value])
+        setValue(SLIDE_OPTIONS[0])
+    },[])
+
+    const handleSliderChange = (event)=>{
+        const newValue = event.target.value;
+        handleChange(newValue);
+    }
 
     return (
         <div className="font-cabin flex flex-col space-y-4 backdrop-blur-[32px]">
@@ -35,7 +23,10 @@ const Slider = ({poolData}) => {
                 {
                     SLIDE_OPTIONS.map((option, idx) => (
                             <button
-                                onClick={() => setValue(option)}
+                                onClick={() => {
+                                    setValue(option)
+                                    handleChange(option)
+                                }}
                                 aria-pressed={value === option}
                                 type="button"
                                 key={option}
@@ -55,7 +46,7 @@ const Slider = ({poolData}) => {
                 }
             </div>
             <div className="w-full">
-                <input type="range" value={value} onChange={(e) => setValue(e.target.value)} min={25} step={25} max={100} name="value"
+                <input type="range" value={value} onChange={handleSliderChange} min={SLIDE_OPTIONS[0]} step={STEPS} max={SLIDE_OPTIONS[3]} name="value"
                     className="accent-orange-500 w-full"
                 />
             </div>
