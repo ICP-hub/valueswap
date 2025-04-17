@@ -1,70 +1,70 @@
-import React from 'react'
-import { LandingPageData } from '../../TextData'
-import GradientButton from '../../buttons/GradientButton'
-import BorderGradientButton from '../../buttons/BorderGradientButton'
-import { useNavigate } from 'react-router-dom'
-import ParticlesBackground from '../particles/Particles'
-import { useSelector } from 'react-redux'
-import { useAuths } from '../utils/useAuthClient'
-import { Login } from '@mui/icons-material'
+import React from "react";
+import { LandingPageData } from "../../TextData";
+import GradientButton from "../../buttons/GradientButton";
+import BorderGradientButton from "../../buttons/BorderGradientButton";
+import { useNavigate } from "react-router-dom";
+import ParticlesBackground from "../particles/Particles";
+import { useSelector } from "react-redux";
+import { useAuths } from "../utils/useAuthClient";
+import { Login } from "@mui/icons-material";
 const Hero = ({ setClickConnectWallet }) => {
+  const navigate = useNavigate();
+  // const {isConnected} = useSelector(state => state.wallet)
+  const { isAuthenticated, logout, login } = useAuths();
 
-    const navigate = useNavigate();
-    // const {isConnected} = useSelector(state => state.wallet)
-    const {isAuthenticated, logout,login}   = useAuths()
+  return (
+    <div
+      id="beng"
+      className=" flex flex-col justify-evenly relative  md:pt-28 "
+    >
+      {/* <ParticlesBackground /> */}
+      <div className=" items-center  text-center">
+        <div className="inline-block px-6 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg mb-8">
+          <div className="font-gilroy font-normal leading-5 text-sm">
+            {LandingPageData.HeroSection.BottomLine}
+          </div>
+        </div>
+        <div className="font-gilroy font-semibold md:text-6xl text-4xl pb-5 m-2 md:m-0">
+          <span>{LandingPageData.HeroSection.HeadLineWordOne}</span>
+          <div>
+            <i className="px-2 bg-gradient-to-r from-[#F2A851] via-[#8F7CFF] to-[#003EC6] text-transparent bg-clip-text">
+              {LandingPageData.HeroSection.HeadLineWordTwo}
+            </i>
+            <span> {LandingPageData.HeroSection.HeadLineWordThree}</span>
+          </div>
+        </div>
+        <span className="font-gilroy text-lg ">
+          {LandingPageData.HeroSection.Tagline}
+        </span>
 
-    return (
+        <div className="flex mt-5 gap-4 justify-center ">
+          <div
+            onClick={() => {
+              navigate("/valueswap/pool");
+            }}
+          >
+            <GradientButton CustomCss={`w-[120px] z-10`}>
+              {LandingPageData.HeroSection.ExploreButton}
+            </GradientButton>
+          </div>
+          <div
+            onClick={() => {
+              isAuthenticated ? logout() : login();
+            }}
+          >
+            <BorderGradientButton customCss={`bg-[#000711] z-10`}>
+              {isAuthenticated ? (
+                <div>{LandingPageData.HeroSection.DisconnectButton}</div>
+              ) : (
+                <div>{LandingPageData.HeroSection.ConnectButton}</div>
+              )}
+            </BorderGradientButton>
+          </div>
+        </div>
+      </div>
+      {/*  */}
 
-        <div id='beng' className=' flex flex-col justify-evenly relative pt-28'>
-            {/* <ParticlesBackground /> */}
-            <div className=' items-center  text-center'>
-                <div className='inline-block px-6 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-lg mb-8'>
-                    <div className='font-gilroy font-normal leading-5 text-sm'>
-                        {LandingPageData.HeroSection.BottomLine}
-                    </div>
-                </div>
-                <div className='font-gilroy font-semibold md:text-6xl text-4xl pb-5 m-2 md:m-0'>
-                    <span>
-                        {LandingPageData.HeroSection.HeadLineWordOne}
-                    </span>
-                    <div>
-                        <i className='px-2 bg-gradient-to-r from-[#F2A851] via-[#8F7CFF] to-[#003EC6] text-transparent bg-clip-text'>{LandingPageData.HeroSection.HeadLineWordTwo}</i>
-                        <span > {LandingPageData.HeroSection.HeadLineWordThree}</span>
-                    </div>
-                </div>
-                <span className='font-gilroy text-lg '>
-                    {LandingPageData.HeroSection.Tagline}
-                </span>
-
-                <div className='flex mt-5 gap-4 justify-center '>
-                    <div onClick={() => {
-                        navigate('/valueswap/pool')
-                    }}>
-                        <GradientButton CustomCss={`w-[120px] z-10`}>
-                            {LandingPageData.HeroSection.ExploreButton}
-                        </GradientButton>
-                    </div>
-                    <div onClick={() => {
-                     isAuthenticated ? logout() : login()
-                    }}>
-                        <BorderGradientButton customCss={`bg-[#000711] z-10`}>
-                            {isAuthenticated ? (
-                                <div>
-                                    {LandingPageData.HeroSection.DisconnectButton}
-                                </div>
-                            ) : (
-                                <div>
-                                    {LandingPageData.HeroSection.ConnectButton}
-                                </div>
-                            )}
-
-                        </BorderGradientButton>
-                    </div>
-                </div>
-            </div>
-            {/*  */}
-
-            {/* <div className='relative'>
+      {/* <div className='relative'>
                 <img src="/image/rectangle.png" alt="Main" className=' scale-[1.1356] w-[91vw] bg-cover backgroundHero' />
                 <div className='bg-gradient-radial from-[#C8C008] to-transparent w-[20%] h-[20vw] opacity-[1] absolute right-[78%] blur-[165px] top-[25%] rounded-2xl'></div>
                 <div className='bg-gradient-radial from-[#00308E] to-transparent w-[20%] h-[20vw] opacity-[1] absolute left-[78%] blur-[165px] top-[25%] rounded-2xl'></div>
@@ -79,12 +79,8 @@ const Hero = ({ setClickConnectWallet }) => {
                     </div>
                 </div>
             </div> */}
+    </div>
+  );
+};
 
-
-          
-        </div>
-
-    )
-}
-
-export default Hero
+export default Hero;
