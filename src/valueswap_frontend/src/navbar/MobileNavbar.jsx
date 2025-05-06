@@ -11,10 +11,10 @@ const options = [
     // { value: 'ethereum', label: 'Ethereum', img: '/src/assets/images/Network/Ethereum.png' },
     // { value: 'bitcoin', label: 'Bitcoin', img: 'images/Bitcoin.png' },
     // Add more options here
-];
+];   
 
 const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
-    const [activeLink, setActiveLink] = useState();
+    const [activeMobLink, setActiveMobLink] = useState();
     const [open, setOpen] = useState(false);
     const [Principal, setPrincipal] = useState()
     const [selectedOption, setSelectedOption] = useState(options[0]);
@@ -53,8 +53,9 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        setOpen(false)
         // This effect will run when the location changes
-        setActiveLink(location.pathname);
+        setActiveMobLink(location.pathname);
     }, [location]);
 
 
@@ -93,15 +94,15 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                     to={Link.LinkPath}
                                     className='text-white duration-500 hover:text-orange-500'
                                     onClick={() => {
-                                        setActiveLink(index)
+                                        setActiveMobLink(index)
                                         setOpen(!open)
 
                                     }}
                                 >
                                     <div  className='flex flex-col justify-center text-custom-size-14 sm:leading-10 md:text-xl  items-center'>
                                         {Link?.LinkName}
-                                        <div className={`${activeLink === index ? ' bg-[#F7931A] w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
-                                        <div className={`${activeLink === Link.LinkPath ? ' bg-[#F7931A] w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
+                                        <div className={`${activeMobLink === index ? ' bg-[#F7931A] w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
+                                        <div className={`${activeMobLink === Link.LinkPath ? ' bg-[#F7931A] w-full h-[1px] invisible md:visible' : 'w-1 h-[1px] invisible'}`}></div>
                                     </div>
                                 </RouterLink>
                             </li>
@@ -146,7 +147,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                                 to={Link.LinkPath}
                                                 className='text-white duration-500 '
                                                 onClick={() => {
-                                                    setActiveLink(index)
+                                                    setActiveMobLink(index)
                                                     setOpen(!open)
 
                                                 }}
@@ -154,7 +155,7 @@ const MobileNavbar = ({ NavbarData, setClickConnectWallet }) => {
                                                 <div  className='flex flex-col justify-center text-custom-size-14 sm:leading-10 md:text-xl  items-center  '>
                                                     {Link?.LinkName}
                                                     {/* <div className={ 'bg-[#F7931A] w-full h-[1px] invisible hover:visible' }></div> */}
-                                                    <div className={`${activeLink === Link.LinkPath ? ' bg-[#F7931A] w-full h-[1px] hover:invisible  invisible md:visible' : 'w-1 h-[1px] hover:invisible invisible'}`}></div>
+                                                    <div className={`${activeMobLink === Link.LinkPath ? ' bg-[#F7931A] w-full h-[1px] hover:invisible  invisible md:visible' : 'w-1 h-[1px] hover:invisible invisible'}`}></div>
                                                 </div>
                                             </RouterLink>
                                         </li>
