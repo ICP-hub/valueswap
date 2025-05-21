@@ -326,7 +326,12 @@ const AddLiquidity = () => {
       });
 
       console.log("Create Pool Response:", createPoolResponse);
-
+      if (
+        createPoolResponse?.Ok === null ||
+        createPoolResponse?.Ok === undefined
+      ) {
+        throw new Error("Failed to create pool or response was empty.");
+      }
       if (createPoolResponse?.Err) {
         throw new Error(JSON.stringify(createPoolResponse.Err));
       }

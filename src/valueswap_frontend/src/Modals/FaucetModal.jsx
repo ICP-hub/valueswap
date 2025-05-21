@@ -52,7 +52,7 @@ const FaucetModal = ({ setModelOpen, imgUrl, TokenName }) => {
 
     try {
       setLoading(true);
-      setError(""); 
+      setError("");
 
       const ledgerPrincipal = Principal.fromText(ledger_canister_id.CanisterId);
 
@@ -66,6 +66,7 @@ const FaucetModal = ({ setModelOpen, imgUrl, TokenName }) => {
 
       if (res?.Ok) {
         toast.success("Transfer Complete");
+        setModelOpen(false);
       } else {
         toast.error("Something went wrong. Try again.");
       }
