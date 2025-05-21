@@ -24,7 +24,7 @@ const Swap = () => {
   // States
   const [payCoin, setPayCoin] = useState(null)
   const [receiveCoin, setReceiveCoin] = useState(null)
-  const [coinAmount, setCoinAmount] = useState(0)
+  const [coinAmount, setCoinAmount] = useState(null)
   const [payCoinBalance, setPayCoinBalance] = useState(0)
   const [receiveCoinBalance, setReceiveCoinBalance] = useState(0)
   const [approvalSuccess, setApprovalSuccess] = useState(false)
